@@ -9,13 +9,13 @@ This was ported from the
 [lcd160cr-gui library](https://github.com/peterhinch/micropython-lcd160cr-gui).
 Like `nanogui.py` it uses synchronous code.
 
-Please excuse the photography: they look much better than in the pictures. In
-particular the effect at the top left corner is an artifact of my efforts at
+Please excuse the photography: these displays look **much** better than in my
+pictures. The effect at the top left corner is an artifact of my efforts at
 post processing.
 
 ![Image](images/cartesian.png) Classic Cartesian plot.  
 
-![Image](images/polar.png) Classic Cartesian plot.  
+![Image](images/polar.png) Classic polar plot.  
 
 ![Image](images/discont.png) Plot of discontinuous data.  
 
