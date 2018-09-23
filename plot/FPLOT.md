@@ -9,7 +9,13 @@ This was ported from the
 [lcd160cr-gui library](https://github.com/peterhinch/micropython-lcd160cr-gui).
 Like `nanogui.py` it uses synchronous code.
 
+Please excuse the photography: they look much better than in the pictures. In
+particular the effect at the top left corner is an artifact of my efforts at
+post processing.
+
 ![Image](images/cartesian.png) Classic Cartesian plot.  
+
+![Image](images/polar.png) Classic Cartesian plot.  
 
 ![Image](images/discont.png) Plot of discontinuous data.  
 
@@ -18,6 +24,8 @@ Like `nanogui.py` it uses synchronous code.
 ![Image](images/sine.png) Still from realtime simulation of reading and plotting data. 
 
 ![Image](images/rtpolar.png) Still from realtime simulation of acquisition of polar data.  
+
+![Image](images/bernoulli.png) The lemniscate of Bernoulli.  
 
 # Contents
 

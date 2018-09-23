@@ -5,14 +5,18 @@ currently for color and monochrome OLED displays. This is coincidental.
 These images don't do justice to the OLED displays which are visually
 impressive with bright colors and extreme contrast. For some reason they are
 quite hard to photograph.  
-![Image](images/IMG_2885.png)  
-One of the demos running on an Adafruit 1.27 inch OLED. The colors change
-dynamically with low values showing green, intermediate yellow and high red. In
-reality the colors are vivid: the right hand meter bar and LED are a brilliant
-yellow and the centre one is vivid green.
+![Image](images/clock.png) The aclock.py demo.  
 
-![Image](images/IMG_2887.png)  
-The Dial object.
+![Image](images/fonts.png) Label objects in two fonts.  
+
+![Image](images/meters.png)  
+One of the demos running on an Adafruit 1.27 inch OLED. The colors change
+dynamically with low values showing green, intermediate yellow and high red.  
+
+![Image](images/alevel.png)  
+The alevel.py demo. The Pyboard was mounted vertically: the length and angle
+of the vector arrow varies as the Pyboard is moved.
+
 
 There is an optional [graph plotting module](./plot/FPLOT.md) for basic
 Cartesian and polar plots, also realtime plotting including time series.
