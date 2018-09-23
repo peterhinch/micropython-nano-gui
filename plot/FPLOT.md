@@ -9,16 +9,15 @@ This was ported from the
 [lcd160cr-gui library](https://github.com/peterhinch/micropython-lcd160cr-gui).
 Like `nanogui.py` it uses synchronous code.
 
-![Image](images/cartesian.png) 
-Classic Cartesian plot.  
-![Image](images/discont.png)  
-Plot of discontinuous data.  
-![Image](images/lissajous.png)  
-A Lissajous figure.  
-![Image](images/sine.png)  
-Still from realtime simulation of reading and plotting data.  
-![Image](images/rpolar.png)  
-Still from realtime simulation of acquisition of polar data.  
+![Image](images/cartesian.png) Classic Cartesian plot.  
+
+![Image](images/discont.png) Plot of discontinuous data.  
+
+![Image](images/lissajous.png) A Lissajous figure.  
+
+![Image](images/sine.png) Still from realtime simulation of reading and plotting data. 
+
+![Image](images/rtpolar.png) Still from realtime simulation of acquisition of polar data.  
 
 # Contents
 
