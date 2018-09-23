@@ -52,6 +52,9 @@ class Curve():
         return oc
 
     def __init__(self, graph, color, populate=None, origin=(0, 0), excursion=(1, 1)):
+        if not isinstance(self, PolarCurve):  # Check not done in subclass
+            if isinstance(graph, PolarGraph) or not isinstance(graph, CartesianGraph):
+                raise ValueError('Curve must use a CartesianGraph instance.')
         self.graph = graph
         self.origin = origin
         self.excursion = excursion
@@ -123,6 +126,8 @@ class Curve():
 
 class PolarCurve(Curve): # Points are complex
     def __init__(self, graph, color, populate=None):
+        if not isinstance(graph, PolarGraph):
+            raise ValueError('PolarCurve must use a PolarGraph instance.')
         super().__init__(graph, color)
         if populate is not None and self._valid(populate):
             for z in populate:

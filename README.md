@@ -17,15 +17,13 @@ dynamically with low values showing green, intermediate yellow and high red.
 The alevel.py demo. The Pyboard was mounted vertically: the length and angle
 of the vector arrow varies as the Pyboard is moved.
 
-
 There is an optional [graph plotting module](./plot/FPLOT.md) for basic
 Cartesian and polar plots, also realtime plotting including time series.
 
+![Image](plot/images/sine.png) A sample image from the plot module.
+
 Notes on [Adafruit and other OLED displays](./drivers/ADAFRUIT.md) including
 wiring details, pin names and hardware issues.
-
-**NOTE** 20 Sep 2018 Under development. I am now reasonably happy with the API
-but I can't yet promise no changes. There may, of course, be bugs...
 
 # Contents
 
@@ -104,6 +102,11 @@ Sample fonts created by [font_to_py.py](https://github.com/peterhinch/micropytho
  * `courier20.py`
  * `font6.py`
  * `freesans20.py`
+
+Demo of the use of `nanogui` with `uasyncio`:  
+ * `asnano.py` Runs until the usr button is pressed.
+
+Requires [asyn.py](https://github.com/peterhinch/micropython-async/blob/master/asyn.py).
 
 ## 2.2 Dependencies
 
