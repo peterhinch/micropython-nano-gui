@@ -21,9 +21,11 @@ post processing.
 
 ![Image](images/lissajous.png) A Lissajous figure.  
 
-![Image](images/sine.png) Still from realtime simulation of reading and plotting data. 
+![Image](images/sine.png) Still from a simulation of plotting realtime data
+using the `TSequence` class. 
 
-![Image](images/rtpolar.png) Still from realtime simulation of acquisition of polar data.  
+![Image](images/rtpolar.png) Still from a simulation of realtime acquisition of
+two varying vectors.  
 
 ![Image](images/bernoulli.png) The lemniscate of Bernoulli.  
 
@@ -53,11 +55,15 @@ These are located in the `plot` directory.
  1. `fplot.py` The plot library
  2. `fpt.py` Test program. Usage examples.
 
+Before attempting to use this library please install and test the `nanogui`
+module on your hardware.
+
 # 2. Concepts
 
-Data for Cartesian graphs constitutes a set of x, y pairs, for polar graphs
-it is a set of complex `z` values. The module supports three common cases:  
- 1. The dataset is complete at the outset.
+Data for Cartesian graphs constitutes a sequence of x, y pairs, for polar
+graphs it is a sequence of complex `z` values. The module supports three
+common cases:  
+ 1. The dataset to be plotted is complete at the outset.
  2. Arbitrary data arrives gradually and needs to be plotted as it arrives.
  3. One or more `y` values arrive gradually. The `X` axis represents time. This
  is a simplifying case of 2.
@@ -86,8 +92,11 @@ via calls to the curve's `point` method.
 
 Graph objects are sized and positioned in terms of TFT screen pixel
 coordinates, with (0, 0) being the top left corner of the display, with x
-increasing to the right and y increasing downwards. The coordinate system
-within a graph conforms to normal mathematical conventions.
+increasing to the right and y increasing downwards. By `nanogui` convention
+a border, if specified, extends two pixels beyond the graph in each direction.
+If the graph is placed at [row, col] the top left hand corner of the border is
+at [row-2, col-2]. The coordinate system within a graph conforms to normal
+mathematical conventions.
 
 Scaling is provided on Cartesian curves enabling user defined ranges for x and
 y values. Points lying outside of the defined range will produce lines which
