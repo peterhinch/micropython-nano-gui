@@ -103,10 +103,7 @@ Sample fonts created by [font_to_py.py](https://github.com/peterhinch/micropytho
  * `font6.py`
  * `freesans20.py`
 
-Demo of the use of `nanogui` with `uasyncio`:  
- * `asnano.py` Runs until the usr button is pressed.
-
-Requires [asyn.py](https://github.com/peterhinch/micropython-async/blob/master/asyn.py).
+Demos showing the use of `nanogui` with `uasyncio` may be found [here](./async/ASYNC.md).
 
 ## 2.2 Dependencies
 

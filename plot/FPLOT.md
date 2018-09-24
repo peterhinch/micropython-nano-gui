@@ -10,8 +10,7 @@ This was ported from the
 Like `nanogui.py` it uses synchronous code.
 
 Please excuse the photography: these displays look **much** better than in my
-pictures. The effect at the top left corner is an artifact of my efforts at
-post processing.
+pictures.
 
 ![Image](images/cartesian.png) Classic Cartesian plot.  
 
