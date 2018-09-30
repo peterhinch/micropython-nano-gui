@@ -253,7 +253,7 @@ appended to its `TSequence` using the `add` method. See the example below.
 The constructor takes the following args:
 
 Mandatory arguments:
- 1. `graph` The `PolarGraph` instance.
+ 1. `graph` The `CartesianGraph` instance.
  2. `color`
  3. `size` Integer. The number of time samples to be plotted. See below.
 
