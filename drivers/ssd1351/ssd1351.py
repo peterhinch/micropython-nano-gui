@@ -61,7 +61,7 @@ def _lcopy(r0, r1, r2):  # r0 dest, r1 source, r2 no. of bytes
     strb(r3, [r0, 0])
     mov(r4, 0xe0)
     and_(r6, r4)
-    mov(r4, 2)
+    mov(r4, 3)
     lsr(r6, r4)
     strb(r6, [r0, 1])
     add(r0, 2)
