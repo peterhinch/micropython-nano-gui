@@ -113,8 +113,10 @@ class SSD1351(framebuf.FrameBuffer):
                 self._write(mvb[start : start + bw], 1)  # Send a line
         else:
             for l in range(128):
-                if l < 96:
+                if l < 64:
                     start = (63 -l) * self.width * 2  # 63 62 .. 1 0
+                elif l < 96:
+                    start = 0
                 else:
                     start = (191 - l) * self.width * 2  # 127 126 .. 95
                 self._write(mvb[start : start + bw], 1)  # Send a line
