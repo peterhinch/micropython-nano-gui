@@ -49,6 +49,11 @@
 import framebuf
 import utime
 import gc
+import sys
+# https://github.com/peterhinch/micropython-nano-gui/issues/2
+# The ESP32 does not work reliably in SPI mode 1,1. Waveforms look correct.
+# Keep 0,0 on STM as testing was done in that mode.
+_bs = 0 if sys.platform == 'esp32' else 1  # SPI bus state
 
 class SSD1331(framebuf.FrameBuffer):
     # Convert r, g, b in range 0-255 to a 16 bit colour value RGB565
@@ -80,7 +85,7 @@ class SSD1331(framebuf.FrameBuffer):
         self.show()
 
     def _write(self, buf, dc):
-        self.spi.init(baudrate=self.rate, polarity=1, phase=1)
+        self.spi.init(baudrate=self.rate, polarity=_bs, phase=_bs)
         self.pincs(1)
         self.pindc(dc)
         self.pincs(0)

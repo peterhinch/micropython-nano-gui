@@ -34,6 +34,11 @@ import utime
 import gc
 import micropython
 from uctypes import addressof
+import sys
+# https://github.com/peterhinch/micropython-nano-gui/issues/2
+# The ESP32 does not work reliably in SPI mode 1,1. Waveforms look correct.
+# Keep 0,0 on STM as testing was done in that mode.
+_bs = 0 if sys.platform == 'esp32' else 1  # SPI bus state
 
 # Initialisation commands in cmd_init:
 # 0xfd, 0x12, 0xfd, 0xb1,  # Unlock command mode
@@ -93,7 +98,7 @@ class SSD1351(framebuf.FrameBuffer):
         gc.collect()
 
     def _write(self, mv, dc):
-        self.spi.init(baudrate=self.rate, polarity=1, phase=1)
+        self.spi.init(baudrate=self.rate, polarity=_bs, phase=_bs)
         self.pincs(1)
         self.pindc(dc)
         self.pincs(0)

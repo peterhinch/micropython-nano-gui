@@ -36,6 +36,12 @@ import gc
 import micropython
 from uctypes import addressof
 
+import sys
+# https://github.com/peterhinch/micropython-nano-gui/issues/2
+# The ESP32 does not work reliably in SPI mode 1,1. Waveforms look correct.
+# Keep 0,0 on STM as testing was done in that mode.
+_bs = 0 if sys.platform == 'esp32' else 1  # SPI bus state
+
 # Timings with standard emitter
 # 1.86ms * 128 lines = 240ms. copy dominates: show() took 272ms
 # Buffer transfer time = 272-240 = 32ms which accords with expected:
@@ -108,7 +114,7 @@ class SSD1351(framebuf.FrameBuffer):
         self.show()
 
     def _write(self, buf, dc):
-        self.spi.init(baudrate=self.rate, polarity=1, phase=1)
+        self.spi.init(baudrate=self.rate, polarity=_bs, phase=_bs)
         self.pincs(1)
         self.pindc(dc)
         self.pincs(0)
