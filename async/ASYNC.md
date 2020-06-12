@@ -21,13 +21,16 @@ applications performing fast concurrent input over devices such as UARTs.
 
 # Demo scripts
 
+These require uasyncio V3. This is incorporated in daily builds and will be
+available in release builds starting with MicroPython V1.13. The demos assume
+a Pyboard.
+
  * `asnano.py` Runs until the usr button is pressed. In this demo each meter
  updates independently and mutually asynchronously to test the response to
  repeated display refreshes.
- * `asnano_sync.py` Provides a less hectic visual by only updating the display
- when all data has been acquired. Uses a `Barrier` object to achieve the
- necessary synchronisation.
-
-These demos require [asyn.py](https://github.com/peterhinch/micropython-async/blob/master/asyn.py).
+ * `asnano_sync.py` Provides a less hectic visual. Display objects update
+ themselves as data becomes available but screen updates occur asynchronously
+ at a low frequency. An asynchronous iterator is used to stop the demo when the
+ pyboard usr button is pressed.
 
 ###### [Main README](../README.md)
