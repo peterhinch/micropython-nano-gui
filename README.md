@@ -150,6 +150,9 @@ ssd.line(0, 0, 127, 95, ssd.rgb(0, 255, 0))  # Green diagonal corner-to-corner
 ssd.rect(0, 0, 15, 15, ssd.rgb(255, 0, 0))  # Red square at top left
 ssd.show()
 ```
+Color applications which do a lot of text rendering may achieve a speed gain by
+means of 
+[this optimisation](https://github.com/peterhinch/micropython-font-to-py/blob/master/writer/WRITER.md#224-a-performance-boost).
 
 ###### [Contents](./README.md#contents)
 
