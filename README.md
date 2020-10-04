@@ -454,9 +454,13 @@ def clock(ssd, wri):
 
 # 4. Device drivers
 
-For a driver to support `nanogui` it must be subclassed from `framebuf` and
-provide `height` and `width` bound variables defining the display size in
-pixels. This is all that is required for monochrome drivers.
+Device drivers capable of supporting `nanogui` can be extremely simple: see the
+`drivers/sharp/sharp.py` for a minimal example.
+
+For a driver to support `nanogui` it must be subclassed from
+`framebuf.FrameBuffer` and provide `height` and `width` bound variables being
+the display size in pixels. This, and a `show` method, are all that is required
+for monochrome drivers.
 
 For color drivers, to conserve RAM it is suggested that 8-bit color is used
 for the `framebuf`. If the hardware does not support this, conversion to the
@@ -472,11 +476,16 @@ form acceptable to the driver. For 8-bit rrrgggbb this can be:
 ```
 This should be amended if the hardware uses a different 8-bit format.
 
+Refresh must be handled by a `show` method taking no arguments; when called,
+the contents of the buffer underlying the `FrameBuffer` must be copied to the
+hardware.
+
 The `Writer` (monochrome) or `CWriter` (color) classes and the `nanogui` module
 should then work automatically.
 
 If a display uses I2C note that owing to
 [this issue](https://github.com/micropython/micropython/pull/4020) soft I2C
 may be required, depending on the detailed specification of the chip.
+
 
 ###### [Contents](./README.md#contents)
