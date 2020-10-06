@@ -24,22 +24,22 @@ _VCOM = const(2)
 
 class SHARP(framebuf.FrameBuffer):
 
-    def __init__(self, spi, pincs):
+    def __init__(self, spi, pincs, height=240, width=400, vcom=False):
         spi.init(baudrate=2_000_000, firstbit=machine.SPI.LSB)  # Data sheet: should support 2MHz
         self._spi = spi
         self._pincs = pincs
-        self.height = 240  # Required by Writer class and nanogui
-        self.width = 400
+        self.height = height  # Required by Writer class and nanogui
+        self.width = width
         self._buffer = bytearray(self.height * self.width // 8)
         self._mvb = memoryview(self._buffer)
         super().__init__(self._buffer, self.width, self.height, framebuf.MONO_HMSB)
         self._cmd = bytearray(1)  # Buffer for command. Holds current VCOM bit
-        self._cmd[0] = _WRITECMD
+        self._cmd[0] = _WRITECMD | _VCOM if vcom else _WRITECMD
         self._lno = bytearray(1)  # Line no.
         self._dummy = bytearray(1)  # Dummy (0)
 
     # .show should be called periodically to avoid frame inversion flag
-    # retaining the same value for long periods
+    # (VCOM) retaining the same value for long periods
     def show(self):
         spi = self._spi
         bpl = self.width // 8  # Bytes per line
@@ -57,3 +57,11 @@ class SHARP(framebuf.FrameBuffer):
         spi.write(self._dummy)
         self._pincs(0)
         self._cmd[0] ^= _VCOM  # Toggle frame inversion flag
+
+    # Toggle the VCOM bit without changing the display. Power saving method.
+    def update(self):
+        self._pincs(1)
+        self._lno[0] = self._cmd[0] & _VCOM
+        self._spi.write(self._lno)
+        self._cmd[0] ^= _VCOM  # Toggle frame inversion flag
+        self._pincs(0)

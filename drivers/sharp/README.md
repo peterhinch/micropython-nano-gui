@@ -7,7 +7,7 @@ These monochrome SPI displays exist in three variants from Adafruit.
 
 I have tested on the first of these. However the
 [Adfruit driver](https://github.com/adafruit/Adafruit_CircuitPython_SharpMemoryDisplay)
-supports all of these and I would expect this one to do so.
+supports all of these and I would expect this one also to do so.
 
 # 1. Display characteristics
 
@@ -24,9 +24,9 @@ in comparison to stop mode and battery powered applications should be easily
 realised.
 
 The 2.7" display has excellent resolution and can display fine lines and small
-fonts. However the display quality is not as good as ePaper. For good contrast
-best results are achieved if the viewing angle and the direction of the light
-source are positioned to achieve reflection.
+fonts. In other respects the display quality is not as good as ePaper. For good
+contrast best results are achieved if the viewing angle and the direction of
+the light source are positioned to achieve reflection.
 
 ## 1.1 The VCOM bit
 
@@ -63,21 +63,68 @@ In my opinion the easiest way to deal with this is usually to use software
 control, ensuring that the driver's `show` method is called at regular
 intervals of at least 1Hz.
 
+## 1.2 Refresh rate
+
+The datasheet specifies a minimum refresh rate of 1Hz.
+
 # 2. Test scripts
 
  1. `sharptest.py` Basic functionality test.
  2. `clocktest.py` Digital and analog clock display.
+ 3. `clock_batt.py` As above but designed for low power operation.
 
 `sharptest` should not be run for long periods as it does not regularly refresh
 the display. It tests `writer.py` and some `framebuffer` graphics primitives.
 `clocktest` tests `nanogui.py`.
 
 To run the tests the fonts in the directory, `writer.py` and `nanogui.py` must
-be copied to the device or frozen as bytecode. Testing was done on a Pyboard D
-SF6W: frozen bytecode was not required. I suspect a Pyboard 1.x would require
-it to prevent memory errors.
+be copied to the device or frozen as bytecode. The `clack_batt.py` demo needs
+`upower.py` from
+[micropython-micropower](https://github.com/peterhinch/micropython-micropower).
 
-# 3. Resources
+Testing was done on a Pyboard D SF6W: frozen bytecode was not required. I
+suspect a Pyboard 1.x would require it to prevent memory errors.
+
+# 3. Device driver constructor
+
+Positional args:
+ 1. `spi` An SPI bus instance. The constructor initialises this to the baudrate
+ and bit order required by the hardware.
+ 2. `pincs` A `Pin` instance. The caller should initialise this as an output
+ with value 0 (unusually the hardware CS line is active high).
+ 3. `height=240` Dimensions in pixels. Defaults are for 2.7" display.
+ 4. `width=400`
+ 5. `vcom=False` Accept the default unless using `pyb.standby`. See 3.2.
+
+# 3.1 Device driver methods
+
+ 1. `show` No args. Transfers the framebuffer contents to the device, updating
+ the display.
+ 2. `update` Toggles the `VCOM` bit without transferring the framebuffer. This
+ is a power saving method for cases where the application calls `show` at a
+ rate of < 1Hz. In such cases `update` should be called at a 1Hz rate.
+
+# 3.2 The vcom arg
+
+It purpose is to support micropower applications which use `pyb.standby`.
+Wakeup from standby is similar to a reboot in that program execution starts
+from scratch. In the case where the board wakes up, writes to the display, and
+returns to standby, the `VCOM` bit would never change. In this case the
+application should store a `bool` in peristent storage, toggling it on each
+restart, and pass that to the constructor.
+
+Persistent storage exists in the RTC registers and backup RAM. See
+[micopython-micropower](https://github.com/peterhinch/micropython-micropower)
+for details of how to acces these resources.
+
+# 4. Application design
+
+In all cases the frame buffer is located on the target hardware. In the case of
+the 2.7 inch display this is 400*240//8 = 12000 bytes in size. This should be
+instantiated as soon as possible in the application to ensure that sufficient
+contiguous RAM is available.
+
+# 5. Resources
 
 [Schematic for 2.7" unit](https://learn.adafruit.com/assets/94077)
 

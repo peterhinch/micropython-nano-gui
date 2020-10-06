@@ -5,6 +5,13 @@
 # Copyright (c) Peter Hinch 2020
 # Released under the MIT license see LICENSE
 
+# WIRING
+# Pyb   SSD
+# Vin   Vin  Pyboard: Vin is an output when powered by USB
+# Gnd   Gnd
+# Y8    DI
+# Y6    CLK
+# Y5    CS
 
 import machine
 from sharp import SHARP
