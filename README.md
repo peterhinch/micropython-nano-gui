@@ -1,6 +1,6 @@
 A lightweight and minimal MicroPython GUI library for display drivers based on
-the `framebuf` class. With the exception of the Nokia 5110, such drivers are
-currently for color and monochrome OLED displays. This is coincidental.
+the `framebuf` class. Various display technologies are supported, primarily
+small color OLED's.
 
 These images don't do justice to the OLED displays which are visually
 impressive with bright colors and extreme contrast. For some reason they are
@@ -54,6 +54,9 @@ display driver is subclassed from the `framebuf` class. Examples are:
  * A driver for [Adafruit 1.5 inch OLED](https://www.adafruit.com/product/1431)
  and [Adafruit 1.27 inch OLED](https://www.adafruit.com/product/1673) may be
  found [here](./drivers/ssd1351/README.md).
+ * A driver for Sharp ultra low power consumption monochrome displays such as
+ [2.7 inch 400x240 pixels](https://www.adafruit.com/product/4694)
+ is [here](./drivers/sharp/README.md).
 
 Widgets are intended for the display of data from physical devices such as
 sensors. The GUI is display-only: there is no provision for user input. This
@@ -462,6 +465,10 @@ For a driver to support `nanogui` it must be subclassed from
 the display size in pixels. This, and a `show` method, are all that is required
 for monochrome drivers.
 
+Refresh must be handled by a `show` method taking no arguments; when called,
+the contents of the buffer underlying the `FrameBuffer` must be copied to the
+hardware.
+
 For color drivers, to conserve RAM it is suggested that 8-bit color is used
 for the `framebuf`. If the hardware does not support this, conversion to the
 supported color space needs to be done "on the fly" as per the SSD1351 driver.
@@ -475,10 +482,6 @@ form acceptable to the driver. For 8-bit rrrgggbb this can be:
         return (r & 0xe0) | ((g >> 3) & 0x1c) | (b >> 6)
 ```
 This should be amended if the hardware uses a different 8-bit format.
-
-Refresh must be handled by a `show` method taking no arguments; when called,
-the contents of the buffer underlying the `FrameBuffer` must be copied to the
-hardware.
 
 The `Writer` (monochrome) or `CWriter` (color) classes and the `nanogui` module
 should then work automatically.

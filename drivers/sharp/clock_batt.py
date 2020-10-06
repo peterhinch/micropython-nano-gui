@@ -61,26 +61,22 @@ def aclock():
     lbldat = Label(wri, 100, 230, 100)
     hrs = Pointer(dial)
     mins = Pointer(dial)
-    secs = Pointer(dial)
 
     hstart =  0 + 0.7j  # Pointer lengths and position at top
     mstart = 0 + 0.92j
-    sstart = 0 + 0.92j 
     while True:
         t = rtc.datetime()  # (year, month, day, weekday, hours, minutes, seconds, subseconds)
-        hang = -t[4]*pi/6 - t[5]*pi/360  # Angles of hour and minute hands
+        hang = -t[4]*pi/6 - t[5]*pi/360  # Angles of hands in radians
         mang = -t[5] * pi/30
-        sang = -t[6] * pi/30
-        if abs(hang - mang) < pi/360:  # Avoid overlap of hands
-            hang += pi/18
+        if abs(hang - mang) < pi/360:  # Avoid visually confusing overlap of hands
+            hang += pi/30  # by making hr hand lag slightly
         hrs.value(hstart * uv(hang))
         mins.value(mstart * uv(mang))
-        secs.value(sstart * uv(sang))
-        lbltim.value('{:02d}.{:02d}.{:02d}'.format(t[4], t[5], t[6]))
+        lbltim.value('{:02d}.{:02d}'.format(t[4], t[5]))
         lbldat.value('{} {} {} {}'.format(days[t[3] - 1], t[2], months[t[1] - 1], t[0]))
         refresh(ssd)
-        # Power saving: only refresh every 10s
-        for _ in range(10):
+        # Power saving: only refresh every 30s
+        for _ in range(30):
             upower.lpdelay(1000)
             ssd.update()  # Toggle VCOM
 

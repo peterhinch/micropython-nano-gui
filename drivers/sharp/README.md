@@ -71,7 +71,8 @@ The datasheet specifies a minimum refresh rate of 1Hz.
 
  1. `sharptest.py` Basic functionality test.
  2. `clocktest.py` Digital and analog clock display.
- 3. `clock_batt.py` As above but designed for low power operation.
+ 3. `clock_batt.py` As above but designed for low power operation. Pyboard
+ specific.
 
 `sharptest` should not be run for long periods as it does not regularly refresh
 the display. It tests `writer.py` and some `framebuffer` graphics primitives.
@@ -123,6 +124,28 @@ In all cases the frame buffer is located on the target hardware. In the case of
 the 2.7 inch display this is 400*240//8 = 12000 bytes in size. This should be
 instantiated as soon as possible in the application to ensure that sufficient
 contiguous RAM is available.
+
+## 4.1 Micropower applications
+
+These comments largely assume a Pyboard host. The application should import
+`upower` from 
+[micropython-micropower](https://github.com/peterhinch/micropython-micropower).
+This turns the USB interface off if not in use to conserve power. It also
+provides an `lpdelay` function to implement a delay using `pyb.stop()` to
+conserve power.
+
+In tests the `clock_batt` demo consumed 700μA between updates. A full refresh
+every 30s consumed about 48mA for 128ms. These figures correspond to a mean
+current consumption of 904μA implying about 46 days operation per AH of
+battery capacity. LiPo cells of 2AH capacity are widely available offering a
+theoretical runtime of 92 days between charges.
+
+Lower currents might be achieved using standby but I have major doubts. This is
+because it is necessary to toggle the VCOM bit at a minimum of 1Hz. Waking from
+standby uses significan amounts of power as the modules are compiled. Even if
+frozen bytecode is used, there is still significant power usage importing
+modules and instantiating classes; this usage is not incurred in the loop in
+the demo.
 
 # 5. Resources
 
