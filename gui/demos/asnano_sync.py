@@ -13,7 +13,10 @@ import uasyncio as asyncio
 import pyb
 import uos
 from gui.core.writer import CWriter
-from gui.core.nanogui import LED, Meter, refresh
+from gui.core.nanogui import refresh
+from gui.widgets.led import LED
+from gui.widgets.meter import Meter
+
 refresh(ssd)
 
 # Fonts

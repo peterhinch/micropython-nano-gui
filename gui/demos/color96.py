@@ -7,7 +7,11 @@
 
 from ssd1351_setup import ssd  # Create a display instance
 
-from gui.core.nanogui import Label, Meter, LED, refresh
+from gui.core.nanogui import refresh
+from gui.widgets.led import LED
+from gui.widgets.meter import Meter
+from gui.widgets.label import Label
+
 refresh(ssd)
 # Fonts
 import gui.fonts.arial10 as arial10
@@ -96,6 +100,7 @@ def vari_fields():
     refresh(ssd)
 
 print('Color display test is running.')
+print('Test runs to completion.')
 meter()
 multi_fields(t = 10)
 vari_fields()

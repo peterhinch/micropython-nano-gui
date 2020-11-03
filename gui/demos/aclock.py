@@ -17,7 +17,9 @@
 
 # Initialise hardware
 from ssd1351_setup import ssd, height  # Create a display instance
-from gui.core.nanogui import Dial, Pointer, refresh, Label
+from gui.core.nanogui import refresh
+from gui.widgets.label import Label
+from gui.widgets.dial import Dial, Pointer
 refresh(ssd)  # Initialise and clear display.
 
 # Now import other modules

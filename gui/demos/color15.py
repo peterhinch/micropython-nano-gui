@@ -12,7 +12,11 @@ import cmath
 import utime
 import uos
 from gui.core.writer import Writer, CWriter
-from gui.core.nanogui import Label, Meter, LED, Dial, Pointer, refresh
+from gui.core.nanogui import refresh
+from gui.widgets.led import LED
+from gui.widgets.meter import Meter
+from gui.widgets.label import Label
+from gui.widgets.dial import Dial, Pointer
 
 # Fonts
 import gui.fonts.arial10 as arial10
@@ -149,6 +153,7 @@ def compass(x):
         refresh(ssd)
 
 print('Color display test is running.')
+print('Test runs to completion.')
 clock(70)
 compass(70)
 meter()

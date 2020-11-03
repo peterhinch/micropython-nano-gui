@@ -6,19 +6,6 @@
 # Released under the MIT License (MIT). See LICENSE.
 # Copyright (c) 2018-2020 Peter Hinch
 
-# WIRING (Adafruit pin nos and names)
-# Pyb   SSD
-# 3v3   Vin (10)
-# Gnd   Gnd (11)
-# X1    DC (3 DC)
-# X2    CS (5 OC OLEDCS)
-# X3    Rst (4 R RESET)
-# X6    CLK (2 CL SCK)
-# X8    DATA (1 SI MOSI)
-
-height = 96  # 1.27 inch 96*128 (rows*cols) display
-# height = 128 # 1.5 inch 128*128 display
-
 from ssd1351_setup import ssd  # Create a display instance
 
 import cmath
@@ -27,7 +14,10 @@ import utime
 import uos
 from gui.core.writer import Writer, CWriter
 from gui.core.fplot import PolarGraph, PolarCurve, CartesianGraph, Curve, TSequence
-from gui.core.nanogui import Label, refresh
+from gui.core.nanogui import refresh
+from gui.widgets.label import Label
+
+
 refresh(ssd)
 
 # Fonts
@@ -163,6 +153,7 @@ def seq():
         refresh(ssd)
         utime.sleep_ms(100)
 
+print('Test runs to completion.')
 seq()
 utime.sleep(1.5)
 liss()
