@@ -1,27 +1,7 @@
 # mono_test.py Demo program for nano_gui on an SSD1306 OLED display.
 
-# The MIT License (MIT)
-#
-# Copyright (c) 2018 Peter Hinch
-#
-# Permission is hereby granted, free of charge, to any person obtaining a copy
-# of this software and associated documentation files (the "Software"), to deal
-# in the Software without restriction, including without limitation the rights
-# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-# copies of the Software, and to permit persons to whom the Software is
-# furnished to do so, subject to the following conditions:
-#
-# The above copyright notice and this permission notice shall be included in
-# all copies or substantial portions of the Software.
-#
-# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
-# THE SOFTWARE.
-
+# Released under the MIT License (MIT). See LICENSE.
+# Copyright (c) 2018-2020 Peter Hinch
 
 # https://learn.adafruit.com/monochrome-oled-breakouts/wiring-128x32-spi-oled-display
 # https://www.proto-pic.co.uk/monochrome-128x32-oled-graphic-display.html
@@ -31,14 +11,13 @@
 import utime
 import uos
 from ssd1306_setup import WIDTH, HEIGHT, setup
-from writer import Writer, CWriter
-from nanogui import Label, Meter, refresh
+from gui.core.writer import Writer, CWriter
+from gui.core.nanogui import Label, Meter, refresh
 
 # Fonts
-import courier20 as fixed
-import font6 as small
-import arial10
-
+import gui.fonts.arial10 as arial10
+import gui.courier20 as fixed
+import gui.fonts.font6 as small
 
 def fields(use_spi=False, soft=True):
     ssd = setup(use_spi, soft)  # Create a display instance

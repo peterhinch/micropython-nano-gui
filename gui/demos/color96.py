@@ -2,51 +2,20 @@
 # https://www.adafruit.com/product/684
 # For wiring details see drivers/ADAFRUIT.md in this repo.
 
-# The MIT License (MIT)
+# Released under the MIT License (MIT). See LICENSE.
+# Copyright (c) 2018-2020 Peter Hinch
 
-# Copyright (c) 2018 Peter Hinch
+from ssd1351_setup import ssd  # Create a display instance
 
-# Permission is hereby granted, free of charge, to any person obtaining a copy
-# of this software and associated documentation files (the "Software"), to deal
-# in the Software without restriction, including without limitation the rights
-# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-# copies of the Software, and to permit persons to whom the Software is
-# furnished to do so, subject to the following conditions:
-#
-# The above copyright notice and this permission notice shall be included in
-# all copies or substantial portions of the Software.
-#
-# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
-# THE SOFTWARE.
-
-import machine
-import gc
-from ssd1331 import SSD1331 as SSD
-pdc = machine.Pin('X1', machine.Pin.OUT_PP, value=0)
-pcs = machine.Pin('X2', machine.Pin.OUT_PP, value=1)
-prst = machine.Pin('X3', machine.Pin.OUT_PP, value=1)
-spi = machine.SPI(1)
-gc.collect()
-ssd = SSD(spi, pcs, pdc, prst)  # Create a display instance
-
-from nanogui import Label, Meter, LED, refresh
+from gui.core.nanogui import Label, Meter, LED, refresh
 refresh(ssd)
 # Fonts
-import arial10
-from writer import Writer, CWriter
+import gui.fonts.arial10 as arial10
+
+from gui.core.writer import Writer, CWriter
 import utime
 import uos
-
-GREEN = SSD.rgb(0, 255, 0)
-RED = SSD.rgb(255, 0, 0)
-BLUE = SSD.rgb(0, 0, 255)
-YELLOW = SSD.rgb(255, 255, 0)
-BLACK = 0
+from gui.core.colors import *
 
 CWriter.set_textpos(ssd, 0, 0)  # In case previous tests have altered it
 wri = CWriter(ssd, arial10, GREEN, BLACK, verbose=False)

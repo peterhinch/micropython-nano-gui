@@ -2,8 +2,6 @@
 # Adafruit 1.5" 128*128 OLED display: https://www.adafruit.com/product/1431
 # Adafruit 1.27" 128*96 display https://www.adafruit.com/product/1673
 
-# The MIT License (MIT)
-
 # Released under the MIT License (MIT). See LICENSE.
 # Copyright (c) 2018-2020 Peter Hinch
 
@@ -17,40 +15,19 @@
 # X6    CLK
 # X8    DATA
 
-height = 96  # 1.27 inch 96*128 (rows*cols) display
-# height = 128 # 1.5 inch 128*128 display
-
-# Demo of initialisation procedure designed to minimise risk of memory fail
-# when instantiating the frame buffer. The aim is to do this as early as
-# possible before importing other modules.
-
-import machine
-import gc
-from drivers.ssd1351 import SSD1351 as SSD
-
 # Initialise hardware
-pdc = machine.Pin('X1', machine.Pin.OUT_PP, value=0)
-pcs = machine.Pin('X2', machine.Pin.OUT_PP, value=1)
-prst = machine.Pin('X3', machine.Pin.OUT_PP, value=1)
-spi = machine.SPI(1)
-gc.collect()  # Precaution before instantiating framebuf
-ssd = SSD(spi, pcs, pdc, prst, height)  # Create a display instance
-from nanogui import Dial, Pointer, refresh, Label
+from ssd1351_setup import ssd, height  # Create a display instance
+from gui.core.nanogui import Dial, Pointer, refresh, Label
 refresh(ssd)  # Initialise and clear display.
 
 # Now import other modules
 import cmath
 import utime
-from ngui.core.writer import CWriter
+from gui.core.writer import CWriter
 
 # Font for CWriter
-import arial10
-
-GREEN = SSD.rgb(0, 255, 0)
-RED = SSD.rgb(255, 0, 0)
-BLUE = SSD.rgb(0, 0, 255)
-YELLOW = SSD.rgb(255, 255, 0)
-BLACK = 0
+import gui.fonts.arial10 as arial10
+from gui.core.colors import *
 
 def aclock():
     uv = lambda phi : cmath.rect(1, phi)  # Return a unit vector of phase phi

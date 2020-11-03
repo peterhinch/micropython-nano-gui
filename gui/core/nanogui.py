@@ -9,7 +9,7 @@
 # border: False no border None use bgcolor, int: treat as color
 
 import cmath
-from ngui.core.writer import Writer
+from gui.core.writer import Writer
 import framebuf
 import gc
 

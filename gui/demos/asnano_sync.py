@@ -6,49 +6,21 @@
 # Copyright (c) 2020 Peter Hinch
 # Released under the MIT License (MIT) - see LICENSE file
 
-# WIRING (Adafruit pin nos and names)
-# Pyb   SSD
-# 3v3   Vin (10)
-# Gnd   Gnd (11)
-# X1    DC (3 DC)
-# X2    CS (5 OC OLEDCS)
-# X3    Rst (4 R RESET)
-# X6    CLK (2 CL SCK)
-# X8    DATA (1 SI MOSI)
-
-height = 96  # 1.27 inch 96*128 (rows*cols) display
-# height = 128 # 1.5 inch 128*128 display
-
-import machine
-import gc
-from ssd1351 import SSD1351 as SSD
-
 # Initialise hardware and framebuf before importing modules
-#pdc = machine.Pin('X1', machine.Pin.OUT_PP, value=0)
-#pcs = machine.Pin('X2', machine.Pin.OUT_PP, value=1)
-#prst = machine.Pin('X3', machine.Pin.OUT_PP, value=1)
-#spi = machine.SPI(1)
-pdc = machine.Pin('Y1', machine.Pin.OUT_PP, value=0)
-pcs = machine.Pin('Y2', machine.Pin.OUT_PP, value=1)
-prst = machine.Pin('Y3', machine.Pin.OUT_PP, value=1)
-spi = machine.SPI(2)
-gc.collect()  # Precaution befor instantiating framebuf
-ssd = SSD(spi, pcs, pdc, prst, height)  # Create a display instance
+from ssd1351_setup import ssd  # Create a display instance
 
 import uasyncio as asyncio
 import pyb
 import uos
-from writer import CWriter
-from nanogui import LED, Meter, refresh
+from gui.core.writer import CWriter
+from gui.core.nanogui import LED, Meter, refresh
 refresh(ssd)
 
 # Fonts
-import arial10, freesans20
+import gui.fonts.arial10 as arial10
+import gui.fonts.freesans20 as freesans20
 
-GREEN = SSD.rgb(0, 255, 0)
-RED = SSD.rgb(255, 0, 0)
-YELLOW = SSD.rgb(255, 255, 0)
-BLACK = 0
+from gui.core.colors import *
 
 color = lambda v : RED if v > 0.7 else YELLOW if v > 0.5 else GREEN
 txt = lambda v : 'ovr' if v > 0.7 else 'high' if v > 0.5 else 'ok'
