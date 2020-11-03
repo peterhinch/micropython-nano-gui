@@ -1,5 +1,5 @@
 # nanogui.py Displayable objects based on the Writer and CWriter classes
-# V0.3 Peter Hinch 26th Aug 2018
+# V0.4 Peter Hinch 1st Nov 2020
 
 # Released under the MIT License (MIT). See LICENSE.
 # Copyright (c) 2018-2020 Peter Hinch
@@ -9,7 +9,7 @@
 # border: False no border None use bgcolor, int: treat as color
 
 import cmath
-from gui.core.writer import Writer
+from ngui.core.writer import Writer
 import framebuf
 import gc
 

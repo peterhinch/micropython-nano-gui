@@ -17,12 +17,12 @@ dynamically with low values showing green, intermediate yellow and high red.
 The alevel.py demo. The Pyboard was mounted vertically: the length and angle
 of the vector arrow varies as the Pyboard is moved.
 
-There is an optional [graph plotting module](./plot/FPLOT.md) for basic
+There is an optional [graph plotting module](./FPLOT.md) for basic
 Cartesian and polar plots, also realtime plotting including time series.
 
-![Image](plot/images/sine.png) A sample image from the plot module.
+![Image](images/sine.png) A sample image from the plot module.
 
-Notes on [Adafruit and other OLED displays](./drivers/ADAFRUIT.md) including
+Notes on [Adafruit and other OLED displays](./ADAFRUIT.md) including
 wiring details, pin names and hardware issues.
 
 # Contents
@@ -44,8 +44,12 @@ wiring details, pin names and hardware issues.
 
 # 1. Introduction
 
+This library has been refactored as a Python package. The aim is to reduce RAM
+usage: widgets are imported on demand rather than unconditionally. This enabled
+the addition of new widgets with zero impact on existsing applications.
+
 This library provides a limited set of GUI objects (widgets) for displays whose
-display driver is subclassed from the `framebuf` class. Examples are:
+display driver is subclassed from the `framebuf` class. Display drivers include:
 
  * The official [SSD1306 driver](https://github.com/micropython/micropython/blob/master/drivers/display/ssd1306.py).
  * The [PCD8544/Nokia 5110](https://github.com/mcauser/micropython-pcd8544.git).
@@ -62,11 +66,14 @@ Widgets are intended for the display of data from physical devices such as
 sensors. The GUI is display-only: there is no provision for user input. This
 is because there are no `frmebuf`- based display drivers for screens with a
 touch overlay. Authors of applications requiring input should consider my touch
-GUI's for the official lcd160cr or for SSD1963 based displays.
+GUI's for the official lcd160cr, for RA8875 based displays or for SSD1963 based
+displays.
 
 Widgets are drawn using graphics primitives rather than icons to minimise RAM
 usage. It also enables them to be effciently rendered at arbitrary scale on
-devices with restricted processing power.
+devices with restricted processing power. The approach also enables widgets to
+provide information in ways that are difficult with icons, in particular using
+dynamic color changes in conjunction with moving elements.
 
 Owing to RAM requirements and limitations on communication speed, `framebuf`
 based display drivers are intended for physically small displays with limited
@@ -86,9 +93,31 @@ demos illustrate this.
 
 # 2. Files and Dependencies
 
+In general installation comprises copying the `ngui` and `drivers` directories,
+with their contents, to the target hardware
+
 ## 2.1 Files
 
+### 2.1.1 Core files
+
+The `ngui/core` directory contains the GUI core and its principal dependencies:
+
  * `nanogui.py` The library.
+ * `writer.py` Module for rendering Python fonts.
+ * `fplot.py` The graph plotting module.
+ * `ssd1306_setup.py` Applications using an SSD1306 monochrome OLED display
+ import this file to determine hardware initialisation. On non Pyboard targets
+ this will require adaptation to match the hardware connections.
+ * `framebuf_utils.mpy` Accelerator for the `CWriter` class. This optional file
+ is compiled for STM hardware and will be ignored on other ports. Instructions
+ and code for compiling for other architectures may be found
+ [here](https://github.com/peterhinch/micropython-font-to-py/blob/master/writer/WRITER.md#224-a-performance-boost).
+
+### 2.1.2 Demo scripts
+
+The `ngui/demos` directory contains test/demo scripts. In general these will
+need minor adaptation to match your display hardware.
+
  * `mono_test.py` Tests/demos using the official SSD1306 library for a
  monochrome 128*64 OLED display.
  * `color96.py` Tests/demos for the Adafruit 0.96 inch color OLED.
@@ -100,13 +129,19 @@ line as per the code comment for the larger display.
  * `aclock.py` Analog clock demo.
  * `alevel.py` Spirit level using Pyboard accelerometer.
 
-Sample fonts created by [font_to_py.py](https://github.com/peterhinch/micropython-font-to-py.git):
+### 2.1.3 Fonts
+
+Python font files are in the root directory. This facilitates freezing them to
+conserve RAM. Python fonts may be created using
+[font_to_py.py](https://github.com/peterhinch/micropython-font-to-py.git).
+Supplied examples are:
+
  * `arial10.py`
  * `courier20.py`
  * `font6.py`
  * `freesans20.py`
 
-Demos showing the use of `nanogui` with `uasyncio` may be found [here](./async/ASYNC.md).
+Demos showing the use of `nanogui` with `uasyncio` may be found [here](./ASYNC.md).
 
 ## 2.2 Dependencies
 
