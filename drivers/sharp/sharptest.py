@@ -14,15 +14,18 @@
 # Y5    CS
 
 import machine
-from sharp import SHARP
-import freesans20, arial_50
-from writer import Writer
+from drivers.sharp.sharp import SHARP as SSD
+# Fonts for Writer
+import gui.fonts.freesans20 as freesans20
+import gui.fonts.arial_50 as arial_50
+
+from gui.core.writer import Writer
 import time
 
 def test():
     pcs = machine.Pin('Y5', machine.Pin.OUT_PP, value=0)  # Active high
     spi = machine.SPI(2)
-    ssd = SHARP(spi, pcs)
+    ssd = SSD(spi, pcs)
     rhs = ssd.width -1
     ssd.line(rhs - 80, 0, rhs, 80, 1)
     square_side = 40

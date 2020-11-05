@@ -1,11 +1,14 @@
-# color96.py Test/demo program for ssd1331 Adafruit 0.96" OLED display
+# color96.py Test/demo program for ssd1331 Adafruit 0.96" OLED display.
+# Cross-platfom.
+# Works on larger displays, but only occupies the top left region.
 # https://www.adafruit.com/product/684
 # For wiring details see drivers/ADAFRUIT.md in this repo.
 
 # Released under the MIT License (MIT). See LICENSE.
 # Copyright (c) 2018-2020 Peter Hinch
 
-from ssd1351_setup import ssd  # Create a display instance
+# Initialise hardware and framebuf before importing modules.
+from color_setup import ssd  # Create a display instance
 
 from gui.core.nanogui import refresh
 from gui.widgets.led import LED

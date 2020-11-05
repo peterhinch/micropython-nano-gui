@@ -18,7 +18,7 @@
 
 import machine
 import gc
-from sharp import SHARP as SSD
+from drivers.sharp.sharp import SHARP as SSD
 
 # Initialise hardware
 pcs = machine.Pin('Y5', machine.Pin.OUT_PP, value=0)  # Active high
@@ -27,14 +27,18 @@ gc.collect()  # Precaution before instantiating framebuf
 ssd = SSD(spi, pcs)
 
 # Now import other modules
-from nanogui import Dial, Pointer, refresh, Label
+from gui.core.nanogui import refresh
+from gui.widgets.label import Label
+from gui.widgets.dial import Dial, Pointer
+
 import cmath
 import utime
-from writer import Writer
+
+from gui.core.writer import Writer
 
 # Fonts for Writer
-import freesans20 as font_small
-import arial35 as font_large
+import gui.fonts.freesans20 as font_small
+import gui.fonts.arial35 as font_large
 
 refresh(ssd)  # Initialise display.
 

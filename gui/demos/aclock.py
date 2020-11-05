@@ -5,18 +5,8 @@
 # Released under the MIT License (MIT). See LICENSE.
 # Copyright (c) 2018-2020 Peter Hinch
 
-# WIRING
-# Pyb   SSD
-# 3v3   Vin
-# Gnd   Gnd
-# X1    DC
-# X2    CS
-# X3    Rst
-# X6    CLK
-# X8    DATA
-
-# Initialise hardware
-from ssd1351_setup import ssd, height  # Create a display instance
+# Initialise hardware and framebuf before importing modules.
+from color_setup import ssd, height  # Create a display instance
 from gui.core.nanogui import refresh
 from gui.widgets.label import Label
 from gui.widgets.dial import Dial, Pointer

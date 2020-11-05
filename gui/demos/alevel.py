@@ -1,28 +1,12 @@
-# alevel.py Test/demo program for Adafruit ssd1351-based OLED displays
-# Adafruit 1.5" 128*128 OLED display: https://www.adafruit.com/product/1431
-# Adafruit 1.27" 128*96 display https://www.adafruit.com/product/1673
+# alevel.py Test/demo "spirit level" program.
+# Requires Pyboard for accelerometer.
+# Tested with Adafruit ssd1351 OLED display.
 
 # Released under the MIT License (MIT). See LICENSE.
 # Copyright (c) 2018-2020 Peter Hinch
 
-# WIRING
-# Pyb   SSD
-# 3v3   Vin
-# Gnd   Gnd
-# X1    DC
-# X2    CS
-# X3    Rst
-# X6    CLK
-# X8    DATA
-
-# Demo of initialisation procedure designed to minimise risk of memory fail
-# when instantiating the frame buffer. The aim is to do this as early as
-# possible before importing other modules.
-
-import gc
-
-# Initialise hardware
-from ssd1351_setup import ssd  # Create a display instance
+# Initialise hardware and framebuf before importing modules.
+from color_setup import ssd  # Create a display instance
 
 from gui.core.nanogui import refresh
 from gui.widgets.dial import Dial, Pointer

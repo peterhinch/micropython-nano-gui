@@ -28,6 +28,9 @@ wiring details, pin names and hardware issues.
 # Contents
 
  1. [Introduction](./README.md#1-introduction)  
+  1.1 [Update](./README.md#11-update)  
+  1.2 [Description](./README.md#12-description)  
+  1.3 [Quick start](./README.md#13-quick-start)  
  2. [Files and Dependencies](./README.md#2-files-and-dependencies)  
   2.1 [Dependencies](./README.md#21-dependencies)  
    2.2.1 [Monochrome use](./README.md#211-monochrome-use)  
@@ -44,12 +47,40 @@ wiring details, pin names and hardware issues.
 
 # 1. Introduction
 
+This library provides a limited set of GUI objects (widgets) for displays whose
+display driver is subclassed from the `framebuf` class. The GUI is display-only
+and lacks provision for user input. This is because no `framebuf` based display
+drivers exist for screens with a touch overlay. This is probably because touch
+overlays require too many pixels and are best suited to displays with internal
+frame buffers.
+
+The GUI is cross-platform. By default it is configured for a Pyboard (1.x or D).
+This doc explains how to configure for other platforms by adapting a single
+small file. The GUI supports multiple displays attached to a single target, but
+bear in mind the RAM requirements for multiple frame buffers.
+
+Authors of applications requiring touch should consider my touch GUI's for the
+following displays. These have internal buffers:
+ * [Official lcd160cr](https://github.com/peterhinch/micropython-lcd160cr-gui)
+ * [RA8875 large displays](https://github.com/peterhinch/micropython_ra8875)
+ * [SSD1963 large displays](https://github.com/peterhinch/micropython-tft-gui)
+
+## 1.1 Update
+
 This library has been refactored as a Python package. The aim is to reduce RAM
 usage: widgets are imported on demand rather than unconditionally. This enabled
-the addition of new widgets with zero impact on existsing applications.
+the addition of new widgets with zero impact on existsing applications. Another
+aim was to simplify installation with dependencies such as `writer` included in
+the tree. Finally hardware configuration is contained in a single file: details
+only need to be edited in one place to run all demo scripts.
 
-This library provides a limited set of GUI objects (widgets) for displays whose
-display driver is subclassed from the `framebuf` class. Display drivers include:
+Existing users should re-install from scratch. In existing applications, import
+statements will need to be adapted as per the demos. The GUI API is otherwise
+unchanged.
+
+## 1.2 Description
+
+Compatible and tested display drivers include:
 
  * The official [SSD1306 driver](https://github.com/micropython/micropython/blob/master/drivers/display/ssd1306.py).
  * The [PCD8544/Nokia 5110](https://github.com/mcauser/micropython-pcd8544.git).
@@ -63,60 +94,88 @@ display driver is subclassed from the `framebuf` class. Display drivers include:
  is [here](./drivers/sharp/README.md).
 
 Widgets are intended for the display of data from physical devices such as
-sensors. The GUI is display-only: there is no provision for user input. This
-is because there are no `frmebuf`- based display drivers for screens with a
-touch overlay. Authors of applications requiring input should consider my touch
-GUI's for the official lcd160cr, for RA8875 based displays or for SSD1963 based
-displays.
-
-Widgets are drawn using graphics primitives rather than icons to minimise RAM
-usage. It also enables them to be effciently rendered at arbitrary scale on
+sensors. They are drawn using graphics primitives rather than icons to minimise
+RAM usage. It also enables them to be effciently rendered at arbitrary scale on
 devices with restricted processing power. The approach also enables widgets to
-provide information in ways that are difficult with icons, in particular using
+maximise information in ways that are difficult with icons, in particular using
 dynamic color changes in conjunction with moving elements.
 
 Owing to RAM requirements and limitations on communication speed, `framebuf`
 based display drivers are intended for physically small displays with limited
 numbers of pixels. The widgets are designed for displays as small as 0.96
-inches: this involves some compromises. They aim to maximise the information
-on screen by offering the option of dynamically changing colors.
+inches: this involves some compromises.
 
 Copying the contents of the frame buffer to the display is relatively slow. The
 time depends on the size of the frame buffer and the interface speed, but the
 latency may be too high for applications such as games. For example the time to
-update a 128*128*8 color ssd1351 display on a Pyboard 1.0 is 41ms.
+update a 128x128x8 color ssd1351 display on a Pyboard 1.0 is 41ms.
 
 Drivers based on `framebuf` must allocate contiguous RAM for the buffer. To
-avoid 'out of memory' errors it is best to instantiate the display early,
-possibly before importing many other modules. The `aclock.py` and `alevel.py`
-demos illustrate this.
+avoid 'out of memory' errors it is best to instantiate the display before
+importing other modules. The demos illustrate this.
+
+## 1.3 Quick start
+
+A GUI description can seem daunting because of the number of class config
+options. Defaults can usually be accepted and meaningful applications can be
+minimal. Installation can seem difficult. To counter this, this session using
+[rshell](https://github.com/dhylands/rshell) installed and ran a demo showing
+analog and digital clocks.
+
+Clone the repo to your PC, wire up a Pyboard (1.x or D) to an Adafruit 1.27"
+OLED as per `color_setup.py`, move to the root directory of the repo and run
+`rshell`.
+```bash
+> cp -r drivers /sd
+> cp -r gui /sd
+> cp color_setup.py /sd
+> repl ~ import gui.demos.aclock
+```
+Note also that the `gui.demos.aclock.py` demo comprises 38 lines of actual
+code. This stuff is easier than you might think.
 
 # 2. Files and Dependencies
 
-In general installation comprises copying the `ngui` and `drivers` directories,
-with their contents, to the target hardware
+Firmware should be V1.13 or later.
+
+Installation comprises copying the `gui` and `drivers` directories, with their
+contents, plus a hardware configuration file, to the target. The directory
+structure on the target must match that in the repo.
+
+Filesystem space may be conserved by copying only the required driver from
+`drivers`, but the directory path to that file must be retained. For example,
+for SSD1351 displays only the following is actually required:  
+`drivers/ssd1351/ssd1351.py`
 
 ## 2.1 Files
 
 ### 2.1.1 Core files
 
-The `ngui/core` directory contains the GUI core and its principal dependencies:
+The root directory contains setup files for monochrome and color displays. The
+relevant file will need to be edited to match the display in use, the
+MicroPython target and the electrical connections between display and target.
+ * `color_setup.py` Color displays. As written supports an SSD1351 display
+ connected to a Pyboard.
+ * `ssd1306_setup.py` Setup file for monochrome displays using the official
+ driver. Supports hard or soft SPI or I2C connections, as does the test script
+ `mono_test.py`. On non Pyboard targets this will require adaptation to match
+ the hardware connections.
+
+The `gui/core` directory contains the GUI core and its principal dependencies:
 
  * `nanogui.py` The library.
  * `writer.py` Module for rendering Python fonts.
  * `fplot.py` The graph plotting module.
- * `ssd1306_setup.py` Applications using an SSD1306 monochrome OLED display
- import this file to determine hardware initialisation. On non Pyboard targets
- this will require adaptation to match the hardware connections.
+ * `colors.py` Color constants.
  * `framebuf_utils.mpy` Accelerator for the `CWriter` class. This optional file
- is compiled for STM hardware and will be ignored on other ports. Instructions
- and code for compiling for other architectures may be found
+ is compiled for STM hardware and will be ignored on other ports unless
+ recompiled. Instructions and code for compiling for other architectures may be
+ found
  [here](https://github.com/peterhinch/micropython-font-to-py/blob/master/writer/WRITER.md#224-a-performance-boost).
 
 ### 2.1.2 Demo scripts
 
-The `ngui/demos` directory contains test/demo scripts. In general these will
-need minor adaptation to match your display hardware.
+The `gui/demos` directory contains test/demo scripts.
 
  * `mono_test.py` Tests/demos using the official SSD1306 library for a
  monochrome 128*64 OLED display.
@@ -126,77 +185,95 @@ need minor adaptation to match your display hardware.
 
 Demos for Adafruit 1.27 inch and 1.5 inch color OLEDs. Edit the `height = 96`
 line as per the code comment for the larger display.  
- * `aclock.py` Analog clock demo.
+ * `aclock.py` Analog clock demo. Cross platform.
  * `alevel.py` Spirit level using Pyboard accelerometer.
+ * `fpt.py` Plot demo. Cross platform.
+ * `scale.py` A demo of the new `Scale` widget. Cross platform.
+ * `asnano_sync.py` Two Pyboard specific demos using the GUI with `uasyncio`.
+ * `asnano.py` Could readily be adapted for other targets.
+
+Compatibility with `uasyncio` and the last two demos are discussed
+[here](./ASYNC.md).
+
+Demo scripts for Sharp displays are in `drivers/sharp`. Check source code for
+wiring details. See [the README](./drivers/sharp/README.md). They may be run as
+follows:
+```python
+import drivers.sharp.sharptest
+# or
+import drivers.sharp.clocktest
+```
 
 ### 2.1.3 Fonts
 
-Python font files are in the root directory. This facilitates freezing them to
-conserve RAM. Python fonts may be created using
-[font_to_py.py](https://github.com/peterhinch/micropython-font-to-py.git).
-Supplied examples are:
+Python font files are in the `gui/fonts` directory. The easiest way to conserve
+RAM is to freeze them which is highly recommended. In doing so the directory
+structure must be maintained. Python fonts may be created using
+[font_to_py.py](https://github.com/peterhinch/micropython-font-to-py.git). The
+`-x` option for horizontal mapping must be specified. Supplied examples are:
 
- * `arial10.py`
- * `courier20.py`
+ * `arial10.py` Variable pitch Arial in various sizes.
+ * `arial35.py`
+ * `arial_50.py`
+ * `courier20.py` Fixed pitch font.
  * `font6.py`
+ * `font10.py`
  * `freesans20.py`
-
-Demos showing the use of `nanogui` with `uasyncio` may be found [here](./ASYNC.md).
 
 ## 2.2 Dependencies
 
-All applicatons require a device driver for the display in use plus any Python
-font files in use. The following is required by all applications:
+The source tree now includes all dependencies. These are listed to enable users
+to check for newer versions.
 
  * [writer.py](https://github.com/peterhinch/micropython-font-to-py/blob/master/writer/writer.py)
  Provides text rendering.
 
+Optional feature:
+ * An STM32 implementation of
+ [this optimisation](https://github.com/peterhinch/micropython-font-to-py/blob/master/writer/WRITER.md#224-a-performance-boost).
+
+
 ### 2.2.1 Monochrome use
 
-OLED displays using the SSD1306 chip require:  
- * [ssd1306_setup.py](https://github.com/peterhinch/micropython-font-to-py/blob/master/writer/ssd1306_setup.py)
- Contains wiring information.
- * The official [SSD1306 driver](https://github.com/micropython/micropython/blob/master/drivers/display/ssd1306.py).
+The official driver for OLED displays using the SSD1306 chip is provided, but
+the source is here:  
+ * [SSD1306 driver](https://github.com/micropython/micropython/blob/master/drivers/display/ssd1306.py).
 
-Displays based on the PCD8544 chip require:  
+Displays based on the Nokia 5110 (PCD8544 chip) require this driver. It is not
+in this repo but may be found here:  
  * [PCD8544/Nokia 5110](https://github.com/mcauser/micropython-pcd8544.git)
 
 ### 2.2.2 Color use
 
-Supported displays amd their drivers are listed below:
+Drivers for Adafruit 0.96", 1.27" and 1.5" OLEDS and the Sharp display are
+included in the source tree. Each driver has its own small `README.md`. The
+default driver for the larger OLEDs is Pyboard specific, but there are cross
+platform alternatives in the directory.
 
- * [Adafruit 0.96 inch color OLED](https://github.com/peterhinch/micropython-nano-gui/tree/master/drivers/ssd1331).
- Driver for SSD1331 controller.
- * [Adafruit 1.5 and 1.27 inch color OLEDs](./drivers/ssd1351/README.md)
- Driver for SSD1351 controller.
-
-Test script for Adafruit 1.5 and 1.27 inch color OLED displays. It's a good
-idea to paste this at the REPL to ensure the display is working before
-progressing to the GUI. Remember to change `height` if using the 1.5 inch
-display.
+If using the Adafruit 1.5 or 1.27 inch color OLED displays it is suggested that
+after installing the GUI the following script is pasted at the REPL. This will
+verify the hardware. Please change `height` to 128 if using the 1.5 inch
+display. Note the commented-out cross platform alternative.
 ```python
 import machine
-from ssd1351 import SSD1351 as SSD
-
-pdc = machine.Pin('X1', machine.Pin.OUT_PP, value=0)
-pcs = machine.Pin('X2', machine.Pin.OUT_PP, value=1)
-prst = machine.Pin('X3', machine.Pin.OUT_PP, value=1)
-spi = machine.SPI(1)
+from drivers.ssd1351.ssd1351 import SSD1351 as SSD
+# from drivers.ssd1351.ssd1351_generic import SSD1351 as SSD
+pdc = machine.Pin('Y1', machine.Pin.OUT_PP, value=0)
+pcs = machine.Pin('Y2', machine.Pin.OUT_PP, value=1)
+prst = machine.Pin('Y3', machine.Pin.OUT_PP, value=1)
+spi = machine.SPI(2)
 ssd = SSD(spi, pcs, pdc, prst, height=96)  # Ensure height is correct (96/128)
 ssd.fill(0)
 ssd.line(0, 0, 127, 95, ssd.rgb(0, 255, 0))  # Green diagonal corner-to-corner
 ssd.rect(0, 0, 15, 15, ssd.rgb(255, 0, 0))  # Red square at top left
 ssd.show()
 ```
-Color applications which do a lot of text rendering may achieve a speed gain by
-means of 
-[this optimisation](https://github.com/peterhinch/micropython-font-to-py/blob/master/writer/WRITER.md#224-a-performance-boost).
 
 ###### [Contents](./README.md#contents)
 
 # 3. The nanogui module
 
-This supports widgets whose text components are drawn using the `Writer`
+The GUI supports widgets whose text components are drawn using the `Writer`
 (monochrome) or `CWriter` (colour) classes. Upside down rendering is not
 supported: attempts to specify it will produce unexpected results.
 
@@ -204,28 +281,29 @@ Widgets are drawn at specific locations on screen and are incompatible with the
 display of scrolling text: they are therefore not intended for use with the
 `Writer.printstring` method. The coordinates of a widget are those of its top
 left corner. If a border is specified, this is drawn outside of the limits of
-the widgets with a margin of 2 pixels. If the widget is placed at [row, col]
-the top left hand corner of the border is at [row-2, col-2].
+the widgets with a margin of 2 pixels. If the widget is placed at `[row, col]`
+the top left hand corner of the border is at `[row-2, col-2]`.
 
 When a widget is drawn or updated (typically with its `value` method) it is not
 immediately displayed. To update the display `nanogui.refresh` is called: this
-ensures that the `framebuf` contents are updated before copying the contents to
-the display. This postponement is for performance reasons and to provide the
-appearance of a rapid update.
+enables multiple updates to the `framebuf` contents before once copying the
+buffer to the display. Postponement is for performance and provides a visually
+rapid update.
 
 ## 3.1 Initialisation
 
 The GUI is initialised in the following stages. The aim is to allocate the
 `framebuf` before importing other modules. This is intended to reduce the risk
 of memory failures when instantiating a large framebuf in an application which
-imports multiple modules.
+imports multiple modules. Note that the hardware dependent code is located in
+`color_setup.py`: it is illustrated here to explain the process.
 
 Firstly set the display height and import the driver:
 ```python
 height = 96  # 1.27 inch 96*128 (rows*cols) display. Set to 128 for 1.5 inch
 import machine
 import gc
-from ssd1351 import SSD1351 as SSD  # Import the display driver
+from drivers.ssd1351.ssd1351 import SSD1351 as SSD  # Import the display driver
 ```
 Then set up the bus (SPI or I2C) and instantiate the display. At this point the
 framebuffer is created:
@@ -242,20 +320,20 @@ modules required by the application. For each font to be used import the
 Python font and create a `CWriter` instance (for monochrome displays a `Writer`
 is used):
 ```python
-from nanogui import Label, Dial, Pointer, refresh  # Whatever you need
+from color_setup import ssd, height  # Create a display instance
+from gui.core.nanogui import refresh
+from gui.widgets.label import Label  # Import any widgets you plan to use
+from gui.widgets.dial import Dial, Pointer
+
 refresh(ssd)  # Initialise and clear display.
 
-from writer import CWriter  # Import other modules
-import arial10  # Font
-GREEN = SSD.rgb(0, 255, 0)  # Define colors
-RED = SSD.rgb(255, 0, 0)
-BLUE = SSD.rgb(0, 0, 255)
-YELLOW = SSD.rgb(255, 255, 0)
-BLACK = 0
+from gui.core.writer import CWriter  # Import other modules
+import gui.fonts.arial10  # Font
+from gui.core.colors import *  # Define colors
 
 CWriter.set_textpos(ssd, 0, 0)  # In case previous tests have altered it
  # Instantiate any CWriters to be used (one for each font)
-wri = CWriter(ssd, arial10, GREEN, BLACK, verbose=False)
+wri = CWriter(ssd, arial10, GREEN, BLACK, verbose=False)  # Colors are defaults
 wri.set_clip(True, True, False)
 ```
 
@@ -317,17 +395,18 @@ The following is a complete "Hello world" script.
 height = 96  # 1.27 inch 96*128 (rows*cols) display. Set to 128 for 1.5 inch
 import machine
 import gc
-from ssd1351 import SSD1351 as SSD  # Import the display driver
-pdc = machine.Pin('X1', machine.Pin.OUT_PP, value=0)
-pcs = machine.Pin('X2', machine.Pin.OUT_PP, value=1)
-prst = machine.Pin('X3', machine.Pin.OUT_PP, value=1)
-spi = machine.SPI(1)
+from drivers.ssd1351.ssd1351 import SSD1351 as SSD
+pdc = machine.Pin('Y1', machine.Pin.OUT_PP, value=0)
+pcs = machine.Pin('Y2', machine.Pin.OUT_PP, value=1)
+prst = machine.Pin('Y3', machine.Pin.OUT_PP, value=1)
+spi = machine.SPI(2)
 gc.collect()  # Precaution before instantiating framebuf
 ssd = SSD(spi, pcs, pdc, prst, height)  # Create a display instance
-from nanogui import Label, refresh
+from gui.core.nanogui import refresh
+from gui.widgets.label import Label
 refresh(ssd)  # Initialise and clear display.
-from writer import CWriter  # Import other modules
-import freesans20  # Font
+from gui.core.writer import CWriter  # Import other modules
+import gui.fonts.freesans20 as freesans20 # Font
 GREEN = SSD.rgb(0, 255, 0)  # Define colors
 BLACK = 0
 CWriter.set_textpos(ssd, 0, 0)  # In case previous tests have altered it
@@ -521,9 +600,8 @@ This should be amended if the hardware uses a different 8-bit format.
 The `Writer` (monochrome) or `CWriter` (color) classes and the `nanogui` module
 should then work automatically.
 
-If a display uses I2C note that owing to
-[this issue](https://github.com/micropython/micropython/pull/4020) soft I2C
-may be required, depending on the detailed specification of the chip.
-
+Drivers for displays using I2C may need to use
+[I2C.writevto](http://docs.micropython.org/en/latest/library/machine.I2C.html?highlight=writevto#machine.I2C.writevto)
+depending on the chip requirements.
 
 ###### [Contents](./README.md#contents)

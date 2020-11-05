@@ -6,8 +6,8 @@
 # Copyright (c) 2020 Peter Hinch
 # Released under the MIT License (MIT) - see LICENSE file
 
-# Initialise hardware and framebuf before importing modules
-from ssd1351_setup import ssd  # Create a display instance
+# Initialise hardware and framebuf before importing modules.
+from color_setup import ssd  # Create a display instance
 
 import uasyncio as asyncio
 import pyb

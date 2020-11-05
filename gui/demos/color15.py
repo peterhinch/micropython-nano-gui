@@ -1,4 +1,5 @@
-# color15.py Test/demo program for Adafruit ssd1351-based OLED displays
+# color15.py Test/demo program for larger displays. Cross-platform.
+# Tested on Adafruit ssd1351-based OLED displays:
 # Adafruit 1.5" 128*128 OLED display: https://www.adafruit.com/product/1431
 # Adafruit 1.27" 128*96 display https://www.adafruit.com/product/1673
 # For wiring details see drivers/ADAFRUIT.md in this repo.
@@ -6,7 +7,8 @@
 # Released under the MIT License (MIT). See LICENSE.
 # Copyright (c) 2018-2020 Peter Hinch
 
-from ssd1351_setup import ssd  # Create a display instance
+# Initialise hardware and framebuf before importing modules.
+from color_setup import ssd  # Create a display instance
 
 import cmath
 import utime

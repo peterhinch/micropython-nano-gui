@@ -6,8 +6,6 @@
 # Usage:
 # from gui.widgets.scale import Scale
 
-# NEED print_left, get_stringsize
-
 from gui.core.nanogui import DObject
 from gui.core.writer import Writer
 from gui.core.colors import BLACK
@@ -34,6 +32,7 @@ class Scale(DObject):
             ctrl_ht = height - min_ht  # adjust ticks for greater height
         width &= 0xfffe  # Make divisible by 2: avoid 1 pixel pointer offset
         super().__init__(writer, row, col, height, width, fgcolor, bgcolor, fgcolor)
+        self.fontcolor = fontcolor if fontcolor is not None else self.fgcolor
         self.x0 = col + border
         self.x1 = col + self.width - border
         self.y0 = row + border
@@ -86,7 +85,7 @@ class Scale(DObject):
                 txt = self.legendcb(self._fvalue(iv * 10))
                 tlen = wri.stringlen(txt)
                 Writer.set_textpos(dev, y0, min(x, x1 - tlen))
-                wri.setcolor(self.fgcolor, self.bgcolor)
+                wri.setcolor(self.fontcolor, self.bgcolor)
                 wri.printstring(txt)
                 wri.setcolor()
                 ys = self.ldy0  # Large tick

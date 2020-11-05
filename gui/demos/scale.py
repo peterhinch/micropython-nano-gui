@@ -5,8 +5,10 @@
 
 # Usage:
 # import gui.demos.scale
-# Initialise hardware
-from ssd1351_setup import ssd  # Create a display instance
+
+# Initialise hardware and framebuf before importing modules.
+from color_setup import ssd  # Create a display instance
+
 from gui.core.nanogui import refresh
 from gui.core.writer import CWriter
 
@@ -48,12 +50,26 @@ async def default(scale, lbl):
 
 
 def test():
+    def tickcb(f, c):
+        if f > 0.8:
+            return RED
+        if f < -0.8:
+            return BLUE
+        return c
+    def legendcb(f):
+        return '{:2.0f}'.format(88 + ((f + 1) / 2) * (108 - 88))
     refresh(ssd)  # Initialise and clear display.
     CWriter.set_textpos(ssd, 0, 0)  # In case previous tests have altered it
     wri = CWriter(ssd, arial10, GREEN, BLACK, verbose=False)
     wri.set_clip(True, True, False)
-    lbl = Label(wri, ssd.height - wri.height - 2, 0, 50)
-    scale = Scale(wri, 5, 5)
+    scale1 = Scale(wri, 2, 2, width = 124, legendcb = legendcb,
+                   pointercolor=RED, fontcolor=YELLOW)
+    asyncio.create_task(radio(scale1))
+
+    lbl = Label(wri, ssd.height - wri.height - 2, 2, 50, 
+                bgcolor = DARKGREEN, bdcolor = RED, fgcolor=WHITE)
+    scale = Scale(wri, 45, 2, width = 124, tickcb = tickcb,
+                  pointercolor=RED, fontcolor=YELLOW)
     asyncio.run(default(scale, lbl))
 
 test()

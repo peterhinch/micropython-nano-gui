@@ -74,17 +74,17 @@ The datasheet specifies a minimum refresh rate of 1Hz.
  3. `clock_batt.py` As above but designed for low power operation. Pyboard
  specific.
 
-`sharptest` should not be run for long periods as it does not regularly refresh
-the display. It tests `writer.py` and some `framebuffer` graphics primitives.
-`clocktest` tests `nanogui.py`.
+Tests assume that `nanogui` is installed as per the instructions. `sharptest`
+should not be run for long periods as it does not regularly refresh the
+display. It tests `writer.py` and some `framebuffer` graphics primitives.
+`clocktest` demostrates use with `nanogui`.
 
-To run the tests the fonts in the directory, `writer.py` and `nanogui.py` must
-be copied to the device or frozen as bytecode. The `clack_batt.py` demo needs
-`upower.py` from
+The `clock_batt.py` demo needs `upower.py` from
 [micropython-micropower](https://github.com/peterhinch/micropython-micropower).
 
 Testing was done on a Pyboard D SF6W: frozen bytecode was not required. I
-suspect a Pyboard 1.x would require it to prevent memory errors.
+suspect a Pyboard 1.x would require it to prevent memory errors. Fonts in
+particular benefit from freezing as their RAM usage is radically reduced.
 
 # 3. Device driver constructor
 

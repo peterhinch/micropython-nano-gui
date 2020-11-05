@@ -1,13 +1,12 @@
 # asnano_sync.py Test/demo program for use of nanogui with uasyncio
-# Uses Adafruit ssd1351-based OLED displays (change height to suit)
-# Adafruit 1.5" 128*128 OLED display: https://www.adafruit.com/product/1431
-# Adafruit 1.27" 128*96 display https://www.adafruit.com/product/1673
+# Requires Pyboard for switch and LEDs.
+# Tested with Adafruit ssd1351 OLED display.
 
 # Copyright (c) 2020 Peter Hinch
 # Released under the MIT License (MIT) - see LICENSE file
 
 # Initialise hardware and framebuf before importing modules
-from ssd1351_setup import ssd  # Create a display instance
+from color_setup import ssd  # Create a display instance
 
 import uasyncio as asyncio
 import pyb

@@ -1,12 +1,14 @@
-# fpt.py Test/demo program for framebuf plot
-# Uses Adafruit ssd1351-based OLED displays (change height to suit)
+# fpt.py Test/demo program for framebuf plot. Cross-patform,
+# but requires a large enough display.
+# Tested on Adafruit ssd1351-based OLED displays:
 # Adafruit 1.5" 128*128 OLED display: https://www.adafruit.com/product/1431
 # Adafruit 1.27" 128*96 display https://www.adafruit.com/product/1673
 
 # Released under the MIT License (MIT). See LICENSE.
 # Copyright (c) 2018-2020 Peter Hinch
 
-from ssd1351_setup import ssd  # Create a display instance
+# Initialise hardware and framebuf before importing modules.
+from color_setup import ssd  # Create a display instance
 
 import cmath
 import math
@@ -16,7 +18,6 @@ from gui.core.writer import Writer, CWriter
 from gui.core.fplot import PolarGraph, PolarCurve, CartesianGraph, Curve, TSequence
 from gui.core.nanogui import refresh
 from gui.widgets.label import Label
-
 
 refresh(ssd)
 

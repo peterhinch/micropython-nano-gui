@@ -6,18 +6,32 @@
 # https://learn.adafruit.com/monochrome-oled-breakouts/wiring-128x32-spi-oled-display
 # https://www.proto-pic.co.uk/monochrome-128x32-oled-graphic-display.html
 
-# V0.31 9th Sep 2018
+# V0.32 5th Nov 2020 Replace uos.urandom for minimal ports
 
 import utime
-import uos
+# import uos
 from ssd1306_setup import WIDTH, HEIGHT, setup
 from gui.core.writer import Writer, CWriter
-from gui.core.nanogui import Label, Meter, refresh
+from gui.core.nanogui import refresh
+from gui.widgets.meter import Meter
+from gui.widgets.label import Label
 
 # Fonts
 import gui.fonts.arial10 as arial10
-import gui.courier20 as fixed
+import gui.fonts.courier20 as fixed
 import gui.fonts.font6 as small
+
+# Some ports don't support uos.urandom.
+# See https://github.com/peterhinch/micropython-samples/tree/master/random
+def xorshift64star(modulo, seed = 0xf9ac6ba4):
+    x = seed
+    def func():
+        nonlocal x
+        x ^= x >> 12
+        x ^= ((x << 25) & 0xffffffffffffffff)  # modulo 2**64
+        x ^= x >> 27
+        return (x * 0x2545F4914F6CDD1D) % modulo
+    return func
 
 def fields(use_spi=False, soft=True):
     ssd = setup(use_spi, soft)  # Create a display instance
@@ -28,9 +42,10 @@ def fields(use_spi=False, soft=True):
     numfield = Label(wri, 25, 2, wri.stringlen('99.99'), bdcolor=None)
     countfield = Label(wri, 0, 90, wri.stringlen('1'))
     n = 1
+    random = xorshift64star(65535)
     for s in ('short', 'longer', '1', ''):
         textfield.value(s)
-        numfield.value('{:5.2f}'.format(int.from_bytes(uos.urandom(2),'little')/1000))
+        numfield.value('{:5.2f}'.format(random() /1000))
         countfield.value('{:1d}'.format(n))
         n += 1
         refresh(ssd)
@@ -54,9 +69,10 @@ def multi_fields(use_spi=False, soft=True):
         nfields.append(Label(wri, y, col, width, bdcolor=None))  # Draw border
         y += dy
 
+    random = xorshift64star(2**24 - 1)
     for _ in range(10):
         for field in nfields:
-            value = int.from_bytes(uos.urandom(3),'little')/167772
+            value = random() / 167772
             field.value('{:5.2f}'.format(value))
         refresh(ssd)
         utime.sleep(1)
@@ -72,8 +88,9 @@ def meter(use_spi=False, soft=True):
     m1 = Meter(wri, 5, 44, height = 50, divisions = 4, legends=('-1', '0', '+1'))
     m2 = Meter(wri, 5, 86, height = 50, divisions = 4, legends=('-1', '0', '+1'))
     steps = 10
+    random = xorshift64star(2**24 - 1)
     for n in range(steps + 1):
-        m0.value(int.from_bytes(uos.urandom(3),'little')/16777216)
+        m0.value(random() / 16777216)
         m1.value(n/steps)
         m2.value(1 - n/steps)
         refresh(ssd)
