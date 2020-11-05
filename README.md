@@ -1,6 +1,6 @@
 A lightweight and minimal MicroPython GUI library for display drivers based on
 the `framebuf` class. Various display technologies are supported, primarily
-small color OLED's.
+small color OLED's. The GUI is cross-platform.
 
 These images don't do justice to the OLED displays which are visually
 impressive with bright colors and extreme contrast. For some reason they are
@@ -58,7 +58,9 @@ frame buffers.
 The GUI is cross-platform. By default it is configured for a Pyboard (1.x or D).
 This doc explains how to configure for other platforms by adapting a single
 small file. The GUI supports multiple displays attached to a single target, but
-bear in mind the RAM requirements for multiple frame buffers.
+bear in mind the RAM requirements for multiple frame buffers. It is tested on
+the ESP32 reference board without SPIRAM. Running on ESP8266 is probably not
+possible owing to its restricted RAM.
 
 Authors of applications requiring touch should consider my touch GUI's for the
 following displays. These have internal buffers:
@@ -161,6 +163,8 @@ MicroPython target and the electrical connections between display and target.
  driver. Supports hard or soft SPI or I2C connections, as does the test script
  `mono_test.py`. On non Pyboard targets this will require adaptation to match
  the hardware connections.
+ * `esp32_setup.py` After editing to match the display and wiring, this should
+ be copied to the target as `/pyboard/color_setup.py`.
 
 The `gui/core` directory contains the GUI core and its principal dependencies:
 
@@ -256,16 +260,31 @@ after installing the GUI the following script is pasted at the REPL. This will
 verify the hardware. Please change `height` to 128 if using the 1.5 inch
 display. Note the commented-out cross platform alternative.
 ```python
-import machine
-from drivers.ssd1351.ssd1351 import SSD1351 as SSD
-# from drivers.ssd1351.ssd1351_generic import SSD1351 as SSD
-pdc = machine.Pin('Y1', machine.Pin.OUT_PP, value=0)
-pcs = machine.Pin('Y2', machine.Pin.OUT_PP, value=1)
-prst = machine.Pin('Y3', machine.Pin.OUT_PP, value=1)
-spi = machine.SPI(2)
-ssd = SSD(spi, pcs, pdc, prst, height=96)  # Ensure height is correct (96/128)
+from machine import Pin, SPI
+from drivers.ssd1351.ssd1351 import SSD1351 as SSD  # Pyboard-specific driver
+height = 96   # Ensure height is correct (96/128)
+pdc = Pin('Y1', Pin.OUT_PP, value=0)
+pcs = Pin('Y2', Pin.OUT_PP, value=1)
+prst = Pin('Y3', Pin.OUT_PP, value=1)
+spi = SPI(2)
+ssd = SSD(spi, pcs, pdc, prst, height=height)
 ssd.fill(0)
-ssd.line(0, 0, 127, 95, ssd.rgb(0, 255, 0))  # Green diagonal corner-to-corner
+ssd.line(0, 0, 127, height - 1, ssd.rgb(0, 255, 0))  # Green diagonal corner-to-corner
+ssd.rect(0, 0, 15, 15, ssd.rgb(255, 0, 0))  # Red square at top left
+ssd.show()
+```
+On ESP32 the following may be used:
+```python
+from machine import Pin, SPI
+from drivers.ssd1351.ssd1351_generic import SSD1351 as SSD  # Note generic driver
+height = 128  # Ensure height is correct (96/128)
+pdc = Pin(25, Pin.OUT, value=0)
+pcs = Pin(26, Pin.OUT, value=1)
+prst = Pin(27, Pin.OUT, value=1)
+spi = SPI(1, 10_000_000, sck=Pin(14), mosi=Pin(13), miso=Pin(12))
+ssd = SSD(spi, pcs, pdc, prst, height=height)
+ssd.fill(0)
+ssd.line(0, 0, 127, height - 1, ssd.rgb(0, 255, 0))  # Green diagonal corner-to-corner
 ssd.rect(0, 0, 15, 15, ssd.rgb(255, 0, 0))  # Red square at top left
 ssd.show()
 ```
