@@ -12,7 +12,7 @@
 # when instantiating the frame buffer. The aim is to do this as early as
 # possible before importing other modules.
 
-# WIRING (Adafruit pin nos and names)
+# WIRING (Adafruit pin nos and names).
 # Pyb   SSD
 # 3v3   Vin (10)
 # Gnd   Gnd (11)
