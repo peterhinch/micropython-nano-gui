@@ -188,8 +188,8 @@ The `gui/demos` directory contains test/demo scripts.
  * `color15.py` Similar for Adafruit 1.27 inch and 1.5 inch color OLEDs. Edit
  the `height = 96` line as per the comment for the larger display.
 
-Demos for Adafruit 1.27 inch and 1.5 inch color OLEDs. Edit the `height = 96`
-line as per the code comment for the larger display.  
+Demos for Adafruit 1.27 inch and 1.5 inch color OLEDs. These will run on either
+display so long as `color_setup.py` has the correct `height` value.  
  * `aclock.py` Analog clock demo. Cross platform.
  * `alevel.py` Spirit level using Pyboard accelerometer.
  * `fpt.py` Plot demo. Cross platform.
