@@ -321,7 +321,6 @@ modules required by the application. For each font to be used import the
 Python font and create a `CWriter` instance (for monochrome displays a `Writer`
 is used):
 ```python
-from color_setup import ssd, height  # Create a display instance
 from gui.core.nanogui import refresh
 from gui.widgets.label import Label  # Import any widgets you plan to use
 from gui.widgets.dial import Dial, Pointer
@@ -437,7 +436,7 @@ Keyword only args:
  8. `ptcolor=None` Color of meter pointer or bar. Default is foreground color.
  9. `bdcolor=False` If `False` no border is displayed. If `None` a border is
  shown in the `Writer` forgeround color. If a color is passed, it is used.
- 10. `divisions=5` No. of gradutions to show.
+ 10. `divisions=5` No. of graduations to show.
  11. `label=None` A text string will cause a `Label` to be drawn below the
  meter. An integer will create a `Label` of that width for later use.
  12. `style=Meter.LINE` The pointer is a horizontal line. `Meter.BAR` causes a
@@ -572,7 +571,7 @@ def clock(ssd, wri):
 
 ###### [Contents](./README.md#contents)
 
-## 5.6 Scale class
+## 3.6 Scale class
 
 This displays floating point data having a wide dynamic range. It is modelled
 on old radios where a large scale scrolls past a small window having a fixed
