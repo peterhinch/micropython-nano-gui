@@ -36,7 +36,8 @@ wiring details, pin names and hardware issues.
    2.2.1 [Monochrome use](./README.md#211-monochrome-use)  
    2.2.2 [Color use](./README.md#222-color-use)  
  3. [The nanogui module](./README.md#3-the-nanogui-module)  
-  3.1 [Initialisation](./README.md#31-initialisation) Initial setup and refresh method.  
+  3.1 [Application Initialisation](./README.md#31-application-initialisation) Initial setup and refresh method.  
+  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;3.1.1 [Setup file internals](./README.md#311-setup-file-internals)  
   3.2 [Label class](./README.md#32-label-class) Dynamic text at any screen location.  
   3.3 [Meter class](./README.md#33-meter-class) A vertical panel meter.  
   3.4 [LED class](./README.md#34-led-class) Virtual LED of any color.  
@@ -157,14 +158,15 @@ for SSD1351 displays only the following is actually required:
 The root directory contains setup files for monochrome and color displays. The
 relevant file will need to be edited to match the display in use, the
 MicroPython target and the electrical connections between display and target.
- * `color_setup.py` Color displays. As written supports an SSD1351 display
- connected to a Pyboard.
+ * `color_setup.py` Setup for color displays. As written supports an SSD1351
+ display connected to a Pyboard.
  * `ssd1306_setup.py` Setup file for monochrome displays using the official
  driver. Supports hard or soft SPI or I2C connections, as does the test script
  `mono_test.py`. On non Pyboard targets this will require adaptation to match
  the hardware connections.
- * `esp32_setup.py` After editing to match the display and wiring, this should
- be copied to the target as `/pyboard/color_setup.py`.
+ * `esp32_setup.py` As written supports an ESP32 connected to a 128x128 SSD1351
+ display. After editing to match the display and wiring, it should be copied to
+ the target as `/pyboard/color_setup.py`.
 
 The `gui/core` directory contains the GUI core and its principal dependencies:
 
@@ -182,7 +184,7 @@ The `gui/core` directory contains the GUI core and its principal dependencies:
 
 The `gui/demos` directory contains test/demo scripts.
 
- * `mono_test.py` Tests/demos using the official SSD1306 library for a
+ * `mono_test.py` Tests/demos using the official SSD1306 driver for a
  monochrome 128*64 OLED display.
  * `color96.py` Tests/demos for the Adafruit 0.96 inch color OLED.
  * `color15.py` Similar for Adafruit 1.27 inch and 1.5 inch color OLEDs. Edit
@@ -197,7 +199,7 @@ display so long as `color_setup.py` has the correct `height` value.
  * `asnano_sync.py` Two Pyboard specific demos using the GUI with `uasyncio`.
  * `asnano.py` Could readily be adapted for other targets.
 
-Compatibility with `uasyncio` and the last two demos are discussed
+Compatibility with `uasyncio` and the last two demos is discussed
 [here](./ASYNC.md).
 
 Demo scripts for Sharp displays are in `drivers/sharp`. Check source code for
@@ -240,20 +242,23 @@ Optional feature:
 
 ### 2.2.1 Monochrome use
 
-The official driver for OLED displays using the SSD1306 chip is provided, but
-the source is here:  
+A copy of the official driver for OLED displays using the SSD1306 chip is
+provided. The official file is here:  
  * [SSD1306 driver](https://github.com/micropython/micropython/blob/master/drivers/display/ssd1306.py).
 
 Displays based on the Nokia 5110 (PCD8544 chip) require this driver. It is not
 in this repo but may be found here:  
  * [PCD8544/Nokia 5110](https://github.com/mcauser/micropython-pcd8544.git)
 
+The Sharp display is supported in `gui/drivers/sharp`. See README.md and demos.
+
+
 ### 2.2.2 Color use
 
-Drivers for Adafruit 0.96", 1.27" and 1.5" OLEDS and the Sharp display are
-included in the source tree. Each driver has its own small `README.md`. The
-default driver for the larger OLEDs is Pyboard specific, but there are cross
-platform alternatives in the directory.
+Drivers for Adafruit 0.96", 1.27" and 1.5" OLEDS are included in the source
+tree. Each driver has its own small `README.md`. The default driver for the
+larger OLEDs is Pyboard specific, but there are slightly slower cross platform
+alternatives in the directory - see the code below for usage on ESP32.
 
 If using the Adafruit 1.5 or 1.27 inch color OLED displays it is suggested that
 after installing the GUI the following script is pasted at the REPL. This will
@@ -293,40 +298,71 @@ ssd.show()
 
 # 3. The nanogui module
 
-The GUI supports widgets whose text components are drawn using the `Writer`
-(monochrome) or `CWriter` (colour) classes. Upside down rendering is not
-supported: attempts to specify it will produce unexpected results.
-
-Widgets are drawn at specific locations on screen and are incompatible with the
-display of scrolling text: they are therefore not intended for use with the
-`Writer.printstring` method. The coordinates of a widget are those of its top
-left corner. If a border is specified, this is drawn outside of the limits of
-the widgets with a margin of 2 pixels. If the widget is placed at `[row, col]`
-the top left hand corner of the border is at `[row-2, col-2]`.
+The GUI supports a variety of widgets, some of which include text elements. The
+coordinates of a widget are those of its top left corner. If a border is
+specified, this is drawn outside of the limits of the widgets with a margin of
+2 pixels. If the widget is placed at `[row, col]` the top left hand corner of
+the border is at `[row-2, col-2]`.
 
 When a widget is drawn or updated (typically with its `value` method) it is not
 immediately displayed. To update the display `nanogui.refresh` is called: this
 enables multiple updates to the `framebuf` contents before once copying the
 buffer to the display. Postponement is for performance and provides a visually
-rapid update.
+instant update.
 
-## 3.1 Initialisation
+Text components of widgets are rendered using the `Writer` (monochrome) or
+`CWriter` (colour) classes.
 
-The GUI is initialised in the following stages. The aim is to allocate the
-`framebuf` before importing other modules. This is intended to reduce the risk
-of memory failures when instantiating a large framebuf in an application which
-imports multiple modules. Note that the hardware dependent code is located in
-`color_setup.py`: it is illustrated here to explain the process.
+## 3.1 Application Initialisation
 
-Firstly set the display height and import the driver:
+The GUI is initialised for color display by issuing:
+```python
+from color_setup import ssd, height
+```
+This works as described [below](./README.md#311-setup-file-internals).
+
+A typical application then imports `nanogui` modules and clears the display:
+```python
+from gui.core.nanogui import refresh
+from gui.widgets.label import Label  # Import any widgets you plan to use
+from gui.widgets.dial import Dial, Pointer
+
+refresh(ssd)  # Initialise and clear display.
+```
+This is followed by Python fonts. A `CWriter` instance is created for each
+font (for monochrome displays a `Writer` is used). Note that upside down
+rendering is not supported; current widgets do not support scrolling text.
+```python
+from gui.core.writer import CWriter  # Renders color text
+import gui.fonts.arial10  # A Python Font
+from gui.core.colors import *  # Standard color constants
+
+CWriter.set_textpos(ssd, 0, 0)  # In case previous tests have altered it
+ # Instantiate any CWriters to be used (one for each font)
+wri = CWriter(ssd, arial10, GREEN, BLACK, verbose=False)  # Colors are defaults
+wri.set_clip(True, True, False)
+```
+The application calls `nanogui.refresh` on initialisation to clear the display,
+then subsequently whenever a refresh is required. The method takes two args:
+ 1. `device` The display instance (supports multiple displays).
+ 2. `clear=False` If set `True` the display will be blanked; it is also
+ blanked when a device is refreshed for the first time.
+
+### 3.1.1 Setup file internals
+
+The file `color_setup.py` contains the hardware dependent code. It works as
+described below, with the aim of allocating the `framebuf` before importing
+other modules. This is intended to reduce the risk of memory failures.
+
+Firstly the file sets the display height and import the driver:
 ```python
 height = 96  # 1.27 inch 96*128 (rows*cols) display. Set to 128 for 1.5 inch
 import machine
 import gc
 from drivers.ssd1351.ssd1351 import SSD1351 as SSD  # Import the display driver
 ```
-Then set up the bus (SPI or I2C) and instantiate the display. At this point the
-framebuffer is created:
+It then ses up the bus (SPI or I2C) and instantiates the display. At this point
+the framebuffer is created:
 ```python
 pdc = machine.Pin('X1', machine.Pin.OUT_PP, value=0)
 pcs = machine.Pin('X2', machine.Pin.OUT_PP, value=1)
@@ -335,34 +371,6 @@ spi = machine.SPI(1)
 gc.collect()  # Precaution before instantiating framebuf
 ssd = SSD(spi, pcs, pdc, prst, height)  # Create a display instance
 ```
-Finally import `nanogui` modules and initialise the display. Import any other
-modules required by the application. For each font to be used import the
-Python font and create a `CWriter` instance (for monochrome displays a `Writer`
-is used):
-```python
-from gui.core.nanogui import refresh
-from gui.widgets.label import Label  # Import any widgets you plan to use
-from gui.widgets.dial import Dial, Pointer
-
-refresh(ssd)  # Initialise and clear display.
-
-from gui.core.writer import CWriter  # Import other modules
-import gui.fonts.arial10  # Font
-from gui.core.colors import *  # Define colors
-
-CWriter.set_textpos(ssd, 0, 0)  # In case previous tests have altered it
- # Instantiate any CWriters to be used (one for each font)
-wri = CWriter(ssd, arial10, GREEN, BLACK, verbose=False)  # Colors are defaults
-wri.set_clip(True, True, False)
-```
-
-The `nanogui.refresh` method takes two args:
- 1. `device` The display instance (supports multiple displays).
- 2. `clear=False` If set `True` the display will be blanked; it is also
- blanked when a device is refreshed for the first time.
-
-It should be called after instantiating the display, and again whenever the
-physical display is to be updated.
 
 ###### [Contents](./README.md#contents)
 
@@ -518,11 +526,23 @@ Methods:
 
 ## 3.5 Dial and Pointer classes
 
-A dial is a circular analogue clock style display showing a set of pointers. To
-use, the `Dial` is instantiated then one or more `Pointer` objects are
+A `Dial` is a circular display capable of displaying a number of vectors; each
+vector is represented by a `Pointer` instance. The format of the display may be
+chosen to resemble an analog clock or a compass. In the `CLOCK` case a pointer
+resembles a clock's hand extending from the centre towards the periphery. In
+the `COMPASS` case pointers are chevrons extending equally either side of the
+circle centre.
+
+In both cases the length, angle and color of each `Pointer` may be changed
+dynamically. A `Dial` can include an optional `Label` at the bottom which may
+be used to display any required text.
+
+In use, a `Dial` is instantiated then one or more `Pointer` objects are
 instantiated and assigned to it. The `Pointer.value` method enables the `Dial`
-to be updated, with the length, angle and color being dynamically variable.
+to be updated affecting the length, angle and color of the `Pointer`.
 Pointer values are complex numbers.
+
+### Dial class
 
 Constructor positional args:  
  1. `writer` The `Writer` instance (font and screen) to use.
@@ -548,18 +568,19 @@ Keyword only args:
 When a `Pointer` is instantiated it is assigned to the `Dial` by the `Pointer`
 constructor.
 
-The `Pointer` class:
+### Pointer class
 
 Constructor arg:
  1. `dial` The `Dial` instance on which it is to be dsplayed.
 
 Methods:
  1. `value` Args:  
-    * `v=None` The value is a complex number. If its magnitude exceeds unity it
-    is reduced (preserving phase) to constrain it to the boundary of the unit
+    * `v=None` The value is a complex number. A magnitude exceeding unity is
+    reduced (preserving phase) to constrain the `Pointer` within the unit
     circle.
     * `color=None` By default the pointer is rendered in the foreground color
-    of the parent `Dial`. Otherwise the passed color is used.
+    of the parent `Dial`. Otherwise the passed color is used.  
+    Returns the current value.
  2. `text` Updates the label if present (otherwise throws a `ValueError`). Args:
     * `text=None` The text to display. If `None` displays last value.
     * ` invert=False` If true, show inverse text.
@@ -580,7 +601,7 @@ def clock(ssd, wri):
     mins.value(0 + 0.9j, YELLOW)
     dm = cmath.exp(-1j * cmath.pi / 30)  # Rotate by 1 minute
     dh = cmath.exp(-1j * cmath.pi / 1800)  # Rotate hours by 1 minute
-    # Twiddle the hands: see clock.py for an actual clock
+    # Twiddle the hands: see aclock.py for an actual clock
     for _ in range(80):
         utime.sleep_ms(200)
         mins.value(mins.value() * dm, RED)
@@ -597,7 +618,7 @@ on old radios where a large scale scrolls past a small window having a fixed
 pointer. This enables a scale with (say) 200 graduations (ticks) to readily be
 visible on a small display, with sufficient resolution to enable the user to
 interpolate between ticks. Default settings enable estimation of a value to
-within +-0.1%.
+within about +-0.1%.
 
 Legends for the scale are created dynamically as it scrolls past the window.
 The user may control this by means of a callback. The example `lscale.py`
@@ -662,7 +683,7 @@ def tickcb(f, c):
     return c
 ```
 
-### increasing the ticks value
+### Increasing the ticks value
 
 This increases the precision of the display.
 

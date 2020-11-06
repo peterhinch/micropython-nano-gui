@@ -19,16 +19,21 @@
 # Slow method 2700μs typical, up to 11ms on larger fonts
 
 import framebuf
-fast_mode = False
-try:
-    from framebuf_utils import render
-    fast_mode = True
-except ImportError:
-    pass
-except ValueError:
-    print('Ignoring framebuf_utils.mpy: it was compiled for an incorrect architecture.')
-
 from uctypes import bytearray_at, addressof
+
+fast_mode = True
+try:
+    try:
+        from framebuf_utils import render
+    except ImportError:  # May be running in GUI. Try relative import.
+        try:
+            from .framebuf_utils import render
+        except ImportError:
+            fast_mode = False
+except ValueError:
+    fast_mode = False
+    print('Ignoring framebuf_utils.mpy: compiled for incorrect architecture.')
+
 
 class DisplayState():
     def __init__(self):
