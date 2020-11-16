@@ -4,8 +4,36 @@
 # Copyright (c) 2018-2020 Peter Hinch
 
 import cmath
-from gui.core.nanogui import DObject, polar, conj, circle, arrow, fillcircle
+from gui.core.nanogui import DObject, circle, fillcircle
 from gui.widgets.label import Label
+
+# Line defined by polar coords; origin and line are complex
+def polar(dev, origin, line, color):
+    xs, ys = origin.real, origin.imag
+    theta = cmath.polar(line)[1]
+    dev.line(round(xs), round(ys), round(xs + line.real), round(ys - line.imag), color)
+
+def conj(v):  # complex conjugate
+    return v.real - v.imag * 1j
+
+# Draw an arrow; origin and vec are complex, scalar lc defines length of chevron.
+# cw and ccw are unit vectors of +-3pi/4 radians for chevrons (precompiled)
+def arrow(dev, origin, vec, lc, color, ccw=cmath.exp(3j * cmath.pi/4), cw=cmath.exp(-3j * cmath.pi/4)):
+    length, theta = cmath.polar(vec)
+    uv = cmath.rect(1, theta)  # Unit rotation vector
+    start = -vec
+    if length > 3 * lc:  # If line is long
+        ds = cmath.rect(lc, theta)
+        start += ds  # shorten to allow for length of tail chevrons
+    chev = lc + 0j
+    polar(dev, origin, vec, color)  # Origin to tip
+    polar(dev, origin, start, color)  # Origin to tail
+    polar(dev, origin + conj(vec), chev*ccw*uv, color)  # Tip chevron
+    polar(dev, origin + conj(vec), chev*cw*uv, color)
+    if length > lc:  # Confusing appearance of very short vectors with tail chevron
+        polar(dev, origin + conj(start), chev*ccw*uv, color)  # Tail chevron
+        polar(dev, origin + conj(start), chev*cw*uv, color)
+
 
 class Pointer():
     def __init__(self, dial):
