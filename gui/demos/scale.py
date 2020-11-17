@@ -69,7 +69,7 @@ def test():
     lbl = Label(wri, ssd.height - wri.height - 2, 2, 50, 
                 bgcolor = DARKGREEN, bdcolor = RED, fgcolor=WHITE)
     scale = Scale(wri, 45, 2, width = 124, tickcb = tickcb,
-                  pointercolor=RED, fontcolor=YELLOW)
+                  pointercolor=RED, fontcolor=YELLOW, bdcolor=CYAN)
     asyncio.run(default(scale, lbl))
 
 test()

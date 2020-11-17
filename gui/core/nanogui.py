@@ -88,6 +88,7 @@ class DObject():
         self.writer = writer
         device = writer.device
         self.device = device
+        # The following assumes that the widget is mal-positioned, not oversize.
         if row < 0:
             row = 0
             self.warning()
@@ -98,7 +99,7 @@ class DObject():
             col = 0
             self.warning()
         elif col + width >= device.width:
-            row = device.width - width - 1
+            col = device.width - width - 1
             self.warning()
         self.row = row
         self.col = col

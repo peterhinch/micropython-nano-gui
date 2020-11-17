@@ -44,6 +44,7 @@ wiring details, pin names and hardware issues.
   3.5 [Dial and Pointer classes](./README.md#35-dial-and-pointer-classes) Clock
   or compass style display of one or more pointers.  
   3.6 [Scale class](./README.md#36-scale-class) Linear display with wide dynamic range.  
+  3.7 [Class Textbox](./README.md#37-class-textbox) Scrolling text display.  
  4. [Device drivers](./README.md#4-device-drivers) Device driver compatibility
  requirements (these are minimal).
 
@@ -71,6 +72,11 @@ following displays. These have internal buffers:
 
 ## 1.1 Update
 
+17 Nov 2020  
+Add `Textbox` widget. `Scale` constructor arg `border` replaced by `bdcolor` as
+per other widgets.
+
+5 Nov 2020  
 This library has been refactored as a Python package. The aim is to reduce RAM
 usage: widgets are imported on demand rather than unconditionally. This enabled
 the addition of new widgets with zero impact on existsing applications. Another
@@ -639,7 +645,7 @@ Keyword only arguments (all optional):
  * `tickcb=None` Callback for setting tick colors (see below).
  * `height=0` Pass 0 for a minimum height based on the font height.
  * `width=200`
- * `border=2` Border width in pixels.
+ * `bdcolor=None` Border color. If `None`, `fgcolor` will be used.
  * `fgcolor=None` Foreground color. Defaults to system color.
  * `bgcolor=None` Background color defaults to system background.
  * `pointercolor=None` Color of pointer. Defaults to `.fgcolor`.
@@ -693,6 +699,61 @@ between consecutive large ticks and legends is divided by 10. This means that
 the `tickcb` callback must return a string having an additional significant
 digit. If this is not done, consecutive legends will have the same value.
 
+###### [Contents](./README.md#contents)
+
+## 3.7 Class Textbox
+
+Displays multiple lines of text in a field of fixed dimensions. Text may be
+clipped to the width of the control or may be word-wrapped. If the number of
+lines of text exceeds the height available, scrolling will occur. Access to
+text that has scrolled out of view may be achieved by by calling a method.
+
+Works with fixed and variable pitch fonts.
+```python
+from gui.widgets.textbox import Textbox
+```
+
+Constructor mandatory positional arguments:
+ 1. `writer` The `Writer` instance (font and screen) to use.
+ 2. `row` Location on screen.
+ 3. `col`  
+ 4. `width` Width of the object in pixels.
+ 5. `nlines` Number of lines of text to display. The object's height is
+ determined from the height of the font:  
+ `height in pixels = nlines*font_height`  
+ As per most widgets the border is drawn two pixels beyond the control's
+ boundary.
+
+Keyword only arguments:
+ * `bdcolor=None` Border color. If `None`, `fgcolor` will be used.
+ * `fgcolor=None` Color of border. Defaults to system color.
+ * `bgcolor=None` Background color of object. Defaults to system background.
+ * `clip=True` By default lines too long to display are right clipped. If
+ `False` is passed, word-wrap is attempted. If the line contains no spaces
+ it will be wrapped at the right edge of the window.
+
+Methods:
+ * `append` Args `s, ntrim=None, line=None` Append the string `s` to the
+ display and scroll up as required to show it. By default only the number of
+ lines which will fit on screen are retained. If an integer `ntrim=N` is
+ passed, only the last N lines are retained; `ntrim` may be greater than can be
+ shown in the control, hidden lines being accessed by scrolling.  
+ If an integer (typically 0) is passed in `line` the display will scroll to
+ show that line.
+ * `scroll` Arg `n` Number of lines to scroll. A negative number scrolls up. If
+ scrolling would achieve nothing because there are no extra lines to display,
+ nothing will happen. Returns `True` if scrolling occurred, otherwise `False`.
+ * `value` No args. Returns the number of lines of text stored in the widget.
+ * `clear` No args. Clears all lines from the widget and refreshes the display.
+ * `goto` Arg `line=None` Fast scroll to a line. By default shows the end of
+ the text. 0 shows the start.
+
+Fast updates:  
+Rendering text to the screen is relatively slow. To send a large amount of text
+the fastest way is to perform a single `append`. Text may contain newline
+(`'\n'`) characters as required. In that way rendering occurs once only.
+
+###### [Contents](./README.md#contents)
 
 # 4. Device drivers
 

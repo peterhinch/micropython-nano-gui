@@ -13,7 +13,7 @@ from gui.core.colors import BLACK
 class Scale(DObject):
     def __init__(self, writer, row, col, *,
                  ticks=200, legendcb=None, tickcb=None,
-                 height=0, width=100, border=2, fgcolor=None, bgcolor=None,
+                 height=0, width=100, bdcolor=None, fgcolor=None, bgcolor=None,
                  pointercolor=None, fontcolor=None):
         if ticks % 2:
             raise ValueError('ticks arg must be divisible by 2')
@@ -25,18 +25,19 @@ class Scale(DObject):
         bgcolor = BLACK if bgcolor is None else bgcolor
         text_ht = writer.font.height()
         ctrl_ht = 12  # Minimum height for ticks
-        min_ht = text_ht + 2 * border + 2  # Ht of text, borders and gap between text and ticks
+        # Add 2 pixel internal border to give a little more space
+        min_ht = text_ht + 6  # Ht of text, borders and gap between text and ticks
         if height < min_ht + ctrl_ht:
             height = min_ht + ctrl_ht  # min workable height
         else:
             ctrl_ht = height - min_ht  # adjust ticks for greater height
         width &= 0xfffe  # Make divisible by 2: avoid 1 pixel pointer offset
-        super().__init__(writer, row, col, height, width, fgcolor, bgcolor, fgcolor)
+        super().__init__(writer, row, col, height, width, fgcolor, bgcolor, bdcolor)
         self.fontcolor = fontcolor if fontcolor is not None else self.fgcolor
-        self.x0 = col + border
-        self.x1 = col + self.width - border
-        self.y0 = row + border
-        self.y1 = row + self.height - border
+        self.x0 = col + 2
+        self.x1 = col + self.width - 2
+        self.y0 = row + 2
+        self.y1 = row + self.height - 2
         self.ptrcolor = pointercolor if pointercolor is not None else self.fgcolor
         # Define tick dimensions
         ytop = self.y0 + text_ht + 2  # Top of scale graphic (2 pixel gap)
