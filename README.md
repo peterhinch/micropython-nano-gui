@@ -22,6 +22,12 @@ Cartesian and polar plots, also realtime plotting including time series.
 
 ![Image](images/sine.png) A sample image from the plot module.
 
+The following images are from a different display but illustrate the widgets.  
+![Image](images/scale.JPG) The Scale widget. Capable of precision display of
+floats.
+
+![Image](images/textbox1.JPG) The Textbox widget for scrolling text.
+
 Notes on [Adafruit and other OLED displays](./ADAFRUIT.md) including
 wiring details, pin names and hardware issues.
 
