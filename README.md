@@ -827,7 +827,7 @@ to the complex number issue. The directory structure in my frozen modules
 directory matched that of the source: the directory had `gui` and `drivers`
 subdirectories with their subdirectories intact (where they had necessary
 contents). This is the resultant tree from my frozen directory:  
-![Image](images/esp8266_tree.png) 
+![Image](images/esp8266_tree.JPG) 
 
 I erased flash, built and installed the new firmware. Finally I copied
 `esp8266_setup.py` to `/pyboard/color_setup.py`. This could have been frozen
