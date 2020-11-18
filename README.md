@@ -826,15 +826,8 @@ the size of the firmware build and eliminates modules which won't compile due
 to the complex number issue. The directory structure in my frozen modules
 directory matched that of the source: the directory had `gui` and `drivers`
 subdirectories with their subdirectories intact (where they had necessary
-contents).
-
-In the following description, `__init__.py` was always left in place.  
-From `drivers` I removed everything except `ssd1351/ssd1351_generic.py`.  
-From `gui/fonts` I removed fonts except for `arial10`.  
-From `gui/demos` I removed all but `scale.py` and `tbox.py`.  
-From `gui/core` I removed all but `colors.py`,`writer.py` and `nanogui.py`.  
-
-I deleted unused directories such as `drivers/sharp` etc.
+contents). This is the resultant tree from my frozen directory:  
+![Image](images/esp8266_tree.png) 
 
 I erased flash, built and installed the new firmware. Finally I copied
 `esp8266_setup.py` to `/pyboard/color_setup.py`. This could have been frozen
