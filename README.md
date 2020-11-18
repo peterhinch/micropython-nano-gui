@@ -9,13 +9,13 @@ quite hard to photograph.
 
 ![Image](images/fonts.png) Label objects in two fonts.  
 
-![Image](images/meters.png)  
-One of the demos running on an Adafruit 1.27 inch OLED. The colors change
-dynamically with low values showing green, intermediate yellow and high red.  
+![Image](images/meters.png) One of the demos running on an Adafruit 1.27 inch
+OLED. The colors change dynamically with low values showing green, intermediate
+yellow and high red.  
 
-![Image](images/alevel.png)  
-The alevel.py demo. The Pyboard was mounted vertically: the length and angle
-of the vector arrow varies as the Pyboard is moved.
+![Image](images/alevel.png) The alevel.py demo. The Pyboard was mounted
+vertically: the length and angle of the vector arrow varies as the
+Pyboard is moved.
 
 There is an optional [graph plotting module](./FPLOT.md) for basic
 Cartesian and polar plots, also realtime plotting including time series.
@@ -68,8 +68,8 @@ The GUI is cross-platform. By default it is configured for a Pyboard (1.x or D).
 This doc explains how to configure for other platforms by adapting a single
 small file. The GUI supports multiple displays attached to a single target, but
 bear in mind the RAM requirements for multiple frame buffers. It is tested on
-the ESP32 reference board without SPIRAM. Running on ESP8266 is probably not
-possible owing to its restricted RAM.
+the ESP32 reference board without SPIRAM. Running on ESP8266 is possible but
+frozen bytecode should be used owing to its restricted RAM.
 
 Authors of applications requiring touch should consider my touch GUI's for the
 following displays. These have internal buffers:
@@ -161,16 +161,21 @@ structure on the target must match that in the repo.
 
 Filesystem space may be conserved by copying only the required driver from
 `drivers`, but the directory path to that file must be retained. For example,
-for SSD1351 displays only the following is actually required:  
-`drivers/ssd1351/ssd1351.py`
+for SSD1351 displays only the following are actually required:  
+`drivers/ssd1351/ssd1351.py`, `drivers/ssd1351/__init__.py`
 
 ## 2.1 Files
 
 ### 2.1.1 Core files
 
-The root directory contains setup files for monochrome and color displays. The
-relevant file will need to be edited to match the display in use, the
+The root directory contains setup files for monochrome and color displays. 
+These are templates for adaptation: only one file will normally need to be
+copied to the target. Color files should be named `color_setup.py` on the
+target, whereas the monochrome `ssd1306_setup.py` retains its own name.
+
+The chosen template will need to be edited to match the display in use, the
 MicroPython target and the electrical connections between display and target.
+Electrical connections are detailed in the source.
  * `color_setup.py` Setup for color displays. As written supports an SSD1351
  display connected to a Pyboard.
  * `ssd1306_setup.py` Setup file for monochrome displays using the official
@@ -190,9 +195,9 @@ The `gui/core` directory contains the GUI core and its principal dependencies:
  * `fplot.py` The graph plotting module.
  * `colors.py` Color constants.
  * `framebuf_utils.mpy` Accelerator for the `CWriter` class. This optional file
- is compiled for STM hardware and will be ignored on other ports unless
- recompiled. Instructions and code for compiling for other architectures may be
- found
+ is compiled for STM hardware and will be ignored on other ports (with a
+ harmless warning message) unless recompiled. Instructions and code for
+ compiling for other architectures may be found
  [here](https://github.com/peterhinch/micropython-font-to-py/blob/master/writer/WRITER.md#224-a-performance-boost).
 
 ### 2.1.2 Demo scripts
@@ -202,20 +207,21 @@ The `gui/demos` directory contains test/demo scripts.
  * `mono_test.py` Tests/demos using the official SSD1306 driver for a
  monochrome 128*64 OLED display.
  * `color96.py` Tests/demos for the Adafruit 0.96 inch color OLED.
- * `color15.py` Similar for Adafruit 1.27 inch and 1.5 inch color OLEDs. Edit
- the `height = 96` line as per the comment for the larger display.
 
 Demos for Adafruit 1.27 inch and 1.5 inch color OLEDs. These will run on either
 display so long as `color_setup.py` has the correct `height` value.  
+ * `color15.py` Demonstrates a variety of widgets. Cross platform.
  * `aclock.py` Analog clock demo. Cross platform.
  * `alevel.py` Spirit level using Pyboard accelerometer.
  * `fpt.py` Plot demo. Cross platform.
  * `scale.py` A demo of the new `Scale` widget. Cross platform.
  * `asnano_sync.py` Two Pyboard specific demos using the GUI with `uasyncio`.
  * `asnano.py` Could readily be adapted for other targets.
+ * `tbox.py` Demo `Textbox` class. Cross-platform.
 
-Compatibility with `uasyncio` and the last two demos is discussed
-[here](./ASYNC.md).
+Usage with `uasyncio` is discussed [here](./ASYNC.md). In summary the blocking
+which occurs during transfer of the framebuffer to the display may affect more
+demanding `uasyncio` applications. More generally the GUI works well with it.
 
 Demo scripts for Sharp displays are in `drivers/sharp`. Check source code for
 wiring details. See [the README](./drivers/sharp/README.md). They may be run as
@@ -232,7 +238,8 @@ Python font files are in the `gui/fonts` directory. The easiest way to conserve
 RAM is to freeze them which is highly recommended. In doing so the directory
 structure must be maintained. Python fonts may be created using
 [font_to_py.py](https://github.com/peterhinch/micropython-font-to-py.git). The
-`-x` option for horizontal mapping must be specified. Supplied examples are:
+`-x` option for horizontal mapping must be specified, along with -f for fixed
+pitch rendering. Supplied examples are:
 
  * `arial10.py` Variable pitch Arial in various sizes.
  * `arial35.py`
@@ -265,7 +272,8 @@ Displays based on the Nokia 5110 (PCD8544 chip) require this driver. It is not
 in this repo but may be found here:  
  * [PCD8544/Nokia 5110](https://github.com/mcauser/micropython-pcd8544.git)
 
-The Sharp display is supported in `gui/drivers/sharp`. See README.md and demos.
+The Sharp display is supported in `drivers/sharp`. See
+[README](/drivers/sharp/README.md) and demos.
 
 
 ### 2.2.2 Color use
@@ -278,7 +286,7 @@ alternatives in the directory - see the code below for usage on ESP32.
 If using the Adafruit 1.5 or 1.27 inch color OLED displays it is suggested that
 after installing the GUI the following script is pasted at the REPL. This will
 verify the hardware. Please change `height` to 128 if using the 1.5 inch
-display. Note the commented-out cross platform alternative.
+display.
 ```python
 from machine import Pin, SPI
 from drivers.ssd1351.ssd1351 import SSD1351 as SSD  # Pyboard-specific driver
@@ -345,8 +353,8 @@ from gui.widgets.dial import Dial, Pointer
 refresh(ssd)  # Initialise and clear display.
 ```
 This is followed by Python fonts. A `CWriter` instance is created for each
-font (for monochrome displays a `Writer` is used). Note that upside down
-rendering is not supported; current widgets do not support scrolling text.
+font (for monochrome displays a `Writer` is used). Upside down rendering is not
+supported. Only the `Textbox` widget supports scrolling text.
 ```python
 from gui.core.writer import CWriter  # Renders color text
 import gui.fonts.arial10  # A Python Font
@@ -359,7 +367,7 @@ wri.set_clip(True, True, False)
 ```
 The application calls `nanogui.refresh` on initialisation to clear the display,
 then subsequently whenever a refresh is required. The method takes two args:
- 1. `device` The display instance (supports multiple displays).
+ 1. `device` The display instance (the GUI supports multiple displays).
  2. `clear=False` If set `True` the display will be blanked; it is also
  blanked when a device is refreshed for the first time.
 
@@ -376,8 +384,8 @@ import machine
 import gc
 from drivers.ssd1351.ssd1351 import SSD1351 as SSD  # Import the display driver
 ```
-It then ses up the bus (SPI or I2C) and instantiates the display. At this point
-the framebuffer is created:
+It then sets up the bus (SPI or I2C) and instantiates the display. At this
+point the framebuffer is created:
 ```python
 pdc = machine.Pin('X1', machine.Pin.OUT_PP, value=0)
 pcs = machine.Pin('X2', machine.Pin.OUT_PP, value=1)
@@ -419,7 +427,7 @@ Constructor args:
 
 The constructor displays the string at the required location.
 
-Methods:
+Methods:  
  1. `value` Redraws the label. This takes the following args:
     * `text=None` The text to display. If `None` displays last value.
     * ` invert=False` If true, show inverse text.
@@ -469,7 +477,8 @@ This provides a vertical linear meter display of values scaled between 0.0 and
 Constructor positional args:  
  1. `writer` The `Writer` instance (font and screen) to use.
  2. `row` Location on screen.
- 3. `col`  
+ 3. `col`
+
 Keyword only args:  
  4. `height=50` Height of meter.
  5. `width=10` Width.
@@ -515,7 +524,8 @@ This is a virtual LED whose color may be altered dynamically.
 Constructor positional args:  
  1. `writer` The `Writer` instance (font and screen) to use.
  2. `row` Location on screen.
- 3. `col`  
+ 3. `col`
+
 Keyword only args:  
  4. `height=12` Height of LED.
  5. `fgcolor=None` Foreground color: if `None` the `Writer` default is used.
@@ -562,7 +572,8 @@ Pointer values are complex numbers.
 Constructor positional args:  
  1. `writer` The `Writer` instance (font and screen) to use.
  2. `row` Location on screen.
- 3. `col`  
+ 3. `col`
+
 Keyword only args:  
  4. `height=50` Height and width of dial.
  5. `fgcolor=None` Foreground color: if `None` the `Writer` default is used.
@@ -680,7 +691,7 @@ range. The callback takes a single `float` arg which is the value of the tick
 def legendcb(f):
     return '{:2.0f}'.format(88 + ((f + 1) / 2) * (108 - 88))
 ```
-The above arithmetic aims to show the logic. It can be simplified.
+The above arithmetic aims to show the logic. It can (obviously) be simplified.
 
 ### Callback tickcb
 
@@ -688,7 +699,7 @@ This callback enables the tick color to be changed dynamically. For example a
 scale might change from green to orange, then to red as it nears the extremes.
 The callback takes two args, being the value of the tick (in range 
 -1.0 <= v <= 1.0) and the default color. It must return a color. This example
-is taken from the `lscale.py` demo:
+is taken from the `scale.py` demo:
 ```python
 def tickcb(f, c):
     if f > 0.8:
@@ -715,9 +726,8 @@ digit. If this is not done, consecutive legends will have the same value.
 Displays multiple lines of text in a field of fixed dimensions. Text may be
 clipped to the width of the control or may be word-wrapped. If the number of
 lines of text exceeds the height available, scrolling will occur. Access to
-text that has scrolled out of view may be achieved by by calling a method.
-
-Works with fixed and variable pitch fonts.
+text that has scrolled out of view may be achieved by calling a method. The
+widget supports fixed and variable pitch fonts.
 ```python
 from gui.widgets.textbox import Textbox
 ```
@@ -761,6 +771,11 @@ Fast updates:
 Rendering text to the screen is relatively slow. To send a large amount of text
 the fastest way is to perform a single `append`. Text may contain newline
 (`'\n'`) characters as required. In that way rendering occurs once only.
+
+`ntrim`__
+If text is regularly appended to a `Textbox` its buffer grows, using RAM. The
+value of `ntrim` sets a limit to the number of lines which are retained, with
+the oldest (topmost) being discarded as required.
 
 ###### [Contents](./README.md#contents)
 
@@ -808,7 +823,7 @@ Some personal observations on successful use with an ESP8266.
 I chose an [Adafruit 128x128 OLED display](https://www.adafruit.com/product/1431)
 to represent the biggest display I thought the ESP8266 might support. I
 reasoned that, if this can be made to work, smaller or monochrome displays
-would be no problem. 
+would present no problem. 
 
 The ESP8266 is a minimal platform with typically 36.6KiB of free RAM. The
 framebuffer for a 128*128 OLED requires 16KiB of contiguous RAM (the display
@@ -824,9 +839,8 @@ to create dynamic content, and the widgets themselves are relatively complex.
 I froze a subset of the `drivers` and the `gui` directories. A subset minimises
 the size of the firmware build and eliminates modules which won't compile due
 to the complex number issue. The directory structure in my frozen modules
-directory matched that of the source: the directory had `gui` and `drivers`
-subdirectories with their subdirectories intact (where they had necessary
-contents). This is the resultant tree from my frozen directory:  
+directory matched that of the source. This is the structure of my frozen
+directory:  
 ![Image](images/esp8266_tree.JPG) 
 
 I erased flash, built and installed the new firmware. Finally I copied
