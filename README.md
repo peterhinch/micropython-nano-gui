@@ -474,12 +474,14 @@ refresh(ssd)
 This provides a vertical linear meter display of values scaled between 0.0 and
 1.0.
 
-Constructor positional args:  
+Constructor positional args:
+
  1. `writer` The `Writer` instance (font and screen) to use.
  2. `row` Location on screen.
  3. `col`
 
-Keyword only args:  
+Keyword only args:
+
  4. `height=50` Height of meter.
  5. `width=10` Width.
  6. `fgcolor=None` Foreground color: if `None` the `Writer` default is used.
@@ -526,7 +528,8 @@ Constructor positional args:
  2. `row` Location on screen.
  3. `col`
 
-Keyword only args:  
+Keyword only args:
+
  4. `height=12` Height of LED.
  5. `fgcolor=None` Foreground color: if `None` the `Writer` default is used.
  6. `bgcolor=None` Background color, as per foreground.
@@ -574,7 +577,8 @@ Constructor positional args:
  2. `row` Location on screen.
  3. `col`
 
-Keyword only args:  
+Keyword only args:
+
  4. `height=50` Height and width of dial.
  5. `fgcolor=None` Foreground color: if `None` the `Writer` default is used.
  6. `bgcolor=None` Background color, as per foreground.
