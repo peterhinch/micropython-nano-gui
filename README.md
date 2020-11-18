@@ -52,7 +52,8 @@ wiring details, pin names and hardware issues.
   3.6 [Scale class](./README.md#36-scale-class) Linear display with wide dynamic range.  
   3.7 [Class Textbox](./README.md#37-class-textbox) Scrolling text display.  
  4. [Device drivers](./README.md#4-device-drivers) Device driver compatibility
- requirements (these are minimal).
+ requirements (these are minimal).  
+ 5. [ESP8266](./README.md#5-esp8266) This can work.  
 
 # 1. Introduction
 
@@ -179,6 +180,8 @@ MicroPython target and the electrical connections between display and target.
  * `esp32_setup.py` As written supports an ESP32 connected to a 128x128 SSD1351
  display. After editing to match the display and wiring, it should be copied to
  the target as `/pyboard/color_setup.py`.
+ * `esp8266_setup.py` Similar for [ESP8266](./README.md#5-esp8266). Usage is
+ somewhat experimental.
 
 The `gui/core` directory contains the GUI core and its principal dependencies:
 
@@ -795,5 +798,53 @@ should then work automatically.
 Drivers for displays using I2C may need to use
 [I2C.writevto](http://docs.micropython.org/en/latest/library/machine.I2C.html?highlight=writevto#machine.I2C.writevto)
 depending on the chip requirements.
+
+###### [Contents](./README.md#contents)
+
+# 5. ESP8266
+
+Some personal observations on successful use with an ESP8266.
+
+I chose an [Adafruit 128x128 OLED display](https://www.adafruit.com/product/1431)
+to represent the biggest display I thought the ESP8266 might support. I
+reasoned that, if this can be made to work, smaller or monochrome displays
+would be no problem. 
+
+The ESP8266 is a minimal platform with typically 36.6KiB of free RAM. The
+framebuffer for a 128*128 OLED requires 16KiB of contiguous RAM (the display
+hardware uses 16 bit color but my driver uses an 8 bit buffer to conserve RAM).
+
+A further issue is that, by default, ESP8266 firmware does not support complex
+numbers. This rules out the plot module and the `Dial` widget. It is possible
+to turn on complex support in the build, but I haven't tried this.
+
+I set out to run the `scale.py` and `textbox.py` demos as these use `uasyncio`
+to create dynamic content, and the widgets themselves are relatively complex.
+
+I froze a subset of the `drivers` and the `gui` directories. A subset minimises
+the size of the firmware build and eliminates modules which won't compile due
+to the complex number issue. The directory structure in my frozen modules
+directory matched that of the source: the directory had `gui` and `drivers`
+subdirectories with their subdirectories intact (where they had necessary
+contents).
+
+In the following description, `__init__.py` was always left in place.  
+From `drivers` I removed everything except `ssd1351/ssd1351_generic.py`.  
+From `gui/fonts` I removed fonts except for `arial10`.  
+From `gui/demos` I removed all but `scale.py` and `tbox.py`.  
+From `gui/core` I removed all but `colors.py`,`writer.py` and `nanogui.py`.  
+
+I deleted unused directories such as `drivers/sharp` etc.
+
+I erased flash, built and installed the new firmware. Finally I copied
+`esp8266_setup.py` to `/pyboard/color_setup.py`. This could have been frozen
+but I wanted to be able to change pins if required.
+
+Both demos worked perfectly.
+
+I modified the demos to regularly report free RAM. `scale.py` reported 10480
+bytes, `tbox.py` reported 10512 bytes, sometimes more, as the demo progressed.
+In conclusion I think that applications of moderate complexity should be
+feasible.
 
 ###### [Contents](./README.md#contents)

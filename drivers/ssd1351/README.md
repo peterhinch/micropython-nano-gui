@@ -2,7 +2,7 @@
 
 There are three versions.
  * `ssd1351.py` This is optimised for STM (e.g. Pyboard) platforms.
- * `ssd1351_generic.py` Cross-platform version.
+ * `ssd1351_generic.py` Cross-platform version. Tested on ESP32 and ESP8266.
  * `ssd1351_16bit.py` Cross-platform. Uses 16 bit RGB565 color.
 
 To conserve RAM the first two use 8 bit (rrrgggbb) color. This works well with
