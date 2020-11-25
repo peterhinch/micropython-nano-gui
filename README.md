@@ -53,7 +53,8 @@ wiring details, pin names and hardware issues.
   3.7 [Class Textbox](./README.md#37-class-textbox) Scrolling text display.  
  4. [Device drivers](./README.md#4-device-drivers) Device driver compatibility
  requirements (these are minimal).  
- 5. [ESP8266](./README.md#5-esp8266) This can work.  
+ 5. [ESP8266](./README.md#5-esp8266) This can work. Contains information on
+ minimising the RAM and flash footprints of the GUI.  
 
 # 1. Introduction
 
@@ -158,6 +159,10 @@ Firmware should be V1.13 or later.
 Installation comprises copying the `gui` and `drivers` directories, with their
 contents, plus a hardware configuration file, to the target. The directory
 structure on the target must match that in the repo.
+
+In the interests of conserving RAM, supplied drivers support only the
+functionality required by the GUI. More fully featured drivers may better suit
+other applications. See [section 4](./README.md#4-device-drivers). 
 
 Filesystem space may be conserved by copying only the required driver from
 `drivers`, but the directory path to that file must be retained. For example,
@@ -785,8 +790,14 @@ the oldest (topmost) being discarded as required.
 
 # 4. Device drivers
 
-Device drivers capable of supporting `nanogui` can be extremely simple: see the
-`drivers/sharp/sharp.py` for a minimal example.
+Device drivers capable of supporting `nanogui` can be extremely simple: see
+`drivers/sharp/sharp.py` for a minimal example. It should be noted that the
+supplied device drivers are designed purely to support nanogui. To conserve RAM
+they provide for the transfer of an external frame buffer to the device and
+little else. Such a transfer typically takes a few tens of milliseconds. Many
+driver chips support graphics primitives in hardware. In performance orientated
+applications such as games, drivers using these capabilities will be faster
+than those provided here.
 
 For a driver to support `nanogui` it must be subclassed from
 `framebuf.FrameBuffer` and provide `height` and `width` bound variables being
@@ -800,7 +811,7 @@ hardware.
 For color drivers, to conserve RAM it is suggested that 8-bit color is used
 for the `framebuf`. If the hardware does not support this, conversion to the
 supported color space needs to be done "on the fly" as per the SSD1351 driver.
-Since this is likely to be slow, consider using native, viper or assembler.
+To maximise update speed consider using native, viper or assembler.
 
 Color drivers should have a static method converting rgb(255, 255, 255) to a
 form acceptable to the driver. For 8-bit rrrgggbb this can be:
