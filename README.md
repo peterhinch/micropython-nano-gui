@@ -38,9 +38,14 @@ wiring details, pin names and hardware issues.
   1.2 [Description](./README.md#12-description)  
   1.3 [Quick start](./README.md#13-quick-start)  
  2. [Files and Dependencies](./README.md#2-files-and-dependencies)  
-  2.1 [Dependencies](./README.md#21-dependencies)  
-   2.2.1 [Monochrome use](./README.md#211-monochrome-use)  
-   2.2.2 [Color use](./README.md#222-color-use)  
+  2.1 [Files](./README.md#21-files)  
+  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;2.1.1 [Core files](./README.md#211-core-files)  
+  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;2.1.2 [Demo Scripts](./README.md#212-demo-scripts)  
+  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;2.1.3 [Fonts](./README.md#213-fonts)  
+  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;2.1.4 [Color setup examples](./README.md#214-color-setup-examples)  
+  2.2 [Dependencies](./README.md#21-dependencies)  
+   &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;2.2.1 [Monochrome use](./README.md#211-monochrome-use)  
+   &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;2.2.2 [Color use](./README.md#222-color-use)  
  3. [The nanogui module](./README.md#3-the-nanogui-module)  
   3.1 [Application Initialisation](./README.md#31-application-initialisation) Initial setup and refresh method.  
   &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;3.1.1 [Setup file internals](./README.md#311-setup-file-internals)  
@@ -187,11 +192,6 @@ Electrical connections are detailed in the source.
  driver. Supports hard or soft SPI or I2C connections, as does the test script
  `mono_test.py`. On non Pyboard targets this will require adaptation to match
  the hardware connections.
- * `esp32_setup.py` As written supports an ESP32 connected to a 128x128 SSD1351
- display. After editing to match the display and wiring, it should be copied to
- the target as `/pyboard/color_setup.py`.
- * `esp8266_setup.py` Similar for [ESP8266](./README.md#5-esp8266). Usage is
- somewhat experimental.
 
 The `gui/core` directory contains the GUI core and its principal dependencies:
 
@@ -253,6 +253,20 @@ pitch rendering. Supplied examples are:
  * `font6.py`
  * `font10.py`
  * `freesans20.py`
+
+### 2.1.4 Color setup examples
+
+The `color_setup` directory contains example setup files for various hardware.
+These are templates which may be adapted to suit the hardware in use, then
+copied to the hardware root as `color_setup.py`.
+
+ * `esp32_setup.py` As written supports an ESP32 connected to a 128x128 SSD1351
+ display. After editing to match the display and wiring, it should be copied to
+ the target as `/pyboard/color_setup.py`.
+ * `esp8266_setup.py` Similar for [ESP8266](./README.md#5-esp8266). Usage is
+ somewhat experimental.
+ * `st7735r_setup.py` Assumes a Pyboard with an
+ [Adafruit 1.8 inch TFT display](https://www.adafruit.com/product/358).
 
 ## 2.2 Dependencies
 
@@ -859,8 +873,8 @@ directory:
 ![Image](images/esp8266_tree.JPG) 
 
 I erased flash, built and installed the new firmware. Finally I copied
-`esp8266_setup.py` to `/pyboard/color_setup.py`. This could have been frozen
-but I wanted to be able to change pins if required.
+`color_setup/esp8266_setup.py` to `/pyboard/color_setup.py`. This could have
+been frozen but I wanted to be able to change pins if required.
 
 Both demos worked perfectly.
 
