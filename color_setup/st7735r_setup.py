@@ -13,13 +13,16 @@
 
 # WIRING (Adafruit pin nos and names).
 # Pyb   SSD
-# 3v3   Vin (10)
-# Gnd   Gnd (11)
-# Y1    DC (3 DC)
-# Y2    CS (5 OC OLEDCS)
-# Y3    Rst (4 R RESET)
-# Y6    CLK (2 CL SCK)
-# Y8    DATA (1 SI MOSI)
+# Gnd   Gnd (1)
+# Vin   VCC (2) 5V
+# Y3    RESET (3)
+# Y1    D/C (4)
+#       CARD_CS (5) No connection (for SD card)
+# Y2    TFT_CS (6)
+# Y8    MOSI (7)
+# Y6    SCK (8)
+# Y7    MISO (9) Optional - (for SD card)
+# Vin   LITE (10) Backlight
 
 import machine
 import gc
@@ -34,4 +37,4 @@ pcs = machine.Pin('Y2', machine.Pin.OUT_PP, value=1)
 prst = machine.Pin('Y3', machine.Pin.OUT_PP, value=1)
 spi = machine.SPI(2, baudrate=12_000_000)
 gc.collect()  # Precaution before instantiating framebuf
-ssd = SSD(spi, pcs, pdc, prst)  # Create a display instance
+ssd = SSD(spi, pcs, pdc, prst, height, width)  # Create a display instance

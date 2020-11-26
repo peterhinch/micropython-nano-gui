@@ -48,20 +48,20 @@ class ST7735R(framebuf.FrameBuffer):
         return (r & 0xe0) | ((g >> 3) & 0x1c) | (b >> 6)
 
     # rst and cs are active low, SPI is mode 0
-    def __init__(self, spi, cs, dc, rst):
+    def __init__(self, spi, cs, dc, rst, height, width):
         self._spi = spi
         self._rst = rst  # Pins
         self._dc = dc
         self._cs = cs
-        self.height = 128  # Required by Writer class
-        self.width = 160
+        self.height = height  # Required by Writer class
+        self.width = width
         # Save color mode for use by writer_gui (blit)
         self.mode = framebuf.GS8  # Use 8bit greyscale for 8 bit color.
         gc.collect()
-        self.buffer = bytearray(128 * 160)
+        self.buffer = bytearray(height * width)
         self._mvb = memoryview(self.buffer)
-        super().__init__(self.buffer, 160, 128, self.mode)
-        self._linebuf = bytearray(int(160 * 3 // 2))  # 12 bit color out
+        super().__init__(self.buffer, width, height, self.mode)
+        self._linebuf = bytearray(int(width * 3 // 2))  # 12 bit color out
         self._init()
         self.show()
 
@@ -121,8 +121,8 @@ class ST7735R(framebuf.FrameBuffer):
         wcd(b'\xe0', b'\x02\x1c\x07\x12\x37\x32\x29\x2d\x29\x25\x2B\x39\x00\x01\x03\x10')  # GMCTRP1 Gamma
         wcd(b'\xe1', b'\x03\x1d\x07\x06\x2E\x2C\x29\x2D\x2E\x2E\x37\x3F\x00\x00\x02\x10')  # GMCTRN1
 
-        wcd(b'\x2a', int.to_bytes(160, 4, 'big'))  # CASET column address 0 start, 160 end
-        wcd(b'\x2b', int.to_bytes(128, 4, 'big'))  # RASET
+        wcd(b'\x2a', int.to_bytes(self.width, 4, 'big'))  # CASET column address 0 start, 160 end
+        wcd(b'\x2b', int.to_bytes(self.height, 4, 'big'))  # RASET
 
         cmd(b'\x13')  # NORON
         sleep_ms(10)
@@ -130,8 +130,8 @@ class ST7735R(framebuf.FrameBuffer):
         sleep_ms(100)
 
     def show(self):  # Blocks 36ms on Pyboard D at stock frequency (160*128)
-        wd = 160
-        ht = 128
+        wd = self.width
+        ht = self.height
         lb = self._linebuf
         buf = self._mvb
         self._dc(0)
