@@ -6,8 +6,6 @@
 # As written, supports:
 # Adfruit 1.8' Color TFT LCD display with MicroSD Card Breakout:
 # https://www.adafruit.com/product/358
-# Adafruit 1.44' Color TFT LCD Display with MicroSD Card breakout:
-# https://www.adafruit.com/product/2088
 
 # Demo of initialisation procedure designed to minimise risk of memory fail
 # when instantiating the frame buffer. The aim is to do this as early as
@@ -29,11 +27,11 @@ import gc
 from drivers.st7735r.st7735r import ST7735R as SSD
 
 height = 128
-width = 128
+width = 160
 
 pdc = machine.Pin('Y1', machine.Pin.OUT_PP, value=0)
 pcs = machine.Pin('Y2', machine.Pin.OUT_PP, value=1)
 prst = machine.Pin('Y3', machine.Pin.OUT_PP, value=1)
 spi = machine.SPI(2, baudrate=12_000_000)
 gc.collect()  # Precaution before instantiating framebuf
-ssd = SSD(spi, pcs, pdc, prst, height, width)  # Create a display instance
+ssd = SSD(spi, pcs, pdc, prst)  # Create a display instance
