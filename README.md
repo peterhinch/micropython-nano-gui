@@ -1,10 +1,10 @@
 A lightweight and minimal MicroPython GUI library for display drivers based on
-the `framebuf` class. Various display technologies are supported, primarily
-small color OLED's. The GUI is cross-platform.
+the `FrameBuffer` class. Various display technologies are supported, including
+small color and monochrome OLED's and color TFT's. The GUI is cross-platform.
 
-These images don't do justice to the OLED displays which are visually
-impressive with bright colors and extreme contrast. For some reason they are
-quite hard to photograph.  
+These images, most from OLED displays, are poor. OLEDs are visually impressive
+displays with bright colors, wide viewing angle and extreme contrast. For some
+reason I find them hard to photograph well.  
 ![Image](images/clock.png) The aclock.py demo.  
 
 ![Image](images/fonts.png) Label objects in two fonts.  
@@ -64,11 +64,15 @@ wiring details, pin names and hardware issues.
 # 1. Introduction
 
 This library provides a limited set of GUI objects (widgets) for displays whose
-display driver is subclassed from the `framebuf` class. The GUI is display-only
-and lacks provision for user input. This is because no `framebuf` based display
-drivers exist for screens with a touch overlay. This is probably because touch
-overlays require too many pixels and are best suited to displays with internal
-frame buffers.
+display driver is subclassed from the `FrameBuffer` class. Such drivers can be
+tiny as the graphics primitives are supplied by the `FrameBuffer` class.
+
+The GUI is display-only and lacks provision for user input. Displays with touch
+overlays are physically large, with correspondingly high pixel counts. Such
+displays would require large frame buffers. These would consume RAM and be slow
+to copy to the display. A `FrameBuffer` based driver is ill-suited to large
+displays. Drivers should use graphics primitives hosted on the display
+controller chip.
 
 The GUI is cross-platform. By default it is configured for a Pyboard (1.x or D).
 This doc explains how to configure for other platforms by adapting a single
@@ -85,9 +89,10 @@ following displays. These have internal buffers:
 
 ## 1.1 Update
 
-17 Nov 2020  
-Add `Textbox` widget. `Scale` constructor arg `border` replaced by `bdcolor` as
-per other widgets.
+29 Nov 2020 Add ST7735R TFT drivers.
+
+17 Nov 2020 Add `Textbox` widget. `Scale` constructor arg `border` replaced by
+`bdcolor` as per other widgets.
 
 5 Nov 2020  
 This library has been refactored as a Python package. The aim is to reduce RAM
@@ -115,15 +120,18 @@ Compatible and tested display drivers include:
  * A driver for Sharp ultra low power consumption monochrome displays such as
  [2.7 inch 400x240 pixels](https://www.adafruit.com/product/4694)
  is [here](./drivers/sharp/README.md).
+ * Drivers for Adafruit ST7735R based TFT's: 
+ [1.8 inch](https://www.adafruit.com/product/358) and
+ [1.44 inch](https://www.adafruit.com/product/2088).
 
 Widgets are intended for the display of data from physical devices such as
 sensors. They are drawn using graphics primitives rather than icons to minimise
 RAM usage. It also enables them to be effciently rendered at arbitrary scale on
-devices with restricted processing power. The approach also enables widgets to
+by hosts with restricted processing power. The approach also enables widgets to
 maximise information in ways that are difficult with icons, in particular using
 dynamic color changes in conjunction with moving elements.
 
-Owing to RAM requirements and limitations on communication speed, `framebuf`
+Owing to RAM requirements and limitations on communication speed, `FrameBuffer`
 based display drivers are intended for physically small displays with limited
 numbers of pixels. The widgets are designed for displays as small as 0.96
 inches: this involves some compromises.
@@ -133,7 +141,7 @@ time depends on the size of the frame buffer and the interface speed, but the
 latency may be too high for applications such as games. For example the time to
 update a 128x128x8 color ssd1351 display on a Pyboard 1.0 is 41ms.
 
-Drivers based on `framebuf` must allocate contiguous RAM for the buffer. To
+Drivers based on `FrameBuffer` must allocate contiguous RAM for the buffer. To
 avoid 'out of memory' errors it is best to instantiate the display before
 importing other modules. The demos illustrate this.
 
@@ -178,14 +186,15 @@ for SSD1351 displays only the following are actually required:
 
 ### 2.1.1 Core files
 
-The root directory contains setup files for monochrome and color displays. 
-These are templates for adaptation: only one file will normally need to be
-copied to the target. Color files should be named `color_setup.py` on the
-target, whereas the monochrome `ssd1306_setup.py` retains its own name.
+The root directory contains two example setup files, for monochrome and color
+displays respectively. Other examples may be found in the `color_setup`
+directory. These are templates for adaptation: only one file is copied to the
+target. On the target a color files should be named `color_setup.py`. The
+monochrome `ssd1306_setup.py` retains its own name.
 
 The chosen template will need to be edited to match the display in use, the
 MicroPython target and the electrical connections between display and target.
-Electrical connections are detailed in the source.
+Electrical connections are detailed in the driver source.
  * `color_setup.py` Setup for color displays. As written supports an SSD1351
  display connected to a Pyboard.
  * `ssd1306_setup.py` Setup file for monochrome displays using the official
@@ -213,8 +222,7 @@ The `gui/demos` directory contains test/demo scripts.
  monochrome 128*64 OLED display.
  * `color96.py` Tests/demos for the Adafruit 0.96 inch color OLED.
 
-Demos for Adafruit 1.27 inch and 1.5 inch color OLEDs. These will run on either
-display so long as `color_setup.py` has the correct `height` value.  
+Demos for larger displays.  
  * `color15.py` Demonstrates a variety of widgets. Cross platform.
  * `aclock.py` Analog clock demo. Cross platform.
  * `alevel.py` Spirit level using Pyboard accelerometer.
@@ -243,8 +251,8 @@ Python font files are in the `gui/fonts` directory. The easiest way to conserve
 RAM is to freeze them which is highly recommended. In doing so the directory
 structure must be maintained. Python fonts may be created using
 [font_to_py.py](https://github.com/peterhinch/micropython-font-to-py.git). The
-`-x` option for horizontal mapping must be specified, along with -f for fixed
-pitch rendering. Supplied examples are:
+`-x` option for horizontal mapping must be specified. If fixed pitch rendering
+is required `-f` is also required. Supplied examples are:
 
  * `arial10.py` Variable pitch Arial in various sizes.
  * `arial35.py`
@@ -267,6 +275,8 @@ copied to the hardware root as `color_setup.py`.
  somewhat experimental.
  * `st7735r_setup.py` Assumes a Pyboard with an
  [Adafruit 1.8 inch TFT display](https://www.adafruit.com/product/358).
+ * `st7735r144_setup.py` For a Pyboard with an
+ [Adafruit 1.44 inch TFT display](https://www.adafruit.com/product/2088).
 
 ## 2.2 Dependencies
 
@@ -280,7 +290,6 @@ Optional feature:
  * An STM32 implementation of
  [this optimisation](https://github.com/peterhinch/micropython-font-to-py/blob/master/writer/WRITER.md#224-a-performance-boost).
 
-
 ### 2.2.1 Monochrome use
 
 A copy of the official driver for OLED displays using the SSD1306 chip is
@@ -293,7 +302,6 @@ in this repo but may be found here:
 
 The Sharp display is supported in `drivers/sharp`. See
 [README](/drivers/sharp/README.md) and demos.
-
 
 ### 2.2.2 Color use
 
@@ -348,8 +356,8 @@ the border is at `[row-2, col-2]`.
 
 When a widget is drawn or updated (typically with its `value` method) it is not
 immediately displayed. To update the display `nanogui.refresh` is called: this
-enables multiple updates to the `framebuf` contents before once copying the
-buffer to the display. Postponement is for performance and provides a visually
+enables multiple updates to the `FrameBuffer` contents before once copying the
+buffer to the display. Postponement enhances performance providing a visually
 instant update.
 
 Text components of widgets are rendered using the `Writer` (monochrome) or
@@ -393,10 +401,10 @@ then subsequently whenever a refresh is required. The method takes two args:
 ### 3.1.1 Setup file internals
 
 The file `color_setup.py` contains the hardware dependent code. It works as
-described below, with the aim of allocating the `framebuf` before importing
+described below, with the aim of allocating the `FrameBuffer` before importing
 other modules. This is intended to reduce the risk of memory failures.
 
-Firstly the file sets the display height and import the driver:
+Firstly the file sets the display height and imports the driver:
 ```python
 height = 96  # 1.27 inch 96*128 (rows*cols) display. Set to 128 for 1.5 inch
 import machine
@@ -461,27 +469,20 @@ If populating a label would cause it to extend beyond the screen boundary a
 warning is printed at the console. The label may appear at an unexpected place.
 The following is a complete "Hello world" script.
 ```python
-height = 96  # 1.27 inch 96*128 (rows*cols) display. Set to 128 for 1.5 inch
-import machine
-import gc
-from drivers.ssd1351.ssd1351 import SSD1351 as SSD
-pdc = machine.Pin('Y1', machine.Pin.OUT_PP, value=0)
-pcs = machine.Pin('Y2', machine.Pin.OUT_PP, value=1)
-prst = machine.Pin('Y3', machine.Pin.OUT_PP, value=1)
-spi = machine.SPI(2)
-gc.collect()  # Precaution before instantiating framebuf
-ssd = SSD(spi, pcs, pdc, prst, height)  # Create a display instance
+from color_setup import ssd  # Create a display instance
 from gui.core.nanogui import refresh
+from gui.core.writer import CWriter
+from gui.core.colors import *
+
 from gui.widgets.label import Label
+import gui.fonts.freesans20 as freesans20
+
 refresh(ssd)  # Initialise and clear display.
-from gui.core.writer import CWriter  # Import other modules
-import gui.fonts.freesans20 as freesans20 # Font
-GREEN = SSD.rgb(0, 255, 0)  # Define colors
-BLACK = 0
 CWriter.set_textpos(ssd, 0, 0)  # In case previous tests have altered it
 wri = CWriter(ssd, freesans20, GREEN, BLACK, verbose=False)
 wri.set_clip(True, True, False)
- # End of boilerplate code. This is our application:
+
+# End of boilerplate code. This is our application:
 Label(wri, 2, 2, 'Hello world!')
 refresh(ssd)
 ```
@@ -807,11 +808,14 @@ the oldest (topmost) being discarded as required.
 Device drivers capable of supporting `nanogui` can be extremely simple: see
 `drivers/sharp/sharp.py` for a minimal example. It should be noted that the
 supplied device drivers are designed purely to support nanogui. To conserve RAM
-they provide for the transfer of an external frame buffer to the device and
-little else. Such a transfer typically takes a few tens of milliseconds. Many
-driver chips support graphics primitives in hardware. In performance orientated
-applications such as games, drivers using these capabilities will be faster
-than those provided here.
+they provide no functionality beyond the transfer of an external frame buffer
+to the device. This transfer typically takes a few tens of milliseconds. While
+visually instant, this period constitutes latency between an event occurring
+and a consequent display update. This may be unacceptable in applications such
+as games. In such cases the `FrameBuffer` approach is inappropriate. Many
+driver chips support graphics primitives in hardware; drivers using these
+capabilities will be faster than those provided here and may often be found
+using a forum search.
 
 For a driver to support `nanogui` it must be subclassed from
 `framebuf.FrameBuffer` and provide `height` and `width` bound variables being
@@ -823,9 +827,11 @@ the contents of the buffer underlying the `FrameBuffer` must be copied to the
 hardware.
 
 For color drivers, to conserve RAM it is suggested that 8-bit color is used
-for the `framebuf`. If the hardware does not support this, conversion to the
+for the `FrameBuffer`. If the hardware does not support this, conversion to the
 supported color space needs to be done "on the fly" as per the SSD1351 driver.
-To maximise update speed consider using native, viper or assembler.
+This uses `framebuf.GS8` to stand in for 8 bit color in `rrrgggbb` format. To
+maximise update speed consider using native, viper or assembler for the
+conversion, typically to RGB565 format.
 
 Color drivers should have a static method converting rgb(255, 255, 255) to a
 form acceptable to the driver. For 8-bit rrrgggbb this can be:

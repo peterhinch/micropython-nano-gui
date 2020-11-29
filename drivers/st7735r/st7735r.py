@@ -1,4 +1,4 @@
-# st7735r.py Driver for ST7735R LCD displays for nano-gui
+# st7735r.py Driver for 1.8" 128*160 ST7735R LCD displays for nano-gui
 
 # Released under the MIT License (MIT). See LICENSE.
 # Copyright (c) 2018-2020 Peter Hinch
@@ -12,13 +12,16 @@
 # https://github.com/GuyCarver/MicroPython/blob/master/lib/ST7735.py
 # https://github.com/boochow/MicroPython-ST7735
 
+# https://learn.adafruit.com/adafruit-1-44-color-tft-with-micro-sd-socket/python-usage
+# disp = st7735.ST7735R(spi, rotation=90,                           # 1.8" ST7735R
+# disp = st7735.ST7735R(spi, rotation=270, height=128, x_offset=2, y_offset=3,   # 1.44" ST7735R
+
 from time import sleep_ms
 import framebuf
 import gc
 import micropython
 
 # Datasheet para 8.4 scl write cycle 66ns == 15MHz
-
 
 # _lcopy: copy a line in 8 bit format to one in 12 bit RGB444. para 9.8.20.
 # 2 bytes become 3 in destination. Source format:
@@ -48,7 +51,7 @@ class ST7735R(framebuf.FrameBuffer):
         return (r & 0xe0) | ((g >> 3) & 0x1c) | (b >> 6)
 
     # rst and cs are active low, SPI is mode 0
-    def __init__(self, spi, cs, dc, rst, height, width):
+    def __init__(self, spi, cs, dc, rst, height=128, width=160):
         self._spi = spi
         self._rst = rst  # Pins
         self._dc = dc

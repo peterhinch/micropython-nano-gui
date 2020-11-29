@@ -30,12 +30,9 @@ import gc
 
 from drivers.st7735r.st7735r144 import ST7735R as SSD
 
-height = 128
-width = 128
-
 pdc = machine.Pin('Y1', machine.Pin.OUT_PP, value=0)
 pcs = machine.Pin('Y2', machine.Pin.OUT_PP, value=1)
 prst = machine.Pin('Y3', machine.Pin.OUT_PP, value=1)
 spi = machine.SPI(2, baudrate=12_000_000)
 gc.collect()  # Precaution before instantiating framebuf
-ssd = SSD(spi, pcs, pdc, prst, height, width)  # Create a display instance
+ssd = SSD(spi, pcs, pdc, prst)  # Create a display instance
