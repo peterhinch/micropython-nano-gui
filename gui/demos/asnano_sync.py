@@ -16,7 +16,7 @@ from gui.core.nanogui import refresh
 from gui.widgets.led import LED
 from gui.widgets.meter import Meter
 
-refresh(ssd)
+refresh(ssd, True)
 
 # Fonts
 import gui.fonts.arial10 as arial10

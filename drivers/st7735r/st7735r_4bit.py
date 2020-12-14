@@ -1,11 +1,11 @@
-# st7735r144.py Driver for ST7735R 1.44" LCD display for nano-gui
+# st7735r.py Driver for 1.8" 128*160 ST7735R LCD displays for nano-gui
 
 # Released under the MIT License (MIT). See LICENSE.
 # Copyright (c) 2018-2020 Peter Hinch
 
 # Supported display
-# Adafruit 1.44' Color TFT LCD Display with MicroSD Card breakout:
-# https://www.adafruit.com/product/2088
+# Adfruit 1.8' Color TFT LCD display with MicroSD Card Breakout:
+# https://www.adafruit.com/product/358
 
 # Based on
 # https://github.com/adafruit/Adafruit_CircuitPython_ST7735R/blob/master/adafruit_st7735r.py
@@ -23,33 +23,36 @@ import micropython
 
 # Datasheet para 8.4 scl write cycle 66ns == 15MHz
 
-# _lcopy: copy a line in 8 bit format to one in 16 bit RGB565.
-# 1 bytes becomes 2 in destination. Source format:
-# < D7  D6  D5  D4  D3  D2  D1  D0>
-# <R02 R01 R00 G02 G01 G00 B01 B00> <R12 R11 R10 G12 G11 G10 B11 B10>
-# dest:
-# <B01 B00 0 0 0 G02 G01 G00> <0 0 0 R02 R01 R00 0 0>
 
 @micropython.viper
-def _lcopy(dest:ptr8, source:ptr8, length:int):
+def _lcopy(dest:ptr8, source:ptr8, lut:ptr8, length:int):
     n = 0
     for x in range(length):
         c = source[x]
-        dest[n] = ((c & 3) << 6) | ((c & 0x1c) >> 2)  # Blue green
+        d = (c & 0xf0) >> 3  # 2* LUT indices (LUT is 16 bit color)
+        e = (c & 0x0f) << 1
+        dest[n] = lut[d]
         n += 1
-        dest[n] = (c & 0xe0) >> 3  # Red
+        dest[n] = lut[d + 1]
         n += 1
-
+        dest[n] = lut[e]
+        n += 1
+        dest[n] = lut[e + 1]
+        n += 1
 
 class ST7735R(framebuf.FrameBuffer):
-    # Convert r, g, b in range 0-255 to an 8 bit colour value
-    # rrrgggbb. Converted to 16 bit on the fly.
+
+    lut = bytearray(32)
+
+    # Convert r, g, b in range 0-255 to a 16 bit colour value
+    # LS byte goes into LUT offset 0, MS byte into offset 1
+    # Same mapping in linebuf so LS byte is shifted out 1st
     @staticmethod
     def rgb(r, g, b):
-        return (r & 0xe0) | ((g >> 3) & 0x1c) | (b >> 6)
+        return (b & 0xf8) << 5 | (g & 0x1c) << 11 | (g & 0xe0) >> 5 | (r & 0xf8)
 
     # rst and cs are active low, SPI is mode 0
-    def __init__(self, spi, cs, dc, rst, height=128, width=128, init_spi=False):
+    def __init__(self, spi, cs, dc, rst, height=128, width=160, usd=False, init_spi=False):
         self._spi = spi
         self._rst = rst  # Pins
         self._dc = dc
@@ -58,13 +61,13 @@ class ST7735R(framebuf.FrameBuffer):
         self.width = width
         self._spi_init = init_spi
         # Save color mode for use by writer_gui (blit)
-        mode = framebuf.GS8  # Use 8bit greyscale for 8 bit color.
+        mode = framebuf.GS4_HMSB  # Use 4bit greyscale.
         gc.collect()
-        buf = bytearray(self.height * self.width)
+        buf = bytearray(height * width // 2)
         self._mvb = memoryview(buf)
-        super().__init__(buf, self.width, self.height, mode)
+        super().__init__(buf, width, height, mode)
         self._linebuf = bytearray(self.width * 2)  # 16 bit color out
-        self._init()
+        self._init(usd)
         self.show()
 
     # Hardware reset
@@ -96,7 +99,7 @@ class ST7735R(framebuf.FrameBuffer):
         self._cs(1)
 
     # Initialise the hardware. Blocks 500ms.
-    def _init(self):
+    def _init(self, usd):
         self._hwreset()  # Hardware reset. Blocks 3ms
         if self._spi_init:  # A callback was passed
             self._spi_init(self._spi)  # Bus may be shared
@@ -120,21 +123,25 @@ class ST7735R(framebuf.FrameBuffer):
 
         cmd(b'\x20') # INVOFF
         # d7..d5 of MADCTL determine rotation/orientation
-        wcd(b'\x36', b'\xe0')  # MADCTL: RGB landscape mode for 1.4" display
+        if self.height > self.width:
+            wcd(b'\x36', b'\x80' if usd else b'\x40')  # MADCTL: RGB portrait mode
+        else:
+            wcd(b'\x36', b'\xe0' if usd else b'\x20')  # MADCTL: RGB landscape mode
         wcd(b'\x3a', b'\x05')  # COLMOD 16 bit
         wcd(b'\xe0', b'\x02\x1c\x07\x12\x37\x32\x29\x2d\x29\x25\x2B\x39\x00\x01\x03\x10')  # GMCTRP1 Gamma
         wcd(b'\xe1', b'\x03\x1d\x07\x06\x2E\x2C\x29\x2D\x2E\x2E\x37\x3F\x00\x00\x02\x10')  # GMCTRN1
 
-        wcd(b'\x2a', int.to_bytes((3 << 16) + self.width + 2, 4, 'big'))  # CASET
-        wcd(b'\x2b', int.to_bytes((2 << 16) + self.height + 2, 4, 'big'))  # RASET
+        wcd(b'\x2a', int.to_bytes(self.width, 4, 'big'))  # CASET column address 0 start, 160 end
+        wcd(b'\x2b', int.to_bytes(self.height, 4, 'big'))  # RASET
 
         cmd(b'\x13')  # NORON
         sleep_ms(10)
         cmd(b'\x29')  # DISPON
         sleep_ms(100)
 
-    def show(self):  # Blocks 38.6ms on Pyboard D at stock frequency
-        wd = self.width
+    def show(self):  # Blocks 36ms on Pyboard D at stock frequency (160*128)
+        clut = ST7735R.lut
+        wd = self.width // 2
         ht = self.height
         lb = self._linebuf
         buf = self._mvb
@@ -145,6 +152,6 @@ class ST7735R(framebuf.FrameBuffer):
         self._spi.write(b'\x2c')  # RAMWR
         self._dc(1)
         for start in range(wd * (ht - 1), -1, - wd):  # For each line
-            _lcopy(lb, buf[start :], wd)  # Copy and map colors (68us)
+            _lcopy(lb, buf[start :], clut, wd)  # Copy and map colors
             self._spi.write(lb)
         self._cs(1)

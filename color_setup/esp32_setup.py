@@ -9,7 +9,7 @@
 # Edit the driver import for other displays.
 
 # WIRING (Adafruit pin nos and names).
-# Pyb   SSD
+# ESP   SSD
 # 3v3   Vin (10)
 # Gnd   Gnd (11)
 # IO25  DC (3 DC)
@@ -28,6 +28,6 @@ pdc = Pin(25, Pin.OUT, value=0)  # Arbitrary pins
 pcs = Pin(26, Pin.OUT, value=1)
 prst = Pin(27, Pin.OUT, value=1)
 # Hardware SPI on native pins for performance
-spi = SPI(1, 10_000_000, sck=Pin(14), mosi=Pin(13), miso=Pin(12))
+spi = SPI(1, 10_000_000, sck=Pin(14), mosi=Pin(13), miso=Pin(12), init_spi=False)
 gc.collect()
 ssd = SSD(spi, pcs, pdc, prst, height=height)

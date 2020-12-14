@@ -66,7 +66,9 @@ This is necessary because the display drivers use a high baudrate unsupported
 by SD cards. Ensure applications do this before the first SD card access and
 before subsequent ones if the display has been refreshed.
 
-# Hardware note: SPI clock rate
+# Notes on OLED displays
+
+## Hardware note: SPI clock rate
 
 For performance reasons the drivers for the Adafruit color displays run the SPI
 bus at a high rate (currently 10.5MHz). Leads should be short and direct. An
@@ -76,8 +78,6 @@ work. Note that the Pyboard hardware SPI supports only 10.5MHz and 21MHz.
 
 In practice the 41ms update time is visually fast for most purposes except some
 games.
-
-# Notes on OLED displays
 
 ## Power consumption
 

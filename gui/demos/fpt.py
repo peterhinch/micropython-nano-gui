@@ -19,7 +19,7 @@ from gui.core.fplot import PolarGraph, PolarCurve, CartesianGraph, Curve, TSeque
 from gui.core.nanogui import refresh
 from gui.widgets.label import Label
 
-refresh(ssd)
+refresh(ssd, True)
 
 # Fonts
 import gui.fonts.arial10 as arial10

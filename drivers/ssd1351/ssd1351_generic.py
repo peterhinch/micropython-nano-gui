@@ -8,27 +8,9 @@
 
 # This driver is based on the Adafruit C++ library for Arduino
 # https://github.com/adafruit/Adafruit-SSD1351-library.git
-# The MIT License (MIT)
 
-# Copyright (c) 2018 Peter Hinch
-
-# Permission is hereby granted, free of charge, to any person obtaining a copy
-# of this software and associated documentation files (the "Software"), to deal
-# in the Software without restriction, including without limitation the rights
-# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-# copies of the Software, and to permit persons to whom the Software is
-# furnished to do so, subject to the following conditions:
-#
-# The above copyright notice and this permission notice shall be included in
-# all copies or substantial portions of the Software.
-#
-# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
-# THE SOFTWARE.
+# Copyright (c) Peter Hinch 2018-2020
+# Released under the MIT license see LICENSE
 
 import framebuf
 import utime
@@ -39,8 +21,12 @@ from uctypes import addressof
 import sys
 # https://github.com/peterhinch/micropython-nano-gui/issues/2
 # The ESP32 does not work reliably in SPI mode 1,1. Waveforms look correct.
-# Keep 0,0 on STM as testing was done in that mode.
-_bs = 0 if sys.platform == 'esp32' else 1  # SPI bus state
+# Now using 0,0 on STM and ESP32
+
+# ESP32 produces 20MHz, Pyboard D SF2W: 15MHz, SF6W: 18MHz, Pyboard 1.1: 10.5MHz
+# OLED datasheet:  should support 20MHz
+def spi_init(spi):
+    spi.init(baudrate=20_000_000)  # Data sheet: should support 20MHz
 
 # Timings with standard emitter
 # 1.86ms * 128 lines = 240ms. copy dominates: show() took 272ms
@@ -86,25 +72,26 @@ class SSD1351(framebuf.FrameBuffer):
     def rgb(r, g, b):
         return (r & 0xe0) | ((g >> 3) & 0x1c) | (b >> 6)
 
-    def __init__(self, spi, pincs, pindc, pinrs, height=128, width=128):
+    def __init__(self, spi, pincs, pindc, pinrs, height=128, width=128, init_spi=spi_init):
         if height not in (96, 128):
             raise ValueError('Unsupported height {}'.format(height))
         self.spi = spi
-        self.rate = 20000000  # Data sheet: should support 20MHz
+        self.spi_init = init_spi
         self.pincs = pincs
         self.pindc = pindc  # 1 = data 0 = cmd
         self.height = height  # Required by Writer class
         self.width = width
-        # Save color mode for use by writer_gui (blit)
-        self.mode = framebuf.GS8  # Use 8bit greyscale for 8 bit color.
+        mode = framebuf.GS8  # Use 8bit greyscale for 8 bit color.
         gc.collect()
         self.buffer = bytearray(self.height * self.width)
-        super().__init__(self.buffer, self.width, self.height, self.mode)
+        super().__init__(self.buffer, self.width, self.height, mode)
         self.linebuf = bytearray(self.width * 2)
         pinrs(0)  # Pulse the reset line
         utime.sleep_ms(1)
         pinrs(1)
         utime.sleep_ms(1)
+        if self.spi_init:  # A callback was passed
+            self.spi_init(spi)  # Bus may be shared
         # See above comment to explain this allocation-saving gibberish.
         self._write(b'\xfd\x12\xfd\xb1\xae\xb3\xf1\xca\x7f\xa0\x74'\
         b'\x15\x00\x7f\x75\x00\x7f\xa1\x00\xa2\x00\xb5\x00\xab\x01'\
@@ -114,7 +101,6 @@ class SSD1351(framebuf.FrameBuffer):
         self.show()
 
     def _write(self, buf, dc):
-        self.spi.init(baudrate=self.rate, polarity=_bs, phase=_bs)
         self.pincs(1)
         self.pindc(dc)
         self.pincs(0)
@@ -126,6 +112,8 @@ class SSD1351(framebuf.FrameBuffer):
     def show(self):
         lb = self.linebuf
         buf = memoryview(self.buffer)
+        if self.spi_init:  # A callback was passed
+            self.spi_init(self.spi)  # Bus may be shared
         self._write(b'\x5c', 0)  # Enable data write
         if self.height == 128:
             for l in range(128):

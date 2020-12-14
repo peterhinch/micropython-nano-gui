@@ -155,7 +155,7 @@ def compass(x):
         refresh(ssd)
 
 print('Color display test is running.')
-print('Test runs to completion.')
+print('Test runs to completion: ~65 secs.')
 clock(70)
 compass(70)
 meter()

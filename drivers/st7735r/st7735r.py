@@ -51,21 +51,22 @@ class ST7735R(framebuf.FrameBuffer):
         return (r & 0xe0) | ((g >> 3) & 0x1c) | (b >> 6)
 
     # rst and cs are active low, SPI is mode 0
-    def __init__(self, spi, cs, dc, rst, height=128, width=160):
+    def __init__(self, spi, cs, dc, rst, height=128, width=160, usd=False, init_spi=False):
         self._spi = spi
         self._rst = rst  # Pins
         self._dc = dc
         self._cs = cs
         self.height = height  # Required by Writer class
         self.width = width
+        self._spi_init = init_spi
         # Save color mode for use by writer_gui (blit)
-        self.mode = framebuf.GS8  # Use 8bit greyscale for 8 bit color.
+        mode = framebuf.GS8  # Use 8bit greyscale for 8 bit color.
         gc.collect()
-        self.buffer = bytearray(height * width)
-        self._mvb = memoryview(self.buffer)
-        super().__init__(self.buffer, width, height, self.mode)
+        buf = bytearray(height * width)
+        self._mvb = memoryview(buf)
+        super().__init__(buf, width, height, mode)
         self._linebuf = bytearray(int(width * 3 // 2))  # 12 bit color out
-        self._init()
+        self._init(usd)
         self.show()
 
     # Hardware reset
@@ -97,8 +98,10 @@ class ST7735R(framebuf.FrameBuffer):
         self._cs(1)
 
     # Initialise the hardware. Blocks 500ms.
-    def _init(self):
+    def _init(self, usd):
         self._hwreset()  # Hardware reset. Blocks 3ms
+        if self._spi_init:  # A callback was passed
+            self._spi_init(self._spi)  # Bus may be shared
         cmd = self._wcmd
         wcd = self._wcd
         cmd(b'\x01')  # SW reset datasheet specifies > 120ms
@@ -119,7 +122,10 @@ class ST7735R(framebuf.FrameBuffer):
 
         cmd(b'\x20') # INVOFF
         # d7..d5 of MADCTL determine rotation/orientation
-        wcd(b'\x36', b'\x20')  # MADCTL: RGB landscape mode
+        if self.height > self.width:
+            wcd(b'\x36', b'\x80' if usd else b'\x40')  # MADCTL: RGB portrait mode
+        else:
+            wcd(b'\x36', b'\xe0' if usd else b'\x20')  # MADCTL: RGB landscape mode
         wcd(b'\x3a', b'\x03')  # COLMOD 12 bit
         wcd(b'\xe0', b'\x02\x1c\x07\x12\x37\x32\x29\x2d\x29\x25\x2B\x39\x00\x01\x03\x10')  # GMCTRP1 Gamma
         wcd(b'\xe1', b'\x03\x1d\x07\x06\x2E\x2C\x29\x2D\x2E\x2E\x37\x3F\x00\x00\x02\x10')  # GMCTRN1
@@ -139,6 +145,8 @@ class ST7735R(framebuf.FrameBuffer):
         buf = self._mvb
         self._dc(0)
         self._cs(0)
+        if self._spi_init:  # A callback was passed
+            self._spi_init(self._spi)  # Bus may be shared
         self._spi.write(b'\x2c')  # RAMWR
         self._dc(1)
         for start in range(wd * (ht - 1), -1, - wd):  # For each line

@@ -58,7 +58,7 @@ async def main(wri):
     await clip(wri)
 
 def test():
-    refresh(ssd)  # Initialise and clear display.
+    refresh(ssd, True)  # Initialise and clear display.
     CWriter.set_textpos(ssd, 0, 0)  # In case previous tests have altered it
     wri = CWriter(ssd, arial10, verbose=False)
     wri.set_clip(True, True, False)

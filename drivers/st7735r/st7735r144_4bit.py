@@ -23,30 +23,33 @@ import micropython
 
 # Datasheet para 8.4 scl write cycle 66ns == 15MHz
 
-# _lcopy: copy a line in 8 bit format to one in 16 bit RGB565.
-# 1 bytes becomes 2 in destination. Source format:
-# < D7  D6  D5  D4  D3  D2  D1  D0>
-# <R02 R01 R00 G02 G01 G00 B01 B00> <R12 R11 R10 G12 G11 G10 B11 B10>
-# dest:
-# <B01 B00 0 0 0 G02 G01 G00> <0 0 0 R02 R01 R00 0 0>
-
 @micropython.viper
-def _lcopy(dest:ptr8, source:ptr8, length:int):
+def _lcopy(dest:ptr8, source:ptr8, lut:ptr8, length:int):
     n = 0
     for x in range(length):
         c = source[x]
-        dest[n] = ((c & 3) << 6) | ((c & 0x1c) >> 2)  # Blue green
+        d = (c & 0xf0) >> 3  # 2* LUT indices (LUT is 16 bit color)
+        e = (c & 0x0f) << 1
+        dest[n] = lut[d]
         n += 1
-        dest[n] = (c & 0xe0) >> 3  # Red
+        dest[n] = lut[d + 1]
+        n += 1
+        dest[n] = lut[e]
+        n += 1
+        dest[n] = lut[e + 1]
         n += 1
 
 
 class ST7735R(framebuf.FrameBuffer):
-    # Convert r, g, b in range 0-255 to an 8 bit colour value
-    # rrrgggbb. Converted to 16 bit on the fly.
+
+    lut = bytearray(32)
+
+    # Convert r, g, b in range 0-255 to a 16 bit colour value
+    # LS byte goes into LUT offset 0, MS byte into offset 1
+    # Same mapping in linebuf so LS byte is shifted out 1st
     @staticmethod
     def rgb(r, g, b):
-        return (r & 0xe0) | ((g >> 3) & 0x1c) | (b >> 6)
+        return (b & 0xf8) << 5 | (g & 0x1c) << 11 | (g & 0xe0) >> 5 | (r & 0xf8)
 
     # rst and cs are active low, SPI is mode 0
     def __init__(self, spi, cs, dc, rst, height=128, width=128, init_spi=False):
@@ -58,9 +61,9 @@ class ST7735R(framebuf.FrameBuffer):
         self.width = width
         self._spi_init = init_spi
         # Save color mode for use by writer_gui (blit)
-        mode = framebuf.GS8  # Use 8bit greyscale for 8 bit color.
+        mode = framebuf.GS4_HMSB  # Use 4bit greyscale.
         gc.collect()
-        buf = bytearray(self.height * self.width)
+        buf = bytearray(self.height * self.width // 2)
         self._mvb = memoryview(buf)
         super().__init__(buf, self.width, self.height, mode)
         self._linebuf = bytearray(self.width * 2)  # 16 bit color out
@@ -134,7 +137,8 @@ class ST7735R(framebuf.FrameBuffer):
         sleep_ms(100)
 
     def show(self):  # Blocks 38.6ms on Pyboard D at stock frequency
-        wd = self.width
+        clut = ST7735R.lut
+        wd = self.width // 2
         ht = self.height
         lb = self._linebuf
         buf = self._mvb
@@ -145,6 +149,6 @@ class ST7735R(framebuf.FrameBuffer):
         self._spi.write(b'\x2c')  # RAMWR
         self._dc(1)
         for start in range(wd * (ht - 1), -1, - wd):  # For each line
-            _lcopy(lb, buf[start :], wd)  # Copy and map colors (68us)
+            _lcopy(lb, buf[start :], clut, wd)  # Copy and map colors (68us)
             self._spi.write(lb)
         self._cs(1)

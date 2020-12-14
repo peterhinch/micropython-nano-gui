@@ -10,7 +10,7 @@ from color_setup import ssd  # Create a display instance
 from gui.core.nanogui import refresh
 from gui.widgets.label import Label
 from gui.widgets.dial import Dial, Pointer
-refresh(ssd)  # Initialise and clear display.
+refresh(ssd, True)  # Initialise and clear display.
 
 # Now import other modules
 import cmath
