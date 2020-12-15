@@ -89,6 +89,7 @@ def multi_fields(t):
 
 def vari_fields():
     print('Variable label styles.')
+    VIOLET = create_color(12, 255, 0, 255)  # Custom color
     refresh(ssd, True)  # Clear any prior image
     wri_large = CWriter(ssd, freesans20, GREEN, BLACK, verbose=False)
     wri_large.set_clip(True, True, False)
@@ -115,6 +116,11 @@ def vari_fields():
     lbl_text.value('Yellow')
     lbl_bord.value('None')
     lbl_var.value(fgcolor=YELLOW)
+    refresh(ssd)
+    utime.sleep(2)
+    lbl_text.value('Violet')
+    lbl_bord.value('None')
+    lbl_var.value(fgcolor=VIOLET)
     refresh(ssd)
     utime.sleep(2)
     lbl_text.value('Blue')

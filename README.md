@@ -232,6 +232,7 @@ Demos for larger displays.
  * `asnano_sync.py` Two Pyboard specific demos using the GUI with `uasyncio`.
  * `asnano.py` Could readily be adapted for other targets.
  * `tbox.py` Demo `Textbox` class. Cross-platform.
+ * `scale_ili.py` A special demo of the asychronous mode of the ILI9341 driver.
 
 Usage with `uasyncio` is discussed [here](./ASYNC.md). In summary the blocking
 which occurs during transfer of the framebuffer to the display may affect more
@@ -403,7 +404,10 @@ PALE_YELLOW = create_color(12, 150, 150, 0)
 This creates a color `rgb(150, 150, 0)` assigns it to "spare" color number 12
 then sets `PALE_YELLOW` to 12. Any color number in range `0 <= n <= 15` may be
 used (implying that predefined colors may be reassigned). It is recommended
-that `BLACK` (0) and `WHITE` (15) are not changed.
+that `BLACK` (0) and `WHITE` (15) are not changed. If code is to be ported
+between 4-bit and other drivers, use `create_color()` for all custom colors:
+it will produce appropriate behaviour. See the `vari_fields` function in the
+demo `color15.py` for an example.
 
 ###### [Contents](./README.md#contents)
 

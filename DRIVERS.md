@@ -446,6 +446,18 @@ This uses `framebuf.GS8` to stand in for 8 bit color in `rrrgggbb` format. To
 maximise update speed consider using native, viper or assembler for the
 conversion, typically to RGB565 format.
 
+An alternative is to design for 4-bit color which halves the size of the
+framebuffer. This means using `GS4_HMSB` mode. The class must include the class
+variable `lut`:
+```python
+class MY_DRIVER(framebuf.FrameBuffer):
+    lut = bytearray(32)
+```
+This is a lookup table (LUT) mapping a 4-bit index onto a 16-bit color value
+acceptable to the hardware. The "on the fly" converter unpacks the values in
+the frame buffer and uses them as indices into the `lut` bytearray. See the
+various supplied 4-bit drivers.
+
 Color drivers should have a static method converting rgb(255, 255, 255) to a
 form acceptable to the driver. For 8-bit rrrgggbb this can be:
 ```python
@@ -453,7 +465,12 @@ form acceptable to the driver. For 8-bit rrrgggbb this can be:
     def rgb(r, g, b):
         return (r & 0xe0) | ((g >> 3) & 0x1c) | (b >> 6)
 ```
-This should be amended if the hardware uses a different 8-bit format.
+This should be amended if the hardware uses a different 8-bit format. If the
+hardware expects a 16 bit value, the "on the fly" converter will map the 8-bit
+value to 16 bits. In the case of 4-bit drivers the LUT is 16 bits in size, and
+`.rgb` is called only when populating the LUT. In this case `.rgb` returns a 16
+bit value in a format compatible with the hardware and the byte order of the
+"on the fly" conversion code.
 
 The `Writer` (monochrome) or `CWriter` (color) classes and the `nanogui` module
 should then work automatically.
