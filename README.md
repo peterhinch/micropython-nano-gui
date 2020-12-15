@@ -802,6 +802,7 @@ would present no problem.
 The ESP8266 is a minimal platform with typically 36.6KiB of free RAM. The
 framebuffer for a 128*128 OLED requires 16KiB of contiguous RAM (the display
 hardware uses 16 bit color but my driver uses an 8 bit buffer to conserve RAM).
+The 4-bit driver halves this size.
 
 A further issue is that, by default, ESP8266 firmware does not support complex
 numbers. This rules out the plot module and the `Dial` widget. It is possible
@@ -813,8 +814,8 @@ to create dynamic content, and the widgets themselves are relatively complex.
 I froze a subset of the `drivers` and the `gui` directories. A subset minimises
 the size of the firmware build and eliminates modules which won't compile due
 to the complex number issue. The directory structure in my frozen modules
-directory matched that of the source. This is the structure of my frozen
-directory:  
+directory matched that of the source. This was the structure of my frozen
+directory before I added the 4 bit driver:  
 ![Image](images/esp8266_tree.JPG) 
 
 I erased flash, built and installed the new firmware. Finally I copied
@@ -825,8 +826,8 @@ Both demos worked perfectly.
 
 I modified the demos to regularly report free RAM. `scale.py` reported 10480
 bytes, `tbox.py` reported 10512 bytes, sometimes more, as the demo progressed.
-In conclusion I think that applications of moderate complexity should be
-feasible.
+With the 4 bit driver `scale.py` reported 18112 bytes. In conclusion I think
+that applications of moderate complexity should be feasible.
 
 ###### [Contents](./README.md#contents)
 

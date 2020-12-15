@@ -12,6 +12,7 @@
 from time import sleep_ms
 import gc
 import framebuf
+import uasyncio as asyncio
 
 @micropython.viper
 def _lcopy(dest:ptr8, source:ptr8, lut:ptr8, length:int):
@@ -20,7 +21,7 @@ def _lcopy(dest:ptr8, source:ptr8, lut:ptr8, length:int):
         c = source[x]
         d = (c & 0xf0) >> 3  # 2* pointers (lut is 16 bit color)
         e = (c & 0x0f) << 1
-        dest[n] = lut[d]
+        dest[n] = lut[d]  # LS byte 1st
         n += 1
         dest[n] = lut[d + 1]
         n += 1
@@ -34,24 +35,24 @@ class ILI9341(framebuf.FrameBuffer):
 
     lut = bytearray(32)
 
+    # Convert r, g, b in range 0-255 to a 16 bit colour value
+    # LS byte goes into LUT offset 0, MS byte into offset 1
+    # Same mapping in linebuf so LS byte is shifted out 1st
+    # ILI9341 expects RGB order
     @staticmethod
     def rgb(r, g, b):
-        return (r & 0xf8) << 8 | (g & 0xfc) << 3 | b >> 3
+        return (r & 0xf8) | (g & 0xe0) >> 5 | (g & 0x1c) << 11 | (b & 0xf8) << 5
 
     # Transpose width & height for landscape mode
     def __init__(self, spi, cs, dc, rst, height=240, width=320,
-                 usd=False, split=False, init_spi=False):
+                 usd=False, init_spi=False):
         self._spi = spi
         self._cs = cs
         self._dc = dc
         self._rst = rst
         self.height = height
         self.width = width
-        if split and split not in (2, 4, 8):
-            raise ValueError('split must be 2, 4 or 8')
         self._spi_init = init_spi
-        self._lines = 0 if not split else height // split  # For uasyncio use: show n lines only
-        self._line = 0  # Current line
         mode = framebuf.GS4_HMSB
         gc.collect()
         buf = bytearray(self.height * self.width // 2)
@@ -84,7 +85,7 @@ class ILI9341(framebuf.FrameBuffer):
         else:
             self._wcd(b'\x36', b'\x28' if usd else b'\xe8')  # MADCTL: RGB landscape mode
         self._wcd(b'\x37', b'\x00')  # VSCRSADD Vertical scrolling start address
-        self._wcd(b'\x3a', b'\x55')  # PIXFMT COLMOD: Pixel format
+        self._wcd(b'\x3a', b'\x55')  # PIXFMT COLMOD: Pixel format 16 bits (MCU & interface)
         self._wcd(b'\xb1', b'\x00\x18')  # FRMCTR1 Frame rate ctrl
         self._wcd(b'\xb6', b'\x08\x82\x27')  # DFUNCTR
         self._wcd(b'\xf2', b'\x00')  # ENABLE3G Enable 3 gamma ctrl
@@ -93,7 +94,7 @@ class ILI9341(framebuf.FrameBuffer):
         self._wcd(b'\xe1', b'\x00\x0E\x14\x03\x11\x07\x31\xC1\x48\x08\x0F\x0C\x31\x36\x0F')  # GMCTRN1
         self._wcmd(b'\x11')  # SLPOUT Exit sleep
         sleep_ms(100)
-        self._wcmd(b'\x29')  # DISPLAY_ON Display on
+        self._wcmd(b'\x29')  # DISPLAY_ON
         sleep_ms(100)
 
     # Write a command.
@@ -114,11 +115,8 @@ class ILI9341(framebuf.FrameBuffer):
         self._spi.write(data)
         self._cs(1)
 
-# No. of lines buffered vs time. Tested in portrait mode 240 pixels/line.
-# ESP32 at stock freq.
-# 24 lines 171ms
-# 2 lines 180ms
-# 1 line 196ms
+# Time (ESP32 stock freq) 196ms portrait, 185ms landscape.
+# mem free on ESP32 43472 bytes (vs 110192)
     @micropython.native
     def show(self):
         clut = ILI9341.lut
@@ -126,25 +124,42 @@ class ILI9341(framebuf.FrameBuffer):
         ht = self.height
         lb = self._linebuf
         buf = self._mvb
-        # Commands needed to start data write 
-        #self._wcd(b'\x2a', *ustruct.pack(">HH", 0, self.width))  # SET_COLUMN
-        #self._wcd(b'\x2b', *ustruct.pack(">HH", 0, ht))  # SET_PAGE
         if self._spi_init:  # A callback was passed
             self._spi_init(self._spi)  # Bus may be shared
+        # Commands needed to start data write 
         self._wcd(b'\x2a', int.to_bytes(self.width, 4, 'big'))  # SET_COLUMN
         self._wcd(b'\x2b', int.to_bytes(ht, 4, 'big'))  # SET_PAGE
         self._wcmd(b'\x2c')  # WRITE_RAM
         self._dc(1)
         self._cs(0)
-        if self._lines:
-            end = self._line + wd * self._lines
-            for start in range(self._line, end, wd):  # For each line
-                _lcopy(lb, buf[start :], clut, wd)  # Copy and map colors
-                self._spi.write(lb)
-            nxt = start + wd
-            self._line = nxt % wd*ht
-        else:
-            for start in range(0, wd*ht, wd):  # For each line
-                _lcopy(lb, buf[start :], clut, wd)  # Copy and map colors
-                self._spi.write(lb)
+        for start in range(0, wd*ht, wd):  # For each line
+            _lcopy(lb, buf[start :], clut, wd)  # Copy and map colors
+            self._spi.write(lb)
         self._cs(1)
+
+    async def do_refresh(self, split=4):
+        lines, mod = divmod(self.height, split)  # Lines per segment
+        if mod:
+            raise ValueError('Invalid do_refresh arg.')
+        clut = ILI9341.lut
+        wd = self.width // 2
+        ht = self.height
+        lb = self._linebuf
+        buf = self._mvb
+        while True:  # Perform a refresh
+            # Commands needed to start data write 
+            self._wcd(b'\x2a', int.to_bytes(self.width, 4, 'big'))  # SET_COLUMN
+            self._wcd(b'\x2b', int.to_bytes(ht, 4, 'big'))  # SET_PAGE
+            self._wcmd(b'\x2c')  # WRITE_RAM
+            self._dc(1)
+            line = 0
+            for _ in range(split):  # For each segment
+                if self._spi_init:  # A callback was passed
+                    self._spi_init(self._spi)  # Bus may be shared
+                self._cs(0)
+                for start in range(wd * line, wd * (line + lines), wd):  # For each line
+                    _lcopy(lb, buf[start :], clut, wd)  # Copy and map colors
+                    self._spi.write(lb)
+                line += lines
+                self._cs(1)  # Allow other tasks to use bus
+                await asyncio.sleep_ms(0)

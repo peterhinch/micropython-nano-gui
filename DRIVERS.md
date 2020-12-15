@@ -219,18 +219,17 @@ Adafruit make several displays using this chip, for example
  `height` and `width` values.
  * `width=320`
  * `usd=False` Upside down: set `True` to invert display.
- * `split=False` By default the entire display is refreshed by the `show`
- method. A partial update may be specified for use with `uasyncio`. See below.
  * `init_spi=False` This optional arg enables flexible options in configuring
- the SPI bus. The default assumes exclusive access to the bus with
- `color_setup.py` initialising it. Those settings will be left in place. If a
- callback function is passed, it will be called prior to each SPI bus write:
- this is for shared  bus applications. The callback will receive a single arg
- being the SPI bus instance. In normal use it will be a one-liner or lambda
- initialising the bus. A minimal example is this function:
+ the SPI bus. The default assumes exclusive access to the bus. In this normal
+ case, `color_setup.py` initialises it and the settings will be left in place.
+ If the bus is shared with devices which require different settings, a callback
+ function should be passed. It will be called prior to each SPI bus write. The
+ callback will receive a single arg  being the SPI bus instance. It will
+ typically be a one-liner or lambda  initialising the bus. A minimal example is
+ this function:
 ```python
 def spi_init(spi):
-    spi.init(baudrate=10_000_000)  # Data sheet: max is 10MHz
+    spi.init(baudrate=10_000_000)
 ```
 
 The ILI9341 class uses 4-bit color to conserve RAM. Even with this adaptation
@@ -243,22 +242,18 @@ to use the `micropython.native` decorator.
 
 #### Use with uasyncio
 
-A full refresh blocks for ~200ms. This may be unacceptable for some `uasyncio`
-applications. The `split` constructor arg limits the number of display lines
-which are updated at one time, reducing the blocking time. To use this, an
-integer value of 2, 4, or 8 should be passed. For example to reduce blocking by
-a factor of ~4 to 50ms the `split` constructor arg is set to 4.
+A full refresh blocks for ~200ms. If this is acceptable, no special precautions
+are required. However this period may be unacceptable for some `uasyncio`
+applications. The driver provides an asynchronous `do_refresh(split=4)` method.
+If this is run the display will regularly be refreshed, but will periodically
+yield to the scheduler enabling other tasks to run. The arg determines the
+number of times this will occur, so by default it will block for about 50ms.
+A `ValueError` will result if `split` is not an integer divisor of the display
+height.
 
-For any value the following keeps the display updated:
-```python
-import uasyncio as asyncio
-from gui.core.nanogui import refresh
-
-async def keep_refreshed(ssd):
-    while True:
-        refresh(ssd)  # Blocks for a period defined by split
-        await asyncio.sleep_ms(0)
-```
+An application using this should call `refresh(ssd, True)` once at the start,
+then launch the `do_refresh` method. After that, no calls to `refresh` should
+be made. See `gui/demos/scale_ili.py`.
 
 ###### [Contents](./DRIVERS.md#contents)
 
