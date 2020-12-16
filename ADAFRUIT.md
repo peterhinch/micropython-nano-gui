@@ -1,6 +1,6 @@
 # Adafruit and other OLED displays
 
-###### [Main README](../README.md)
+###### [Main README](./README.md)
 
 # SPI Pin names and wiring
 
