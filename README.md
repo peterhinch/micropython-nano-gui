@@ -63,6 +63,8 @@ wiring details, pin names and hardware issues.
  5. [Hardware configuration](./README.md#5-hardware-configuration) How to write
  color_setup.py  
 
+#### [Device driver document.](./DRIVERS.md)
+
 # 1. Introduction
 
 This library provides a limited set of GUI objects (widgets) for displays whose
@@ -217,6 +219,8 @@ The `gui/core` directory contains the GUI core and its principal dependencies:
  compiling for other architectures may be found
  [here](https://github.com/peterhinch/micropython-font-to-py/blob/master/writer/WRITER.md#224-a-performance-boost).
 
+###### [Contents](./README.md#contents)
+
 ### 2.1.2 Demo scripts
 
 The `gui/demos` directory contains test/demo scripts.
@@ -248,6 +252,8 @@ import drivers.sharp.sharptest
 # or
 import drivers.sharp.clocktest
 ```
+
+###### [Contents](./README.md#contents)
 
 ### 2.1.3 Fonts
 
@@ -298,6 +304,8 @@ to check for newer versions:
 Optional feature:
  * An STM32 implementation of
  [this optimisation](https://github.com/peterhinch/micropython-font-to-py/blob/master/writer/WRITER.md#224-a-performance-boost).
+
+###### [Contents](./README.md#contents)
 
 ### 2.2.1 Monochrome use
 
@@ -793,9 +801,6 @@ the oldest (topmost) being discarded as required.
 
 ###### [Contents](./README.md#contents)
 
-
-###### [Contents](./README.md#contents)
-
 # 4. ESP8266
 
 Some personal observations on successful use with an ESP8266.
@@ -860,3 +865,5 @@ spi = machine.SPI(1)
 gc.collect()  # Precaution before instantiating framebuf
 ssd = SSD(spi, pcs, pdc, prst, height)  # Create a display instance
 ```
+
+###### [Contents](./README.md#contents)
