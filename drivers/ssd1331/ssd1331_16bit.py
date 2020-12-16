@@ -1,27 +1,8 @@
 # SSD1331.py MicroPython driver for Adafruit 0.96" OLED display
 # https://www.adafruit.com/product/684
 
-# The MIT License (MIT)
-
-# Copyright (c) 2019 Peter Hinch
-
-# Permission is hereby granted, free of charge, to any person obtaining a copy
-# of this software and associated documentation files (the "Software"), to deal
-# in the Software without restriction, including without limitation the rights
-# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-# copies of the Software, and to permit persons to whom the Software is
-# furnished to do so, subject to the following conditions:
-#
-# The above copyright notice and this permission notice shall be included in
-# all copies or substantial portions of the Software.
-#
-# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
-# THE SOFTWARE.
+# Copyright (c) Peter Hinch 2019-2020
+# Released under the MIT license see LICENSE
 
 # Show command
 # 0x15, 0, 0x5f, 0x75, 0, 0x3f  Col 0-95 row 0-63
@@ -49,35 +30,37 @@
 import framebuf
 import utime
 import gc
-import sys
+
 # https://github.com/peterhinch/micropython-nano-gui/issues/2
 # The ESP32 does not work reliably in SPI mode 1,1. Waveforms look correct.
-# Keep 0,0 on STM as testing was done in that mode.
-_bs = 0 if sys.platform == 'esp32' else 1  # SPI bus state
+# Mode 0, 0 works on ESP and STM
 
+# Data sheet SPI spec: 150ns min clock period 6.66MHz
 class SSD1331(framebuf.FrameBuffer):
     # Convert r, g, b in range 0-255 to a 16 bit colour value RGB565
     #  acceptable to hardware: rrrrrggggggbbbbb
+    # LS byte of 16 bit result is shifted out 1st
     @staticmethod
     def rgb(r, g, b):
-        return ((r & 0xf8) << 5) | ((g & 0x1c) << 11) | (b & 0xf8) | ((g & 0xe0) >> 5)
+        return ((b & 0xf8) << 5) | ((g & 0x1c) << 11) | (r & 0xf8) | ((g & 0xe0) >> 5)
 
-    def __init__(self, spi, pincs, pindc, pinrs, height=64, width=96):
-        self.spi = spi
-        self.rate = 6660000  # Data sheet: 150ns min clock period
-        self.pincs = pincs
-        self.pindc = pindc  # 1 = data 0 = cmd
+    def __init__(self, spi, pincs, pindc, pinrs, height=64, width=96, init_spi=False):
+        self._spi = spi
+        self._pincs = pincs
+        self._pindc = pindc  # 1 = data 0 = cmd
         self.height = height  # Required by Writer class
         self.width = width
-        # Save color mode for use by writer_gui (blit)
-        self.mode = framebuf.RGB565
+        self._spi_init = init_spi
+        mode = framebuf.RGB565
         gc.collect()
         self.buffer = bytearray(self.height * self.width * 2)
-        super().__init__(self.buffer, self.width, self.height, self.mode)
+        super().__init__(self.buffer, self.width, self.height, mode)
         pinrs(0)  # Pulse the reset line
         utime.sleep_ms(1)
         pinrs(1)
         utime.sleep_ms(1)
+        if self._spi_init:  # A callback was passed
+            self._spi_init(spi)  # Bus may be shared
         self._write(b'\xae\xa0\x72\xa1\x00\xa2\x00\xa4\xa8\x3f\xad\x8e\xb0'\
         b'\x0b\xb1\x31\xb3\xf0\x8a\x64\x8b\x78\x8c\x64\xbb\x3a\xbe\x3e\x87'\
         b'\x06\x81\x91\x82\x50\x83\x7d\xaf', 0)
@@ -85,13 +68,14 @@ class SSD1331(framebuf.FrameBuffer):
         self.show()
 
     def _write(self, buf, dc):
-        self.spi.init(baudrate=self.rate, polarity=_bs, phase=_bs)
-        self.pincs(1)
-        self.pindc(dc)
-        self.pincs(0)
-        self.spi.write(buf)
-        self.pincs(1)
+        self._pincs(1)
+        self._pindc(dc)
+        self._pincs(0)
+        self._spi.write(buf)
+        self._pincs(1)
 
     def show(self, _cmd=b'\x15\x00\x5f\x75\x00\x3f'):  # Pre-allocate
+        if self._spi_init:  # A callback was passed
+            self._spi_init(spi)  # Bus may be shared
         self._write(_cmd, 0)
         self._write(self.buffer, 1)

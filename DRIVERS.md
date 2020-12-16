@@ -42,7 +42,7 @@ from drivers.ssd1351.ssd1351 import SSD1351 as SSD  # Choose device driver
 pdc = machine.Pin('Y1', machine.Pin.OUT_PP, value=0)
 pcs = machine.Pin('Y2', machine.Pin.OUT_PP, value=1)
 prst = machine.Pin('Y3', machine.Pin.OUT_PP, value=1)
-spi = machine.SPI(2)
+spi = machine.SPI(2, baudrate=10_000_000)  # baudrate depends on display chip
 gc.collect()  # Precaution before instantiating framebuf
 ssd = SSD(spi, pcs, pdc, prst, 96)  # Create a display instance
 ```
@@ -109,6 +109,10 @@ For further information see the GUI README
 
 This driver was tested on Adafruit 1.5 and 1.27 inch displays.
 
+The `color_setup.py` file should initialise the SPI bus with a baudrate of
+20_000_000. Args `polarity`, `phase`, `bits`, `firstbit` are defaults. Hard or
+soft SPI may be used but hard may be faster.
+
 #### SSD1351 Constructor args:
  * `spi` An SPI bus instance.
  * `pincs` An initialised output pin. Initial value should be 1.
@@ -143,7 +147,9 @@ s[x + 1] 2nd byte sent g4 g3 g2 r7 r6 r5 r4 r3
 
 # 3. Drivers for SSD1331
 
-See [Adafruit 0.96" OLED display](https://www.adafruit.com/product/684).
+See [Adafruit 0.96" OLED display](https://www.adafruit.com/product/684). Most
+of the demos assume a larger screen and will fail. The `color96.py` demo is
+written for this display.
 
 There are two versions. Both are cross-platform.
  * `ssd1331.py` Uses 8 bit rrrgggbb color.
@@ -151,9 +157,14 @@ There are two versions. Both are cross-platform.
 
 The `ssd1331_16bit` version requires 12KiB of RAM for the frame buffer, while
 the standard version needs only 6KiB. For the GUI the standard version works
-well because text and controls are normally drawn with saturated colors.
+well because text and controls are normally drawn with a limited range of
+colors, most of which are saturated.
 
 The 16 bit version provides greatly improved results when rendering images.
+
+The `color_setup.py` file should initialise the SPI bus with a baudrate of
+6_666_000. Args `polarity`, `phase`, `bits`, `firstbit` are defaults. Hard or
+soft SPI may be used but hard may be faster.
 
 #### SSD1331 Constructor args:
  * `spi` An SPI bus instance.
@@ -162,9 +173,17 @@ The 16 bit version provides greatly improved results when rendering images.
  * `pinrs` An initialised output pin. Initial value should be 1.
  * `height=64` Display dimensions in pixels.
  * `width=96`
-
-This driver initialises the SPI clock rate and polarity as required by the
-device. The device can support clock rates of upto 6.66MHz.
+ * `init_spi=False` This optional arg enables flexible options in configuring
+ the SPI bus. The default assumes exclusive access to the bus with
+ `color_setup.py` initialising it. Those settings will be left in place. If a
+ callback function is passed, it will be called prior to each SPI bus write:
+ this is for shared  bus applications. The callback will receive a single arg
+ being the SPI bus instance. In normal use it will be a one-liner or lambda
+ initialising the bus. A minimal example is this function:
+```python
+def spi_init(spi):
+    spi.init(baudrate=6_666_000)  # Data sheet: max is 150ns
+```
 
 # 4. Drivers for ST7735R
 
@@ -181,6 +200,10 @@ the supported Adafruit displays differ in their initialisation settings.
 
 If your Chinese display doesn't work with my drivers you are on your own: I
 can't support hardware I don't possess.
+
+The `color_setup.py` file should initialise the SPI bus with a baudrate of
+12_000_000. Args `polarity`, `phase`, `bits`, `firstbit` are defaults. Hard or
+soft SPI may be used but hard may be faster.
 
 #### ST7735R Constructor args:
  * `spi` An initialised SPI bus instance. The device can support clock rates of
@@ -208,6 +231,10 @@ def spi_init(spi):
 
 Adafruit make several displays using this chip, for example
 [this 3.2 inch unit](https://www.adafruit.com/product/1743).
+
+The `color_setup.py` file should initialise the SPI bus with a baudrate of
+10_000_000. Args `polarity`, `phase`, `bits`, `firstbit` are defaults. Hard or
+soft SPI may be used but hard may be faster. See note on overclocking below.
 
 #### ILI9341 Constructor args:
  * `spi` An initialised SPI bus instance. The device can support clock rates of
@@ -255,9 +282,26 @@ An application using this should call `refresh(ssd, True)` once at the start,
 then launch the `do_refresh` method. After that, no calls to `refresh` should
 be made. See `gui/demos/scale_ili.py`.
 
+Another option to reduce blocking is overclocking the SPI bus.
+
+#### Overclocking SPI
+
+The ILI9341 datasheet section 19.3.4 specifies a minimum clock cycle time of
+100ns for write cycles. It seems that every man and his dog overclocks this,
+even the normally conservative Adafruit
+[use 24MHz](https://learn.adafruit.com/adafruit-2-8-and-3-2-color-tft-touchscreen-breakout-v2/python-usage)
+and [rdagger](https://github.com/rdagger/micropython-ili9341/blob/master/demo_fonts.py)
+uses 40MHz. I have successfully run my display at 40MHz. My engineering
+training makes me baulk at exceeding datasheet limits but the choice is yours.
+
 ###### [Contents](./DRIVERS.md#contents)
 
 # 6. Drivers for sharp displays
+
+These displays have characteristics which mean that they are best suited to
+micropower applications. Inevitably this means that deployment is more involved
+than the other supported units. This doc provides some background information
+on their use.
 
 These monochrome SPI displays exist in three variants from Adafruit.
  1. [2.7 inch 400x240 pixels](https://www.adafruit.com/product/4694)
