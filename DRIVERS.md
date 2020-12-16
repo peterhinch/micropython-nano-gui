@@ -70,6 +70,8 @@ application which uses the predefined colors. Differences become apparent when
 specifying custom colors. For detail see the main README
 [User defined colors](./README.md#311-user-defined-colors).
 
+###### [Contents](./DRIVERS.md#contents)
+
 # 2. Drivers for SSD1351
 
 See [Adafruit 1.5" 128*128 OLED display](https://www.adafruit.com/product/1431)
@@ -185,6 +187,8 @@ def spi_init(spi):
     spi.init(baudrate=6_666_000)  # Data sheet: max is 150ns
 ```
 
+###### [Contents](./DRIVERS.md#contents)
+
 # 4. Drivers for ST7735R
 
 These are cross-platform but assume `micropython.viper` capability. They use
@@ -226,6 +230,8 @@ soft SPI may be used but hard may be faster.
 def spi_init(spi):
     spi.init(baudrate=12_000_000)  # Data sheet: max is 12MHz
 ```
+
+###### [Contents](./DRIVERS.md#contents)
 
 # 5. Drivers for ILI9341
 
@@ -515,6 +521,9 @@ value to 16 bits. In the case of 4-bit drivers the LUT is 16 bits in size, and
 `.rgb` is called only when populating the LUT. In this case `.rgb` returns a 16
 bit value in a format compatible with the hardware and the byte order of the
 "on the fly" conversion code.
+
+The convention I use is that the LS byte from `.rgb()` is transmitted first. So
+long as `.rgb()` and the "on the fly" converter match, this is arbitrary.
 
 The `Writer` (monochrome) or `CWriter` (color) classes and the `nanogui` module
 should then work automatically.
