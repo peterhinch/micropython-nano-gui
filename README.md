@@ -23,11 +23,12 @@ Cartesian and polar plots, also realtime plotting including time series.
 
 ![Image](images/sine.png) A sample image from the plot module.
 
-These images are from a TFT display. They illustrate the widgets.  
+These images from a TFT display illustrate the new widgets.  
 ![Image](images/scale.JPG) The Scale widget. Capable of precision display of
-floats as the scale moves behind its small window.
+floats as the notionally very long scale moves behind its small window.
 
-![Image](images/textbox1.JPG) The Textbox widget for scrolling text.
+![Image](images/textbox1.JPG) The Textbox widget for scrolling text with word
+wrap or clipping.
 
 Notes on [Adafruit and other OLED displays](./ADAFRUIT.md) including
 wiring details, pin names and hardware issues.
@@ -93,7 +94,8 @@ my GUI's employ the American spelling of `color`.
 
 ## 1.1 Change log
 
-15 Dec 2020 Add ILI9341 driver, 4-bit drivers and SPI bus sharing improvements.  
+16 Dec 2020 Add ILI9341 driver, 4-bit drivers and SPI bus sharing improvements.
+These mean that `color_setup.py` should now set SPI baudrate.  
 29 Nov 2020 Add ST7735R TFT drivers.  
 17 Nov 2020 Add `Textbox` widget. `Scale` constructor arg `border` replaced by
 `bdcolor` as per other widgets.
