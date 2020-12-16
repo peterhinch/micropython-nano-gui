@@ -122,19 +122,18 @@ soft SPI may be used but hard may be faster.
  * `pinrs` An initialised output pin. Initial value should be 1.
  * `height=128` Display dimensions in pixels. Height must be 96 or 128.
  * `width=128`
- * `init_spi=spi_init` This optional arg enables flexible options in
- configuring the SPI bus. The default preserves existing behaviour: the SPI bus
- is initialised to 20MHz before each use. Other `spi.init` args are default.
- This facilitates bus sharing. Passing `False` disables this: `color_setup.py`
- must initialise the bus. Those settings will be left in place. If a callback
- function is passed, it will be called prior to each SPI bus write: this is for
- shared  bus applications where a non-standard `init` is required. The callback
- will receive a single arg being the SPI bus instance. In normal use it will be
- a one-liner or lambda initialising the bus. The default is this function:
+ * `init_spi=False` This optional arg enables flexible options in configuring
+ the SPI bus. The default assumes exclusive access to the bus with
+ `color_setup.py` initialising it. Those settings will be left in place. If a
+ callback function is passed, it will be called prior to each SPI bus write:
+ this is for shared  bus applications. The callback will receive a single arg
+ being the SPI bus instance. In normal use it will be a one-liner or lambda
+ initialising the bus. A minimal example is this function:
 ```python
 def spi_init(spi):
     spi.init(baudrate=20_000_000)  # Data sheet: should support 20MHz
 ```
+Despite the datasheet I failed to get this baudrate to work even on a PCB.
 
 #### A "gotcha" in the datasheet
 

@@ -20,11 +20,6 @@ from uctypes import addressof
 # The ESP32 does not work reliably in SPI mode 1,1. Waveforms look correct.
 # Now using 0,0 on STM and ESP32
 
-# ESP32 produces 20MHz, Pyboard D SF2W: 15MHz, SF6W: 18MHz, Pyboard 1.1: 10.5MHz
-# OLED datasheet:  should support 20MHz
-def spi_init(spi):
-    spi.init(baudrate=20_000_000)  # Data sheet: should support 20MHz
-
 # Initialisation commands in cmd_init:
 # 0xfd, 0x12, 0xfd, 0xb1,  # Unlock command mode
 # 0xae,  # display off (sleep mode)
@@ -54,7 +49,7 @@ class SSD1351(framebuf.FrameBuffer):
     def rgb(r, g, b):
         return ((r & 0xf8) << 5) | ((g & 0x1c) << 11) | (b & 0xf8) | ((g & 0xe0) >> 5)
 
-    def __init__(self, spi, pincs, pindc, pinrs, height=128, width=128, init_spi=spi_init):
+    def __init__(self, spi, pincs, pindc, pinrs, height=128, width=128, init_spi=False):
         if height not in (96, 128):
             raise ValueError('Unsupported height {}'.format(height))
         self.spi = spi

@@ -23,11 +23,6 @@ import sys
 # The ESP32 does not work reliably in SPI mode 1,1. Waveforms look correct.
 # Now using 0,0 on STM and ESP32
 
-# ESP32 produces 20MHz, Pyboard D SF2W: 15MHz, SF6W: 18MHz, Pyboard 1.1: 10.5MHz
-# OLED datasheet:  should support 20MHz
-def spi_init(spi):
-    spi.init(baudrate=20_000_000)  # Data sheet: should support 20MHz
-
 # Timings with standard emitter
 # 1.86ms * 128 lines = 240ms. copy dominates: show() took 272ms
 # Buffer transfer time = 272-240 = 32ms which accords with expected:
@@ -72,7 +67,7 @@ class SSD1351(framebuf.FrameBuffer):
     def rgb(r, g, b):
         return (r & 0xe0) | ((g >> 3) & 0x1c) | (b >> 6)
 
-    def __init__(self, spi, pincs, pindc, pinrs, height=128, width=128, init_spi=spi_init):
+    def __init__(self, spi, pincs, pindc, pinrs, height=128, width=128, init_spi=False):
         if height not in (96, 128):
             raise ValueError('Unsupported height {}'.format(height))
         self.spi = spi

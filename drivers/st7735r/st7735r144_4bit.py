@@ -49,7 +49,7 @@ class ST7735R(framebuf.FrameBuffer):
     # Same mapping in linebuf so LS byte is shifted out 1st
     @staticmethod
     def rgb(r, g, b):
-        return (b & 0xf8) << 5 | (g & 0x1c) << 11 | (g & 0xe0) >> 5 | (r & 0xf8)
+        return (r & 0xf8) << 5 | (g & 0x1c) << 11 | (g & 0xe0) >> 5 | (b & 0xf8)
 
     # rst and cs are active low, SPI is mode 0
     def __init__(self, spi, cs, dc, rst, height=128, width=128, init_spi=False):

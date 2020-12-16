@@ -77,7 +77,7 @@ class SSD1351(framebuf.FrameBuffer):
     def rgb(r, g, b):
         return (r & 0xf8) << 5 | (g & 0x1c) << 11 | (g & 0xe0) >> 5 | (b & 0xf8)
 
-    def __init__(self, spi, pincs, pindc, pinrs, height=128, width=128, init_spi=spi_init):
+    def __init__(self, spi, pincs, pindc, pinrs, height=128, width=128, init_spi=False):
         if height not in (96, 128):
             raise ValueError('Unsupported height {}'.format(height))
         self.spi = spi
