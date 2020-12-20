@@ -266,7 +266,9 @@ def spi_init(spi):
 
 The ILI9341 class uses 4-bit color to conserve RAM. Even with this adaptation
 the buffer size is 37.5KiB. See [Color handling](./DRIVERS.md#11-color-handling)
-for details of the implications of 4-bit color.
+for details of the implications of 4-bit color. On a Pyboard 1.1 the `scale.py`
+demo ran with 34.5K free with no modules frozen, and with 47K free with `gui`
+and contents frozen.
 
 The driver uses the `micropython.viper` decorator. If your platform does not
 support this, comment it out and remove the type annotations. You may be able
@@ -298,6 +300,8 @@ even the normally conservative Adafruit
 and [rdagger](https://github.com/rdagger/micropython-ili9341/blob/master/demo_fonts.py)
 uses 40MHz. I have successfully run my display at 40MHz. My engineering
 training makes me baulk at exceeding datasheet limits but the choice is yours.
+I raised [this isse](https://github.com/adafruit/Adafruit_CircuitPython_ILI9341/issues/24).
+The response may be of interest.
 
 ###### [Contents](./DRIVERS.md#contents)
 
