@@ -60,7 +60,6 @@ class ST7735R(framebuf.FrameBuffer):
         self.height = height  # Required by Writer class
         self.width = width
         self._spi_init = init_spi
-        # Save color mode for use by writer_gui (blit)
         mode = framebuf.GS4_HMSB  # Use 4bit greyscale.
         gc.collect()
         buf = bytearray(self.height * self.width // 2)
