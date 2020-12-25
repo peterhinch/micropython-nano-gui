@@ -49,7 +49,7 @@ class ST7735R(framebuf.FrameBuffer):
         return (r & 0xe0) | ((g >> 3) & 0x1c) | (b >> 6)
 
     # rst and cs are active low, SPI is mode 0
-    def __init__(self, spi, cs, dc, rst, height=128, width=128, init_spi=False):
+    def __init__(self, spi, cs, dc, rst, height=128, width=128, rotation=0, init_spi=False):
         self._spi = spi
         self._rst = rst  # Pins
         self._dc = dc
@@ -63,7 +63,11 @@ class ST7735R(framebuf.FrameBuffer):
         self._mvb = memoryview(buf)
         super().__init__(buf, self.width, self.height, mode)
         self._linebuf = bytearray(self.width * 2)  # 16 bit color out
-        self._init()
+        quad, mod = divmod(rotation, 90)  # Get quadrant
+        if mod or quad > 3:
+            quad %= 4
+            print('Warning: rotation adjusted to', quad * 90)
+        self._init(quad)
         self.show()
 
     # Hardware reset
@@ -95,7 +99,7 @@ class ST7735R(framebuf.FrameBuffer):
         self._cs(1)
 
     # Initialise the hardware. Blocks 500ms.
-    def _init(self):
+    def _init(self, quad):
         self._hwreset()  # Hardware reset. Blocks 3ms
         if self._spi_init:  # A callback was passed
             self._spi_init(self._spi)  # Bus may be shared
@@ -119,13 +123,18 @@ class ST7735R(framebuf.FrameBuffer):
 
         cmd(b'\x20') # INVOFF
         # d7..d5 of MADCTL determine rotation/orientation
-        wcd(b'\x36', b'\xe0')  # MADCTL: RGB landscape mode for 1.4" display
+        # (MADCTL_DATA, ColumnOffset, RowOffset)
+        rval, co, ro = ((b'\x20', 1, 2),
+                        (b'\x40', 2, 1),
+                        (b'\xe0', 3, 2),
+                        (b'\x80', 2, 3))[quad]
+        wcd(b'\x36', rval)  # MADCTL: rotation mode for 1.44" display
         wcd(b'\x3a', b'\x05')  # COLMOD 16 bit
         wcd(b'\xe0', b'\x02\x1c\x07\x12\x37\x32\x29\x2d\x29\x25\x2B\x39\x00\x01\x03\x10')  # GMCTRP1 Gamma
         wcd(b'\xe1', b'\x03\x1d\x07\x06\x2E\x2C\x29\x2D\x2E\x2E\x37\x3F\x00\x00\x02\x10')  # GMCTRN1
 
-        wcd(b'\x2a', int.to_bytes((3 << 16) + self.width + 2, 4, 'big'))  # CASET
-        wcd(b'\x2b', int.to_bytes((2 << 16) + self.height + 2, 4, 'big'))  # RASET
+        wcd(b'\x2a', int.to_bytes((co << 16) + self.width + co - 1, 4, 'big'))  # CASET
+        wcd(b'\x2b', int.to_bytes((ro << 16) + self.height + ro - 1, 4, 'big'))  # RASET
 
         cmd(b'\x13')  # NORON
         sleep_ms(10)

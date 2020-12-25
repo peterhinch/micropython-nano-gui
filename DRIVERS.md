@@ -191,9 +191,15 @@ def spi_init(spi):
 # 4. Drivers for ST7735R
 
 These are cross-platform but assume `micropython.viper` capability. They use
-8-bit color to minimise the RAM used by the frame buffer.
- * `st7735r.py` Supports [Adafruit 1.8" display](https://www.adafruit.com/product/358).
- * `st7735r144.py` Supports [Adafruit 1.44" display](https://www.adafruit.com/product/2088).
+8-bit or 4-bit color to minimise the RAM used by the frame buffer.
+
+Drivers for [Adafruit 1.8" display](https://www.adafruit.com/product/358).
+ * `st7735r.py` 8-bit color. 
+ * `st7735r_4bit.py` 4-bit color for further RAM reduction.
+
+For [Adafruit 1.44" display](https://www.adafruit.com/product/2088).
+ * `st7735r144.py` 8-bit color. 
+ * `st7735r144_4bit` 4 bit color.
 
 Users of other ST7735R based displays should beware: there are many variants
 with differing setup requirements.
@@ -208,7 +214,7 @@ The `color_setup.py` file should initialise the SPI bus with a baudrate of
 12_000_000. Args `polarity`, `phase`, `bits`, `firstbit` are defaults. Hard or
 soft SPI may be used but hard may be faster.
 
-#### ST7735R Constructor args:
+#### ST7735R Constructor args 1.8" display:
  * `spi` An initialised SPI bus instance. The device can support clock rates of
  upto 15MHz.
  * `cs` An initialised output pin. Initial value should be 1.
@@ -219,12 +225,29 @@ soft SPI may be used but hard may be faster.
  * `width=160`
  * `usd=False` Upside down: set `True` to invert display.
  * `init_spi=False` This optional arg enables flexible options in configuring
- the SPI bus. The default assumes exclusive access to the bus with
- `color_setup.py` initialising it. Those settings will be left in place. If a
- callback function is passed, it will be called prior to each SPI bus write:
- this is for shared  bus applications. The callback will receive a single arg
- being the SPI bus instance. In normal use it will be a one-liner or lambda
- initialising the bus. A minimal example is this function:
+ the SPI bus. See below.
+
+#### ST7735R144 Constructor args 1.44" display:
+ * `spi` An initialised SPI bus instance. The device can support clock rates of
+ upto 15MHz.
+ * `cs` An initialised output pin. Initial value should be 1.
+ * `dc` An initialised output pin. Initial value should be 0.
+ * `rst` An initialised output pin. Initial value should be 1.
+ * `height=128` Display dimensions in pixels.
+ * `width=128`
+ * `rotation=0` Pass 0, 90, 180 or 270 to rotate the display.
+ * `init_spi=False` This optional arg enables flexible options in configuring
+ the SPI bus. See below.
+
+#### The init_spi constructor arg 
+ 
+The `False` default assumes exclusive access to the bus. It is initialised by
+`color_setup.py` and those settings are left in place. If a callback function
+is passed, it will be called prior to each SPI bus write. This is for shared
+bus applications. The callback will receive a single arg being the SPI bus
+instance. In normal use it will be a one-liner or lambda  initialising the bus.
+A minimal example is this function which caters for the case where another
+program may have changed the baudrate:
 ```python
 def spi_init(spi):
     spi.init(baudrate=12_000_000)  # Data sheet: max is 12MHz
@@ -531,8 +554,18 @@ long as `.rgb()` and the "on the fly" converter match, this is arbitrary.
 The `Writer` (monochrome) or `CWriter` (color) classes and the `nanogui` module
 should then work automatically.
 
-Drivers for displays using I2C may need to use
-[I2C.writevto](http://docs.micropython.org/en/latest/library/machine.I2C.html?highlight=writevto#machine.I2C.writevto)
-depending on the chip requirements.
+The following script is useful for testing color display drivers after
+configuring `color_setup.py`. It draws squares at the extreme corners of the
+display and a corner to corner diagonal.
+```python
+from color_setup import ssd  # Create a display instance
+from gui.core.nanogui import refresh
+refresh(ssd, True)  # Initialise and clear display.
+ssd.fill(0)
+ssd.line(0, 0, ssd.width - 1, ssd.height - 1, ssd.rgb(0, 255, 0))  # Green diagonal
+ssd.rect(0, 0, 15, 15, ssd.rgb(255, 0, 0))  # Red square at top left
+ssd.rect(ssd.width -15, ssd.height -15, 15, 15, ssd.rgb(0, 0, 255))  # Blue square at bottm right
+ssd.show()
+```
 
 ###### [Contents](./DRIVERS.md#contents)
