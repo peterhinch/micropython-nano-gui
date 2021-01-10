@@ -10,8 +10,8 @@
 
 import utime
 # import uos
-from ssd1306_setup import WIDTH, HEIGHT, setup
-from gui.core.writer import Writer, CWriter
+from ssd1306_setup import setup
+from gui.core.writer import Writer
 from gui.core.nanogui import refresh
 from gui.widgets.meter import Meter
 from gui.widgets.label import Label

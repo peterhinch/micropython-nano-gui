@@ -22,7 +22,11 @@ and monochrome), color TFT, and monochrome Sharp displays.
   6.4 [Application design](./DRIVERS.md#64-application-design)  
   &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;6.4.1 [Micropower applications](./DRIVERS.md#641-micropower-applications)  
   6.5 [Resources](./DRIVERS.md#65-resources)  
- 7. [Writing device drivers](./DRIVERS.md#7-writing-device-drivers)  
+ 7. [ePaper displays](./DRIVERS.md#7-epaper-displays)  
+  7.1 [Waveshare eInk Display HAT](./DRIVERS.md#71-waveshare-eink-display-hat)  
+  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;7.1.1 [EPD constructor args](./DRIVERS.md#711-epd-constructor-args)  
+  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;7.1.2 [EPD public methods](./DRIVERS.md#712-epd-public-methods)  
+ 8. [Writing device drivers](./DRIVERS.md#8-writing-device-drivers)  
 
 ###### [Main README](./README.md)
 
@@ -492,7 +496,66 @@ the demo.
 
 ###### [Contents](./DRIVERS.md#contents)
 
-# 7. Writing device drivers
+# 7. ePaper displays
+
+These tend to be monochrome or to support no more than three colors. They also
+have very long refresh times (many seconds). The benefit is zero current
+between refreshes: it is possible to switch off power completely with the
+device retaining the image indefinitely. Some devices such as the Waveshare
+units perform the refresh internally. Earlier devices required the driver to
+perform this, tying up the CPU for the duration.
+
+## 7.1 Waveshare eInk Display HAT
+
+This 2.7" 176*274 portrait mode display is designed for the Raspberry Pi.
+Details [here](https://www.waveshare.com/wiki/2.7inch_e-Paper_HAT). The driver
+is cross-platform.
+
+##### Wiring
+
+This shows the Raspberry Pi connector looking at the underside of the board
+with the bulk of the board to the right. Only the top portion of the 40-way
+connector is shown, with connections to a Pyboard to match `waveshare_setup.py`.
+
+Connections may be adapted for other MicroPython targets. The board may be
+powered from 5V or 3.3V: there is a regulator on board.
+
+|:---:|:----:|:--:|:--:|:----:|:---:|
+| Pyb |      |  L |  R |      | Pyb |
+|:---:|:----:|:--:|:--:|:----:|:---:|
+| Vin | VIN  |  2 |  1 |      |     |
+|     |      |  4 |  3 |      |     |
+|     |      |  6 |  5 |      |     |
+|     |      |  8 |  7 |      |     |
+|     |      | 10 |  9 | GND  | Gnd |
+|     |      | 12 | 11 | RST  | Y3  |
+|     |      | 14 | 13 |      |     |
+|     |      | 16 | 15 |      |     |
+| Y4  | BUSY | 18 | 17 |      |     |
+|     |      | 20 | 19 | MOSI | Y8  |
+| Y1  | DC   | 22 | 21 |      |     |
+| Y2  | CS   | 24 | 23 | SCLK | Y6  |
+
+Pins 26-40 unused and omitted.
+
+### 7.1.1 EPD constructor args
+ * `spi` An initialised SPI bus instance. The device can support clock rates of
+ upto 2MHz.
+ * `cs` An initialised output pin. Initial value should be 1.
+ * `dc` An initialised output pin. Initial value should be 0.
+ * `rst` An initialised output pin. Initial value should be 1.
+ * `busy` An initialised input pin.
+
+### 7.1.2 EPD public methods
+ * `init` No args. Issues a hardware reset and initialises the hardware. This
+ is called by the constructor. It needs to explicitly be called to exit from a
+ deep sleep.
+ * `sleep` No args. Puts the display into deep sleep.
+ * `ready` No args. After issuing a `refresh` the device will become busy for
+ a period: `ready` status should be checked before issuing `refresh`.
+ * `wait_until_ready` No args. Pause until the device is ready.
+
+# 8. Writing device drivers
 
 Device drivers capable of supporting `nanogui` can be extremely simple: see
 `drivers/sharp/sharp.py` for a minimal example. It should be noted that the

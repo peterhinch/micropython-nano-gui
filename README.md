@@ -240,6 +240,10 @@ Demos for larger displays.
  * `tbox.py` Demo `Textbox` class. Cross-platform.
  * `scale_ili.py` A special demo of the asychronous mode of the ILI9341 driver.
 
+Demos for ePaper displays:
+ * `waveshare_test.py` For the Waveshare eInk Display HAT 2.7" 176*274 portrait
+ mode display.
+
 Usage with `uasyncio` is discussed [here](./ASYNC.md). In summary the blocking
 which occurs during transfer of the framebuffer to the display may affect more
 demanding `uasyncio` applications. More generally the GUI works well with it.
@@ -292,6 +296,7 @@ copied to the hardware root as `color_setup.py`.
  * `st7735r144_setup.py` For a Pyboard with an
  [Adafruit 1.44 inch TFT display](https://www.adafruit.com/product/2088).
  * `ili9341_setup.py` A 240*320 ILI9341 display on ESP32.
+ * `waveshare_setup.py` 176*274 portrait mode ePaper display.
 
 ## 2.2 Dependencies
 
@@ -847,6 +852,10 @@ that applications of moderate complexity should be feasible.
 The file `color_setup.py` contains the hardware dependent code. It works as
 described below, with the aim of allocating the `FrameBuffer` before importing
 other modules. This is intended to reduce the risk of memory failures.
+
+This example is for SSD1351 devices where a single driver supports displays of
+two different heights. In general [the driver doc](./DRIVERS.md) should be
+consulted for correct SSD constructor arguments.
 
 Firstly the file sets the display height and imports the driver:
 ```python
