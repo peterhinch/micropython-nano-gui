@@ -19,7 +19,10 @@
 
 import framebuf
 import uasyncio as asyncio
+from micropython import const
 from time import sleep_ms, sleep_us, ticks_ms, ticks_us, ticks_diff
+
+_MAX_BLOCK = const(20)  # Maximum blocking time (ms) for asynchronous show.
 
 class EPD(framebuf.FrameBuffer):
     # A monochrome approach should be used for coding this. The rgb method ensures
@@ -34,24 +37,22 @@ class EPD(framebuf.FrameBuffer):
         self._dc = dc
         self._rst = rst  # Active low.
         self._busy = busy  # Active low on IL0373
-        self._lsc = True  # TODO this is here for test purposes. There is only one mode.
-        if asyn:
-            self._lock = asyncio.Lock()
         self._asyn = asyn
         # ._as_busy is set immediately on start of task. Cleared
         # when busy pin is logically false (physically 1).
         self._as_busy = False
-        # Public bound variables.
-        # Ones required by nanogui.
+        self._updated = asyncio.Event()
+        # Public bound variables required by nanogui.
         # Dimensions in pixels as seen by nanogui (landscape mode).
         self.width = 296
         self.height = 128
+        # Other public bound variable.
         # Special mode enables demos written for generic displays to run.
         self.demo_mode = False
 
         self._buffer = bytearray(self.height * self.width // 8)
         self._mvb = memoryview(self._buffer)
-        mode = framebuf.MONO_VLSB if self._lsc else framebuf.MONO_HLSB  # TODO check this and set mode permanently
+        mode = framebuf.MONO_VLSB
         super().__init__(self._buffer, self.width, self.height, mode)
         self.init()
 
@@ -102,7 +103,7 @@ class EPD(framebuf.FrameBuffer):
         cmd(b'\x61', b'\x80\x01\x28')  # Note hex(296) == 0x128
         # Set VCM_DC. 0 is datasheet default. I think Adafruit send 0x50 (-2.6V) rather than 0x12 (-1.0V)
         # https://github.com/adafruit/Adafruit_CircuitPython_IL0373/issues/17
-        cmd(b'\x82', b'\x12')  # Set Vcom to -1.0V
+        cmd(b'\x82', b'\x12')  # Set Vcom to -1.0V is my guess at Adafruit's intention.
         sleep_ms(50)
         print('Init Done.')
 
@@ -116,53 +117,93 @@ class EPD(framebuf.FrameBuffer):
         dt = ticks_diff(ticks_ms(), t)
         print('wait_until_ready {}ms {:5.1f}mins'.format(dt, dt/60_000))
 
-    # Asynchronous wait on ready state.
+    # Asynchronous wait on ready state. Pause (4.9s) for physical refresh.
     async def wait(self):
         while not self.ready():
             await asyncio.sleep_ms(100)
+
+    # Pause until framebuf has been copied to device.
+    async def updated(self):
+        await self._updated.wait()
 
     # Return immediate status. Pin state: 0 == busy.
     def ready(self):
         return not(self._as_busy or (self._busy() == 0))
 
-    # draw the current frame memory.
-    def show(self, buf1=bytearray(1)):
-        #if self._asyn:
-            #self._as_busy = True
-            #asyncio.create_task(self._as_show())
-            #return
-        t = ticks_us()
+    async def _as_show(self, buf1=bytearray(1)):
         mvb = self._mvb
         cmd = self._command
+        dat = self._data
+        cmd(b'\x13')
+        t = ticks_ms()
+        wid = self.width
+        tbc = self.height // 8  # Vertical bytes per column
+        iidx = wid * (tbc - 1)  # Initial index
+        idx = iidx  # Index into framebuf
+        vbc = 0  # Current vertical byte count
+        hpc = 0  # Horizontal pixel count
+        for i in range(len(mvb)):
+            buf1[0] = mvb[idx] ^ 0xff
+            dat(buf1)
+            idx -= wid
+            vbc += 1
+            vbc %= tbc
+            if not vbc:
+                hpc += 1
+                idx = iidx + hpc
+            if not(i & 0x0f) and (ticks_diff(ticks_ms(), t) > _MAX_BLOCK):
+                await asyncio.sleep_ms(0)
+                t = ticks_ms()
+        cmd(b'\x11')  # Data stop
+        self._updated.set()
+        self._updated.clear()
+        sleep_us(20)  # Allow for data coming back: currently ignore this
+        cmd(b'\x12')  # DISPLAY_REFRESH
+        # busy goes low now, for ~4.9 seconds.
+        await asyncio.sleep(1)
+        while self._busy() == 0:
+            await asyncio.sleep_ms(200)
+        self._as_busy = False
+
+    # draw the current frame memory.
+    def show(self, buf1=bytearray(1)):
+        if self._asyn:
+            if self._as_busy:
+                raise RuntimeError('Cannot refresh: display is busy.')
+            self._as_busy = True  # Immediate busy flag. Pin goes low much later.
+            asyncio.create_task(self._as_show())
+            return
+
+        # t = ticks_us()
+        mvb = self._mvb
+        cmd = self._command
+        dat = self._data
         # DATA_START_TRANSMISSION_2 Datasheet P31 indicates this sets
         # busy pin low (True) and that it stays logically True until
-        # refresh is complete. Probably don't need _as_busy TODO
+        # refresh is complete. In my testing this doesn't happen.
         cmd(b'\x13')
-
-        if self._lsc:  # Landscape mode
-            wid = self.width
-            tbc = self.height // 8  # Vertical bytes per column
-            iidx = wid * (tbc - 1)  # Initial index
-            idx = iidx  # Index into framebuf
-            vbc = 0  # Current vertical byte count
-            hpc = 0  # Horizontal pixel count
-            for _ in range(len(mvb)):
-                buf1[0] = mvb[idx] ^ 0xff
-                self._data(buf1)
-                idx -= self.width
-                vbc += 1
-                vbc %= tbc
-                if not vbc:
-                    hpc += 1
-                    idx = iidx + hpc
-        else:
-            self._data(self._buffer)  # TODO if this works don't need ._mvb
+        wid = self.width
+        tbc = self.height // 8  # Vertical bytes per column
+        iidx = wid * (tbc - 1)  # Initial index
+        idx = iidx  # Index into framebuf
+        vbc = 0  # Current vertical byte count
+        hpc = 0  # Horizontal pixel count
+        for _ in range(len(mvb)):
+            buf1[0] = mvb[idx] ^ 0xff
+            dat(buf1)
+            idx -= wid
+            vbc += 1
+            vbc %= tbc
+            if not vbc:
+                hpc += 1
+                idx = iidx + hpc
         cmd(b'\x11')  # Data stop
         sleep_us(20)  # Allow for data coming back: currently ignore this
-        # Datasheet P14 is ambiguous over whether a refresh command is necessary here TODO
         cmd(b'\x12')  # DISPLAY_REFRESH
-        te = ticks_us()
-        print('show time', ticks_diff(te, t)//1000, 'ms')
+        # 258ms to get here on Pyboard D
+        # Checking with scope, busy goes low now. For 4.9s.
+        # te = ticks_us()
+        # print('show time', ticks_diff(te, t)//1000, 'ms')
         if not self.demo_mode:
             # Immediate return to avoid blocking the whole application.
             # User should wait for ready before calling refresh()
