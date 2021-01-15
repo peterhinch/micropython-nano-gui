@@ -1,7 +1,7 @@
 # Display drivers for nano-gui
 
-The nano-gui project currently supports three display technologies: OLED (color
-and monochrome), color TFT, and monochrome Sharp displays.
+The nano-gui project currently supports four display technologies: OLED (color
+and monochrome), color TFT, monochrome Sharp displays and EPD (ePaper/eInk).
 
 # Contents
 
@@ -23,10 +23,14 @@ and monochrome), color TFT, and monochrome Sharp displays.
   &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;6.4.1 [Micropower applications](./DRIVERS.md#641-micropower-applications)  
   6.5 [Resources](./DRIVERS.md#65-resources)  
  7. [ePaper displays](./DRIVERS.md#7-epaper-displays)  
-  7.1 [Waveshare eInk Display HAT](./DRIVERS.md#71-waveshare-eink-display-hat)  
+  7.1 [Adafruit flexible eInk Display](./DRIVERS.md#71-adafruit-flexible-eink-display)  
   &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;7.1.1 [EPD constructor args](./DRIVERS.md#711-epd-constructor-args)  
   &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;7.1.2 [EPD public methods](./DRIVERS.md#712-epd-public-methods)  
- 8. [Writing device drivers](./DRIVERS.md#8-writing-device-drivers)  
+  7.2 [Waveshare eInk Display HAT](./DRIVERS.md#71-waveshare-eink-display-hat)  
+  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;7.2.1 [EPD constructor args](./DRIVERS.md#711-epd-constructor-args)  
+  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;7.2.2 [EPD public methods](./DRIVERS.md#712-epd-public-methods)  
+  8. [EPD Asynchronous support](./DRIVERS.md#8-epd-asynchronous-support)  
+  9. [Writing device drivers](./DRIVERS.md#8-writing-device-drivers)  
 
 ###### [Main README](./README.md)
 
@@ -505,11 +509,91 @@ device retaining the image indefinitely. Some devices such as the Waveshare
 units perform the refresh internally. Earlier devices required the driver to
 perform this, tying up the CPU for the duration.
 
-## 7.1 Waveshare eInk Display HAT
+The drivers are compatible with `uasyncio`. One approach is to use synchronous
+methods only and the standard demos (some of which use `uasyncio`) may be run.
+However copying the framebuffer to the device blocks for some time - 250ms or
+more - which may be problematic for applications which need to respond to
+external events. A specific asynchronous mode provides support for reducing
+blocking time. See [EPD Asynchronous support](./DRIVERS.md#8-epd-asynchronous-support).
 
-This 2.7" 176*274 portrait mode display is designed for the Raspberry Pi.
-Details [here](https://www.waveshare.com/wiki/2.7inch_e-Paper_HAT). The driver
-is cross-platform.
+## 7.1 Adafruit flexible eInk Display
+
+The driver assumes an Adafruit 2.9 inch 296*128 pixel flexible
+[display](https://www.adafruit.com/product/4262) interfaced via their
+[interface breakout](https://www.adafruit.com/product/4224).
+
+This is currently my preferred ePaper setup, not least because the breakout
+enables the display to be completely powered down. This facilitates micropower
+applications: the host shuts down the display before going into deep sleep.
+
+The driver is cross platform and supports landscape or portrait mode. To keep
+the buffer size down (to 4736 bytes) there is no greyscale support.
+
+##### Wiring
+
+The following assumes a Pyboard host. Pyboard pin numbers are based on hardware
+SPI 2 and my arbitrary choice of GPIO. All may be changed and soft SPI may be
+used.
+
+| Pyb |  Breakout |
+|:---:|:---------:|
+| Vin | Vin (1)   |
+| Gnd | Gnd (3)   |
+| Y8  | MOSI (6)  |
+| Y6  | SCK (4)   |
+| Y4  | BUSY (11) | (Low = Busy)
+| Y3  | RST (10)  |
+| Y2  | CS (7)    |
+| Y1  | DC (8)    |
+
+In normal use the `ENA` pin (12) may be left unconnected. For micropower use,
+see below.
+
+### 7.1.1 EPD constructor args
+ * `spi` An initialised SPI bus instance. The device can support clock rates of
+ upto 10MHz.
+ * `cs` An initialised output pin. Initial value should be 1.
+ * `dc` An initialised output pin. Initial value should be 0.
+ * `rst` An initialised output pin. Initial value should be 1.
+ * `busy` An initialised input pin.
+ * `landscape=True` By default the long axis is horizontal.
+ * `asyn=False` Setting this `True` invokes an asynchronous mode. See
+ [EPD Asynchronous support](./DRIVERS.md#8-epd-asynchronous-support).
+
+### 7.1.2 EPD public methods
+
+##### Synchronous methods
+ * `init` No args. Issues a hardware reset and initialises the hardware. This
+ is called by the constructor. It needs to explicitly be called to exit from a
+ deep sleep.
+ * `sleep` No args. Puts the display into deep sleep. If called while a refresh
+ is in progress it will block until the refresh is complete. `sleep` should be
+ called before a power down to avoid leaving the display in an abnormal state.
+ * `ready` No args. After issuing a `refresh` the device will become busy for
+ a period: `ready` status should be checked before issuing `refresh`.
+ * `wait_until_ready` No args. Pause until the device is ready.
+
+##### Asynchronous methods
+ * `updated` Asynchronous. No args. Pause until the framebuffer has been copied
+ to the display.
+ * `wait` Asynchronous. No args. Pause until the display refresh is complete.
+
+
+
+** POWER DOWN HARDWARE **
+
+## 7.2 Waveshare eInk Display HAT
+
+This 2.7" 176*274 display is designed for the Raspberry Pi and is detailed
+[here](https://www.waveshare.com/wiki/2.7inch_e-Paper_HAT).
+
+I bought two of these units from different sources. Both have hardware issues
+discussed [here](https://forum.micropython.org/viewtopic.php?f=2&t=9564). I
+have failed to achieve consistent behaviour. Units behave perfectly one day and
+fail the next. I published this driver on the assumption that I was sold
+dubious Chinese clones and that genuine ones would be reliable.
+
+The driver is cross-platform.
 
 ##### Wiring
 
@@ -520,7 +604,6 @@ connector is shown, with connections to a Pyboard to match `waveshare_setup.py`.
 Connections may be adapted for other MicroPython targets. The board may be
 powered from 5V or 3.3V: there is a regulator on board.
 
-|:---:|:----:|:--:|:--:|:----:|:---:|
 | Pyb |      |  L |  R |      | Pyb |
 |:---:|:----:|:--:|:--:|:----:|:---:|
 | Vin | VIN  |  2 |  1 |      |     |
@@ -538,24 +621,69 @@ powered from 5V or 3.3V: there is a regulator on board.
 
 Pins 26-40 unused and omitted.
 
-### 7.1.1 EPD constructor args
+### 7.2.1 EPD constructor args
  * `spi` An initialised SPI bus instance. The device can support clock rates of
  upto 2MHz.
  * `cs` An initialised output pin. Initial value should be 1.
  * `dc` An initialised output pin. Initial value should be 0.
  * `rst` An initialised output pin. Initial value should be 1.
  * `busy` An initialised input pin.
+ * `landscape=False` By default the long axis is vertical.
+ * `asyn=False`
 
-### 7.1.2 EPD public methods
+### 7.2.2 EPD public methods
+
+##### Synchronous methods
  * `init` No args. Issues a hardware reset and initialises the hardware. This
  is called by the constructor. It needs to explicitly be called to exit from a
  deep sleep.
- * `sleep` No args. Puts the display into deep sleep.
+ * `sleep` No args. Puts the display into deep sleep. If called while a refresh
+ is in progress it will block until the refresh is complete. `sleep` should be
+ called before a power down to avoid leaving the display in an abnormal state.
  * `ready` No args. After issuing a `refresh` the device will become busy for
  a period: `ready` status should be checked before issuing `refresh`.
  * `wait_until_ready` No args. Pause until the device is ready.
 
-# 8. Writing device drivers
+##### Asynchronous methods
+ * `updated` Asynchronous. No args. Pause until the framebuffer has been copied
+ to the display.
+ * `wait` Asynchronous. No args. Pause until the display refresh is complete.
+
+# 8. EPD Asynchronous support
+
+Normally when GUI code issues
+```python
+refresh(ssd)
+```
+display data is copied to the device and a physical refresh is initiated. The
+code blocks - typically for 250ms or more - before returning, with physical
+refresh being performed by the display hardware and taking several seconds.
+This blocking period, which may be longer on non-Pyboard hosts, is too long for
+many `uasyncio` applications.
+
+If an `EPD` is instantiated with `asyn=True` the process of copying the data to
+the device is performed by a task which periodically yields to the scheduler.
+By default blocking is limited to around 30ms.
+
+An `updated` method allows user code to pause after issuing `refresh` before
+modifying the content of the framebuf - at which time the old data has been
+entirely copied to the hardware. The `wait` method will pause until any
+physical update is complete.
+
+```python
+    while True:
+        # Normal procedure before refresh, but 10s sleep should mean it always returns immediately
+        await ssd.wait()
+        refresh(ssd)  # Launches ._as_show()
+        await ssd.updated()
+        # Content has now been shifted out so coros can update
+        # framebuffer in background
+        evt.set()
+        evt.clear()
+        await asyncio.sleep(20)  # Allow for slow refresh
+```
+
+# 9. Writing device drivers
 
 Device drivers capable of supporting `nanogui` can be extremely simple: see
 `drivers/sharp/sharp.py` for a minimal example. It should be noted that the

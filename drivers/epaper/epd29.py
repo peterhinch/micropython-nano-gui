@@ -31,12 +31,13 @@ class EPD(framebuf.FrameBuffer):
     def rgb(r, g, b):
         return int((r > 127) or (g > 127) or (b > 127))
 
-    def __init__(self, spi, cs, dc, rst, busy, asyn=False):
+    def __init__(self, spi, cs, dc, rst, busy, landscape=True, asyn=False):
         self._spi = spi
         self._cs = cs  # Pins
         self._dc = dc
         self._rst = rst  # Active low.
         self._busy = busy  # Active low on IL0373
+        self._lsc = landscape
         self._asyn = asyn
         # ._as_busy is set immediately on start of task. Cleared
         # when busy pin is logically false (physically 1).
@@ -44,15 +45,15 @@ class EPD(framebuf.FrameBuffer):
         self._updated = asyncio.Event()
         # Public bound variables required by nanogui.
         # Dimensions in pixels as seen by nanogui (landscape mode).
-        self.width = 296
-        self.height = 128
+        self.width = 296 if landscape else 128
+        self.height = 128 if landscape else 296
         # Other public bound variable.
         # Special mode enables demos written for generic displays to run.
         self.demo_mode = False
 
         self._buffer = bytearray(self.height * self.width // 8)
         self._mvb = memoryview(self._buffer)
-        mode = framebuf.MONO_VLSB
+        mode = framebuf.MONO_VLSB if landscape else framebuf.MONO_HLSB
         super().__init__(self._buffer, self.width, self.height, mode)
         self.init()
 
@@ -101,9 +102,9 @@ class EPD(framebuf.FrameBuffer):
         cmd(b'\x30', b'\x29')
         # Resolution 128w * 296h as required by IL0373
         cmd(b'\x61', b'\x80\x01\x28')  # Note hex(296) == 0x128
-        # Set VCM_DC. 0 is datasheet default. I think Adafruit send 0x50 (-2.6V) rather than 0x12 (-1.0V)
+        # Set VCM_DC. Now clarified with Adafruit.
         # https://github.com/adafruit/Adafruit_CircuitPython_IL0373/issues/17
-        cmd(b'\x82', b'\x12')  # Set Vcom to -1.0V is my guess at Adafruit's intention.
+        cmd(b'\x82', b'\x12')  # Set Vcom to -1.0V
         sleep_ms(50)
         print('Init Done.')
 
@@ -136,24 +137,33 @@ class EPD(framebuf.FrameBuffer):
         dat = self._data
         cmd(b'\x13')
         t = ticks_ms()
-        wid = self.width
-        tbc = self.height // 8  # Vertical bytes per column
-        iidx = wid * (tbc - 1)  # Initial index
-        idx = iidx  # Index into framebuf
-        vbc = 0  # Current vertical byte count
-        hpc = 0  # Horizontal pixel count
-        for i in range(len(mvb)):
-            buf1[0] = mvb[idx] ^ 0xff
-            dat(buf1)
-            idx -= wid
-            vbc += 1
-            vbc %= tbc
-            if not vbc:
-                hpc += 1
-                idx = iidx + hpc
-            if not(i & 0x0f) and (ticks_diff(ticks_ms(), t) > _MAX_BLOCK):
-                await asyncio.sleep_ms(0)
-                t = ticks_ms()
+        if self._lsc:  # Landscape mode
+            wid = self.width
+            tbc = self.height // 8  # Vertical bytes per column
+            iidx = wid * (tbc - 1)  # Initial index
+            idx = iidx  # Index into framebuf
+            vbc = 0  # Current vertical byte count
+            hpc = 0  # Horizontal pixel count
+            for i in range(len(mvb)):
+                buf1[0] = ~mvb[idx]
+                dat(buf1)
+                idx -= wid
+                vbc += 1
+                vbc %= tbc
+                if not vbc:
+                    hpc += 1
+                    idx = iidx + hpc
+                if not(i & 0x0f) and (ticks_diff(ticks_ms(), t) > _MAX_BLOCK):
+                    await asyncio.sleep_ms(0)
+                    t = ticks_ms()
+        else:
+            for i, b in enumerate(mvb):
+                buf1[0] = ~b
+                dat(buf1)
+                if not(i & 0x0f) and (ticks_diff(ticks_ms(), t) > _MAX_BLOCK):
+                    await asyncio.sleep_ms(0)
+                    t = ticks_ms()
+
         cmd(b'\x11')  # Data stop
         self._updated.set()
         self._updated.clear()
@@ -174,7 +184,6 @@ class EPD(framebuf.FrameBuffer):
             asyncio.create_task(self._as_show())
             return
 
-        # t = ticks_us()
         mvb = self._mvb
         cmd = self._command
         dat = self._data
@@ -182,28 +191,32 @@ class EPD(framebuf.FrameBuffer):
         # busy pin low (True) and that it stays logically True until
         # refresh is complete. In my testing this doesn't happen.
         cmd(b'\x13')
-        wid = self.width
-        tbc = self.height // 8  # Vertical bytes per column
-        iidx = wid * (tbc - 1)  # Initial index
-        idx = iidx  # Index into framebuf
-        vbc = 0  # Current vertical byte count
-        hpc = 0  # Horizontal pixel count
-        for _ in range(len(mvb)):
-            buf1[0] = mvb[idx] ^ 0xff
-            dat(buf1)
-            idx -= wid
-            vbc += 1
-            vbc %= tbc
-            if not vbc:
-                hpc += 1
-                idx = iidx + hpc
+        if self._lsc:  # Landscape mode
+            wid = self.width
+            tbc = self.height // 8  # Vertical bytes per column
+            iidx = wid * (tbc - 1)  # Initial index
+            idx = iidx  # Index into framebuf
+            vbc = 0  # Current vertical byte count
+            hpc = 0  # Horizontal pixel count
+            for _ in range(len(mvb)):
+                buf1[0] = ~mvb[idx]
+                dat(buf1)
+                idx -= wid
+                vbc += 1
+                vbc %= tbc
+                if not vbc:
+                    hpc += 1
+                    idx = iidx + hpc
+        else:
+            for b in mvb:
+                buf1[0] = ~b
+                dat(buf1)
+
         cmd(b'\x11')  # Data stop
         sleep_us(20)  # Allow for data coming back: currently ignore this
         cmd(b'\x12')  # DISPLAY_REFRESH
         # 258ms to get here on Pyboard D
         # Checking with scope, busy goes low now. For 4.9s.
-        # te = ticks_us()
-        # print('show time', ticks_diff(te, t)//1000, 'ms')
         if not self.demo_mode:
             # Immediate return to avoid blocking the whole application.
             # User should wait for ready before calling refresh()
@@ -213,6 +226,8 @@ class EPD(framebuf.FrameBuffer):
 
     # to wake call init()
     def sleep(self):
+        self._as_busy = False
+        self.wait_until_ready()
         cmd = self._command
         # CDI: not sure about value or why we set this here. Copying Adafruit.
         cmd(b'\x50', b'\x17')

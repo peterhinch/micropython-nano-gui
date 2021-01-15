@@ -516,7 +516,7 @@ Keyword only args:
  11. `label=None` A text string will cause a `Label` to be drawn below the
  meter. An integer will create a `Label` of that width for later use.
  12. `style=Meter.LINE` The pointer is a horizontal line. `Meter.BAR` causes a
- vertical bar to be displayed.
+ vertical bar to be displayed. Much easier to read on monochrome displays.
  13. `legends=None` If a tuple of strings is passed, `Label` instances will be
  displayed to  the right hand side of the meter, starting at the bottom. E.G.
  `('0.0', '0.5', '1.0')`
