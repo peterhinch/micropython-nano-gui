@@ -12,6 +12,8 @@ All drivers provide a display class subclassed from the built-in
 It should be noted that in the interests of conserving RAM these drivers offer
 a bare minimum of functionality required to support the above.
 
+###### [Main README](./README.md#1-introduction)
+
 # Contents
 
  1. [Introduction](./DRIVERS.md#1-introduction)  
@@ -43,7 +45,7 @@ a bare minimum of functionality required to support the above.
   8. [EPD Asynchronous support](./DRIVERS.md#8-epd-asynchronous-support)  
   9. [Writing device drivers](./DRIVERS.md#8-writing-device-drivers)  
 
-###### [Main README](./README.md)
+###### [Main README](./README.md#1-introduction)
 
 # 1. Introduction
 
@@ -90,6 +92,9 @@ specifying custom colors. For detail see the main README
 ###### [Contents](./DRIVERS.md#contents)
 
 # 2. Drivers for SSD1351
+
+This is an OLED driver. The supported displays produce excellent images with
+extreme contrast and bright colors. Power consumption is low.
 
 See [Adafruit 1.5" 128*128 OLED display](https://www.adafruit.com/product/1431)
 and [Adafruit 1.27" 128*96 display](https://www.adafruit.com/product/1673).
@@ -158,12 +163,16 @@ For anyone seeking to understand or modify the code, the datasheet para 8.3.2
 is confusing. They use the colors red, green and blue to represent colors C, B
 and A. With the setup used in these drivers, C is blue and A is red. The 16 bit
 color streams sent to the display are:  
-s[x]     1st byte sent b7 b6 b5 b4 b3 g7 g6 g5  
-s[x + 1] 2nd byte sent g4 g3 g2 r7 r6 r5 r4 r3
+`s[x]`     1st byte sent `b7 b6 b5 b4 b3 g7 g6 g5`  
+`s[x + 1]` 2nd byte sent `g4 g3 g2 r7 r6 r5 r4 r3`
 
 ###### [Contents](./DRIVERS.md#contents)
 
 # 3. Drivers for SSD1331
+
+This is an OLED driver for small displays. The supported display produces
+excellent images with extreme contrast and bright colors. Power consumption is
+low.
 
 See [Adafruit 0.96" OLED display](https://www.adafruit.com/product/684). Most
 of the demos assume a larger screen and will fail. The `color96.py` demo is
@@ -207,8 +216,9 @@ def spi_init(spi):
 
 # 4. Drivers for ST7735R
 
-These are cross-platform but assume `micropython.viper` capability. They use
-8-bit or 4-bit color to minimise the RAM used by the frame buffer.
+This chip is for small TFT displays. Four drivers are provided. All are
+cross-platform but assume `micropython.viper` capability. They use 8-bit or
+4-bit color to minimise the RAM used by the frame buffer.
 
 Drivers for [Adafruit 1.8" display](https://www.adafruit.com/product/358).
  * `st7735r.py` 8-bit color. 
@@ -221,11 +231,11 @@ For [Adafruit 1.44" display](https://www.adafruit.com/product/2088).
 Users of other ST7735R based displays should beware: there are many variants
 with differing setup requirements.
 [This driver](https://github.com/boochow/MicroPython-ST7735/blob/master/ST7735.py)
-has four different initialisation routines for various display versions. Even
-the supported Adafruit displays differ in their initialisation settings.
-
-If your Chinese display doesn't work with my drivers you are on your own: I
-can't support hardware I don't possess.
+has four different initialisation routines for various display versions. The
+supported Adafruit displays differ in their initialisation settings, hence the
+need for different drivers for the two display types. If your Chinese display
+doesn't work with my drivers you are on your own: I can't support hardware I
+don't possess.
 
 The `color_setup.py` file should initialise the SPI bus with a baudrate of
 12_000_000. Args `polarity`, `phase`, `bits`, `firstbit` are defaults. Hard or
@@ -612,6 +622,8 @@ The N channel MOSFET must have a low threshold voltage.
 
 ![Image](images/epd_enable.png)
 
+###### [Contents](./DRIVERS.md#contents)
+
 ## 7.2 Waveshare eInk Display HAT
 
 This 2.7" 176*274 display is designed for the Raspberry Pi and is detailed
@@ -688,6 +700,8 @@ Pins 26-40 unused and omitted.
  seconds to enable viewing. This enables generic nanogui demos to be run on an
  EPD.
 
+###### [Contents](./DRIVERS.md#contents)
+
 # 8. EPD Asynchronous support
 
 Normally when GUI code issues
@@ -710,10 +724,10 @@ application is then free to alter the framebuf contents.
 
 It is invalid to issue `.refresh()` until the physical display refresh is
 complete; if this is attempted a `RuntimeError` will occur. The most efficient
-way to ensure that this cannot occur is to await the `.wait()` prior to any
-refresh. This method will pause until any physical update is complete.
+way to ensure that this cannot occur is to await the `.wait()` method prior to
+a refresh. This method will pause until any physical update is complete.
 
-The following illustrates the kind of approach which may be used
+The following illustrates the kind of approach which may be used:
 ```python
     while True:
         # Before refresh, ensure that a previous refresh is complete
@@ -728,6 +742,8 @@ The following illustrates the kind of approach which may be used
         # The 2.9 inch display should not be updated too frequently
         await asyncio.sleep(180)
 ```
+
+###### [Contents](./DRIVERS.md#contents)
 
 # 9. Writing device drivers
 
@@ -751,7 +767,7 @@ method:
 ```python
     @staticmethod
     def rgb(r, g, b):
-        return int((r > 127) or (g > 127) or (b > 127))
+        return int(((r | g | b) & 0x80) > 0)
 ```
 This ensures compatibility with code written for color displays by converting
 RGB values to a single bit.

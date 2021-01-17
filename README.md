@@ -1,3 +1,5 @@
+# MicroPython nano-gui
+
 A lightweight and minimal MicroPython GUI library for display drivers based on
 the `FrameBuffer` class. Various display technologies are supported, including
 small color and monochrome OLED's, color TFT's, ePaper and Sharp units. The GUI
@@ -68,15 +70,17 @@ wiring details, pin names and hardware issues.
 This library provides a limited set of GUI objects (widgets) for displays whose
 display driver is subclassed from the `FrameBuffer` class. Such drivers can be
 tiny as the graphics primitives are supplied by the `FrameBuffer` class. A
-range of device drivers is provided: [this doc](./DRIVERS.md) provides guidance
-on selecting the right driver for your display, platform and application.
+range of device drivers is provided: [the device driver doc](./DRIVERS.md)
+provides guidance on selecting the right driver for your display, platform and
+application.
 
-The GUI is cross-platform. By default it is configured for a Pyboard (1.x or D).
-This doc explains how to configure for other platforms by adapting a single
-small file. The GUI supports multiple displays attached to a single target, but
-bear in mind the RAM requirements for multiple frame buffers. It is tested on
-the ESP32 reference board without SPIRAM. Running on ESP8266 is possible but
-frozen bytecode must be used owing to its restricted RAM.
+The GUI is cross-platform. The device driver doc explains how to configure it
+for a given display and MicroPython host by adapting a single small file. The
+GUI supports multiple displays attached to a single target, but bear in mind
+the RAM requirements for multiple frame buffers. The GUI has been tested on
+Pyboard 1.1, Pyboard D and on the ESP32 reference board without SPIRAM. Running
+on ESP8266 is possible but frozen bytecode must be used owing to its restricted
+RAM.
 
 It uses synchronous code but is compatible with `uasyncio`. Some demo programs
 illustrate this. Code is standard MicroPython, but some device drivers use the
@@ -94,14 +98,17 @@ my GUI's employ the American spelling of `color`.
 
 ## 1.1 Change log
 
-17 Jan 2021 Add ePaper drivers. Ensure monochrome and color setup requirements
-are identical. Substantial update to docs.
-16 Dec 2020 Add ILI9341 driver, 4-bit drivers and SPI bus sharing improvements.
-These mean that `color_setup.py` should now set SPI baudrate.  
-29 Nov 2020 Add ST7735R TFT drivers.  
-17 Nov 2020 Add `Textbox` widget. `Scale` constructor arg `border` replaced by
-`bdcolor` as per other widgets.
-
+17 Jan 2021  
+Add ePaper drivers. Ensure monochrome and color setup requirements are
+identical. Substantial update to docs.  
+16 Dec 2020  
+Add ILI9341 driver, 4-bit drivers and SPI bus sharing improvements. These mean
+that `color_setup.py` should now set SPI baudrate.  
+29 Nov 2020  
+Add ST7735R TFT drivers.  
+17 Nov 2020  
+Add `Textbox` widget. `Scale` constructor arg `border` replaced by `bdcolor` as
+per other widgets.
 5 Nov 2020 - breaking change  
 This library has been refactored as a Python package. This reduces RAM usage:
 widgets are imported on demand rather than unconditionally. This has enabled
@@ -137,12 +144,13 @@ Compatible and tested display drivers include:
  * [Adafruit 2.9 inch ePaper display](https://www.adafruit.com/product/4262)
  documented [here](./DRIVERS.md#71-adafruit-flexible-eink-display).
  * [Waveshare 2.7 inch ePaper HAT](https://www.waveshare.com/wiki/2.7inch_e-Paper_HAT)
- documented [here with a warning](./DRIVERS.md#72-waveshare-eink-display-hat).
+ documented [here](./DRIVERS.md#72-waveshare-eink-display-hat). Please note the
+ warning regarding poor quality suspected clone units.
 
 Widgets are intended for the display of data from physical devices such as
 sensors. They are drawn using graphics primitives rather than icons to minimise
-RAM usage. It also enables them to be effciently rendered at arbitrary scale on
-by hosts with restricted processing power. The approach also enables widgets to
+RAM usage. It also enables them to be effciently rendered at arbitrary scale by
+hosts with restricted processing power. The approach also enables widgets to
 maximise information in ways that are difficult with icons, in particular using
 dynamic color changes in conjunction with moving elements.
 
@@ -153,7 +161,7 @@ update a 128x128x8 color ssd1351 display on a Pyboard 1.0 is 41ms.
 
 Drivers based on `FrameBuffer` must allocate contiguous RAM for the buffer. To
 avoid 'out of memory' errors it is best to instantiate the display before
-importing other modules. The demos illustrate this.
+importing other modules. The example `color_setup` files illustrate this.
 
 ## 1.3 Quick start
 
@@ -208,7 +216,7 @@ filesystem.
 
 The chosen template will need to be edited to match the display in use, the
 MicroPython target and the electrical connections between display and target.
-Electrical connections are detailed in the driver source.
+Electrical connections are detailed in the template source.
  * `color_setup.py` Hardware setup for the display. As written supports an
  SSD1351 display connected to a Pyboard.
 
@@ -247,8 +255,7 @@ Demos for larger displays.
  * `scale_ili.py` A special demo of the asychronous mode of the ILI9341 driver.
 
 Demos for ePaper displays:  
- * `waveshare_test.py` For the Waveshare eInk Display HAT 2.7" 176*274 portrait
- mode display.
+ * `waveshare_test.py` For the Waveshare eInk Display HAT 2.7" 176*274 display.
  * `epd29_test.py` Demo for Adafruit 2.9" eInk display.
 
 Demos for Sharp displays:  
@@ -256,9 +263,9 @@ Demos for Sharp displays:
  * `clocktest.py` Digital and analog clock demo.
  * `clock_batt.py` Low power demo of battery operated clock.
 
-Usage with `uasyncio` is discussed [here](./ASYNC.md). In summary the blocking
-which occurs during transfer of the framebuffer to the display may affect more
-demanding `uasyncio` applications. More generally the GUI works well with it.
+Usage with `uasyncio` is discussed [here](./ASYNC.md). In summary the GUI works
+well with `uasyncio` but the blocking which occurs during transfer of the
+framebuffer to the display may affect more demanding applications.
 
 ###### [Contents](./README.md#contents)
 
@@ -301,7 +308,7 @@ copied to the hardware root as `color_setup.py`. Example files:
  * `st7735r144_setup.py` For a Pyboard with an
  [Adafruit 1.44 inch TFT display](https://www.adafruit.com/product/2088).
  * `ili9341_setup.py` A 240*320 ILI9341 display on ESP32.
- * `waveshare_setup.py` 176*274 portrait mode ePaper display.
+ * `waveshare_setup.py` 176*274 ePaper display.
  * `epd96_asyn.py` Adafruit 2.9 inch ePaper display, optimised for `uasyncio`.
 
 ## 2.2 Dependencies
@@ -323,9 +330,6 @@ provided. The official file is here:
 Displays based on the Nokia 5110 (PCD8544 chip) require this driver. It is not
 in this repo but may be found here:  
  * [PCD8544/Nokia 5110](https://github.com/mcauser/micropython-pcd8544.git)
-
-The Sharp display is supported in `drivers/sharp`. See
-[README](./DRIVERS.md#6-drivers-for-sharp-displays) and demos.
 
 ###### [Contents](./README.md#contents)
 
