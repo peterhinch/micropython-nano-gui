@@ -9,17 +9,22 @@ frame buffer on the host, transferring its entire contents to the display
 hardware, usually via I2C or SPI. Current drivers block for the time taken by
 this.
 
-In the case of the Pyboard driver for Adafruit 1.5 and 1.27 inch displays,
+In the case of the Pyboard driver for Adafruit 1.5 and 1.27 inch OLED displays,
 running on a Pyboard 1.x, blocking is for 41ms. Blocking periods for monochrome
-or smaller colour dislays will be shorter. On hosts which don't support inline
+or smaller colour displays will be shorter. On hosts which don't support inline
 Arm Thumb assembler or the viper emitter it will be very much longer.
+
+For large displays such as ePaper the blocking time is on the order of 250ms on
+a Pyboard, longer on hardware such as ESP32. Such drivers have a special `asyn`
+constructor arg which causes refresh to be performed by a coroutine; this
+periodically yields to the scheduler and limits blocking to around 30ms.
 
 Blocking occurs when the `nanogui.refresh` function is called. In typical
 applications which might wait for user input from a switch this blocking is
 not apparent and the response appears immediate. It may have consequences in
 applications performing fast concurrent input over devices such as UARTs.
 
-# Demo scripts
+## Demo scripts
 
 These require uasyncio V3. This is incorporated in daily builds and will be
 available in release builds starting with MicroPython V1.13. The demos assume

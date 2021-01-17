@@ -1,16 +1,19 @@
 # mono_test.py Demo program for nano_gui on an SSD1306 OLED display.
 
 # Released under the MIT License (MIT). See LICENSE.
-# Copyright (c) 2018-2020 Peter Hinch
+# Copyright (c) 2018-2021 Peter Hinch
 
 # https://learn.adafruit.com/monochrome-oled-breakouts/wiring-128x32-spi-oled-display
 # https://www.proto-pic.co.uk/monochrome-128x32-oled-graphic-display.html
 
+# V0.33 16th Jan 2021 Hardware configuration is now defined in color_setup to be
+# consistent with other displays.
 # V0.32 5th Nov 2020 Replace uos.urandom for minimal ports
 
 import utime
 # import uos
-from ssd1306_setup import setup
+from color_setup import ssd
+# On a monochrome display Writer is more efficient than CWriter.
 from gui.core.writer import Writer
 from gui.core.nanogui import refresh
 from gui.widgets.meter import Meter
@@ -33,8 +36,9 @@ def xorshift64star(modulo, seed = 0xf9ac6ba4):
         return (x * 0x2545F4914F6CDD1D) % modulo
     return func
 
-def fields(use_spi=False, soft=True):
-    ssd = setup(use_spi, soft)  # Create a display instance
+def fields():
+    ssd.fill(0)
+    refresh(ssd)
     Writer.set_textpos(ssd, 0, 0)  # In case previous tests have altered it
     wri = Writer(ssd, fixed, verbose=False)
     wri.set_clip(False, False, False)
@@ -53,8 +57,9 @@ def fields(use_spi=False, soft=True):
     textfield.value('Done', True)
     refresh(ssd)
 
-def multi_fields(use_spi=False, soft=True):
-    ssd = setup(use_spi, soft)  # Create a display instance
+def multi_fields():
+    ssd.fill(0)
+    refresh(ssd)
     Writer.set_textpos(ssd, 0, 0)  # In case previous tests have altered it
     wri = Writer(ssd, small, verbose=False)
     wri.set_clip(False, False, False)
@@ -79,11 +84,10 @@ def multi_fields(use_spi=False, soft=True):
     Label(wri, 0, 64, ' DONE ', True)
     refresh(ssd)
 
-def meter(use_spi=False, soft=True):
-    ssd = setup(use_spi, soft)
-    wri = Writer(ssd, arial10, verbose=False)
+def meter():
     ssd.fill(0)
     refresh(ssd)
+    wri = Writer(ssd, arial10, verbose=False)
     m0 = Meter(wri, 5, 2, height = 50, divisions = 4, legends=('0.0', '0.5', '1.0'))
     m1 = Meter(wri, 5, 44, height = 50, divisions = 4, legends=('-1', '0', '+1'))
     m2 = Meter(wri, 5, 86, height = 50, divisions = 4, legends=('-1', '0', '+1'))
@@ -99,14 +103,15 @@ def meter(use_spi=False, soft=True):
 
 tstr = '''Test assumes a 128*64 (w*h) display. Edit WIDTH and HEIGHT in ssd1306_setup.py for others.
 Device pinouts are comments in ssd1306_setup.py.
-All tests take two boolean args:
-use_spi = False. Set True for SPI connected device
-soft=True set False to use hardware I2C/SPI. Hardware I2C option currently fails with official SSD1306 driver.
 
-Available tests:
-fields() Label test with dynamic data.
-multi_fields() More Labels.
-meter() Demo of Meter object.
+Test runs to completion.
 '''
 
 print(tstr)
+print('Basic test of fields.')
+fields()
+print('More fields.')
+multi_fields()
+print('Meters.')
+meter()
+print('Done.')

@@ -2,6 +2,15 @@
 
 The nano-gui project currently supports four display technologies: OLED (color
 and monochrome), color TFT, monochrome Sharp displays and EPD (ePaper/eInk).
+All drivers provide a display class subclassed from the built-in
+`framebuf.FrameBuffer` class. This provides three increasing levels of support:
+ * Graphics via the `FrameBuffer` graphics primitives.
+ * Text rendering in arbitrary fonts via `Writer` and `Cwriter` classes (see
+ [font_to_py.py](https://github.com/peterhinch/micropython-font-to-py.git)).
+ * Use with nano-gui.
+
+It should be noted that in the interests of conserving RAM these drivers offer
+a bare minimum of functionality required to support the above.
 
 # Contents
 
@@ -26,9 +35,11 @@ and monochrome), color TFT, monochrome Sharp displays and EPD (ePaper/eInk).
   7.1 [Adafruit flexible eInk Display](./DRIVERS.md#71-adafruit-flexible-eink-display)  
   &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;7.1.1 [EPD constructor args](./DRIVERS.md#711-epd-constructor-args)  
   &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;7.1.2 [EPD public methods](./DRIVERS.md#712-epd-public-methods)  
-  7.2 [Waveshare eInk Display HAT](./DRIVERS.md#71-waveshare-eink-display-hat)  
-  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;7.2.1 [EPD constructor args](./DRIVERS.md#711-epd-constructor-args)  
-  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;7.2.2 [EPD public methods](./DRIVERS.md#712-epd-public-methods)  
+  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;7.1.3 [EPD public bound variables](./DRIVERS.md#713-epd-public-bound-variables)  
+  7.2 [Waveshare eInk Display HAT](./DRIVERS.md#72-waveshare-eink-display-hat)  
+  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;7.2.1 [EPD constructor args](./DRIVERS.md#721-epd-constructor-args)  
+  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;7.2.2 [EPD public methods](./DRIVERS.md#722-epd-public-methods)  
+  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;7.2.3 [EPD public bound variables](./DRIVERS.md#723-epd-public-bound-variables)  
   8. [EPD Asynchronous support](./DRIVERS.md#8-epd-asynchronous-support)  
   9. [Writing device drivers](./DRIVERS.md#8-writing-device-drivers)  
 
@@ -36,13 +47,8 @@ and monochrome), color TFT, monochrome Sharp displays and EPD (ePaper/eInk).
 
 # 1. Introduction
 
-With the exception of the Sharp displays use of these drivers is very simple:
-the main reason to consult this doc is to select the right driver for your
-display, platform and application.
-
-An application specifies a driver by means of `color_setup.py` or
-`ssd1306_setup.py` located in the root directory of the target. This typically
-contains code along these lines:
+An application specifies a driver by means of `color_setup.py` located in the
+root directory of the target. This typically contains code along these lines:
 ```python
 import machine
 import gc
@@ -51,12 +57,15 @@ pdc = machine.Pin('Y1', machine.Pin.OUT_PP, value=0)
 pcs = machine.Pin('Y2', machine.Pin.OUT_PP, value=1)
 prst = machine.Pin('Y3', machine.Pin.OUT_PP, value=1)
 spi = machine.SPI(2, baudrate=10_000_000)  # baudrate depends on display chip
-gc.collect()  # Precaution before instantiating framebuf
+gc.collect()
+# Precaution before instantiating framebuf. The next line creates the buffer.
 ssd = SSD(spi, pcs, pdc, prst, 96)  # Create a display instance
 ```
-In the interests of conserving RAM, supplied drivers support only the
-functionality required by the GUI. More fully featured drivers may better suit
-other applications.
+The directory `color_setup` contains example files for various displays. These
+may be adapted and copied to `color_setup.py` on the target's root. The entry
+in this doc for the specific display should be consulted for SSD constructor
+arguments and SPI baudrate. The more exotic displays (Sharp and ePaper) have
+additional features and requirements detailed below.
 
 ## 1.1 Color handling
 
@@ -438,7 +447,8 @@ Positional args:
  with value 0 (unusually the hardware CS line is active high).
  3. `height=240` Dimensions in pixels. Defaults are for 2.7" display.
  4. `width=400`
- 5. `vcom=False` Accept the default unless using `pyb.standby`. See 3.2.
+ 5. `vcom=False` Accept the default unless using `pyb.standby`. See
+ [6.3.2](./DRIVERS.md#632-the-vcom-arg).
 
 ### 6.3.1 Device driver methods
 
@@ -502,12 +512,13 @@ the demo.
 
 # 7. ePaper displays
 
-These tend to be monochrome or to support no more than three colors. They also
-have very long refresh times (many seconds). The benefit is zero current
-between refreshes: it is possible to switch off power completely with the
-device retaining the image indefinitely. Some devices such as the Waveshare
-units perform the refresh internally. Earlier devices required the driver to
-perform this, tying up the CPU for the duration.
+Known as ePaper or eInk, electrophoretic (EPD) displays are usually monochrome.
+Some support a few levels of grey or a very small range of colors. They have
+long refresh times (many seconds). The principal benefit that they consume zero
+current except while being refreshed: it is possible to switch off power
+completely with the device retaining the image indefinitely. Present day EPD
+units perform the slow refresh autonomously. It makes no demands on the CPU
+enabling user code to continue to run.
 
 The drivers are compatible with `uasyncio`. One approach is to use synchronous
 methods only and the standard demos (some of which use `uasyncio`) may be run.
@@ -527,7 +538,11 @@ enables the display to be completely powered down. This facilitates micropower
 applications: the host shuts down the display before going into deep sleep.
 
 The driver is cross platform and supports landscape or portrait mode. To keep
-the buffer size down (to 4736 bytes) there is no greyscale support.
+the buffer size down (to 4736 bytes) there is no greyscale support. It should
+be noted that the Adafruit site cautions against refreshing these displays more
+frequently than every 180s. It is
+[unclear](https://forums.adafruit.com/viewtopic.php?f=19&t=174091) if this is
+an absolute limit or an average rate.
 
 ##### Wiring
 
@@ -578,9 +593,24 @@ see below.
  to the display.
  * `wait` Asynchronous. No args. Pause until the display refresh is complete.
 
+### 7.1.3 EPD public bound variables
 
+ * `height` Integer. Height in pixels. Treat as read-only.
+ * `width` Integer. Width in pixels. Treat as read-only.
+ * `demo_mode=False` Boolean. If set `True` after instantiating, `refresh()`
+ will block until display update is complete, and then for a further two
+ seconds to enable viewing. This enables generic nanogui demos to be run on an
+ EPD.
 
-** POWER DOWN HARDWARE **
+##### Micropower use
+
+To power down the display the `ENA` pin must be pulled to 0v. Some
+microcontrollers can ensure that a GPIO pin is able to sink current when the
+chip goes into deep sleep. In other cases the pin becomes high impedance. The
+following ensures that a high impedance pin will cause `ENA` to be pulled low.
+The N channel MOSFET must have a low threshold voltage.
+
+![Image](images/epd_enable.png)
 
 ## 7.2 Waveshare eInk Display HAT
 
@@ -649,38 +679,54 @@ Pins 26-40 unused and omitted.
  to the display.
  * `wait` Asynchronous. No args. Pause until the display refresh is complete.
 
+### 7.2.3 EPD public bound variables
+
+ * `height` Integer. Height in pixels. Treat as read-only.
+ * `width` Integer. Width in pixels. Treat as read-only.
+ * `demo_mode=False` Boolean. If set `True` after instantiating, `refresh()`
+ will block until display update is complete, and then for a further two
+ seconds to enable viewing. This enables generic nanogui demos to be run on an
+ EPD.
+
 # 8. EPD Asynchronous support
 
 Normally when GUI code issues
 ```python
-refresh(ssd)
+refresh(ssd)  # 250ms or longer depending on platform
 ```
 display data is copied to the device and a physical refresh is initiated. The
-code blocks - typically for 250ms or more - before returning, with physical
-refresh being performed by the display hardware and taking several seconds.
-This blocking period, which may be longer on non-Pyboard hosts, is too long for
-many `uasyncio` applications.
+code blocks while copying data to the display before returning. Subsequent
+physical refresh is performed by the display hardware taking several seconds.
+While physical refresh is nonblocking, the initial blocking period is too long
+for many `uasyncio` applications.
 
 If an `EPD` is instantiated with `asyn=True` the process of copying the data to
 the device is performed by a task which periodically yields to the scheduler.
 By default blocking is limited to around 30ms.
 
-An `updated` method allows user code to pause after issuing `refresh` before
-modifying the content of the framebuf - at which time the old data has been
-entirely copied to the hardware. The `wait` method will pause until any
-physical update is complete.
+A `.updated()` method lets user code pause after issuing `refresh()`. The pause
+lasts until the framebuf has been entirely copied to the hardware. The
+application is then free to alter the framebuf contents.
 
+It is invalid to issue `.refresh()` until the physical display refresh is
+complete; if this is attempted a `RuntimeError` will occur. The most efficient
+way to ensure that this cannot occur is to await the `.wait()` prior to any
+refresh. This method will pause until any physical update is complete.
+
+The following illustrates the kind of approach which may be used
 ```python
     while True:
-        # Normal procedure before refresh, but 10s sleep should mean it always returns immediately
+        # Before refresh, ensure that a previous refresh is complete
         await ssd.wait()
-        refresh(ssd)  # Launches ._as_show()
+        refresh(ssd)  # Immediate return. Creates a task to copy content to EPD.
+        # Wait until the framebuf content has been passed to EPD.
         await ssd.updated()
-        # Content has now been shifted out so coros can update
+        # Trigger an event which allows other tasks to update the
         # framebuffer in background
         evt.set()
         evt.clear()
-        await asyncio.sleep(20)  # Allow for slow refresh
+        # The 2.9 inch display should not be updated too frequently
+        await asyncio.sleep(180)
 ```
 
 # 9. Writing device drivers
@@ -700,7 +746,15 @@ using a forum search.
 For a driver to support `nanogui` it must be subclassed from
 `framebuf.FrameBuffer` and provide `height` and `width` bound variables being
 the display size in pixels. This, and a `show` method, are all that is required
-for monochrome drivers.
+for monochrome drivers. Generality can be extended by providing this static
+method:
+```python
+    @staticmethod
+    def rgb(r, g, b):
+        return int((r > 127) or (g > 127) or (b > 127))
+```
+This ensures compatibility with code written for color displays by converting
+RGB values to a single bit.
 
 Refresh must be handled by a `show` method taking no arguments; when called,
 the contents of the buffer underlying the `FrameBuffer` must be copied to the

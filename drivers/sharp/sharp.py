@@ -6,7 +6,7 @@
 # https://www.adafruit.com/product/3502 1.3 inch 144x168
 # https://www.adafruit.com/product/1393 1.3 inch 96x96 Monochrome
 
-# Copyright (c) Peter Hinch 2020
+# Copyright (c) Peter Hinch 2020-2021
 # Released under the MIT license see LICENSE
 
 # Code checked against https://github.com/adafruit/Adafruit_CircuitPython_SharpMemoryDisplay
@@ -23,6 +23,9 @@ _VCOM = const(2)
 
 
 class SHARP(framebuf.FrameBuffer):
+    @staticmethod
+    def rgb(r, g, b):
+        return int((r > 127) or (g > 127) or (b > 127))
 
     def __init__(self, spi, pincs, height=240, width=400, vcom=False):
         spi.init(baudrate=2_000_000, firstbit=machine.SPI.LSB)  # Data sheet: should support 2MHz

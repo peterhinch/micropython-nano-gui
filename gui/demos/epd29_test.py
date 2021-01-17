@@ -6,6 +6,7 @@
 # color_setup must set landcsape True, asyn True and must not set demo_mode
 import uasyncio as asyncio
 from color_setup import ssd
+# On a monochrome display Writer is more efficient than CWriter.
 from gui.core.writer import Writer
 from gui.core.nanogui import refresh
 from gui.widgets.meter import Meter
@@ -13,7 +14,6 @@ from gui.widgets.label import Label
 
 # Fonts
 import gui.fonts.arial10 as arial10
-#import gui.fonts.courier20 as fixed
 import gui.fonts.font6 as small
 
 # Some ports don't support uos.urandom.

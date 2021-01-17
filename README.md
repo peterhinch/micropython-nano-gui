@@ -1,6 +1,7 @@
 A lightweight and minimal MicroPython GUI library for display drivers based on
 the `FrameBuffer` class. Various display technologies are supported, including
-small color and monochrome OLED's and color TFT's. The GUI is cross-platform.
+small color and monochrome OLED's, color TFT's, ePaper and Sharp units. The GUI
+is cross-platform.
 
 These images, most from OLED displays, fail to reproduce the quality of these
 displays. OLEDs are visually impressive displays with bright colors, wide
@@ -44,10 +45,9 @@ wiring details, pin names and hardware issues.
   &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;2.1.1 [Core files](./README.md#211-core-files)  
   &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;2.1.2 [Demo Scripts](./README.md#212-demo-scripts)  
   &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;2.1.3 [Fonts](./README.md#213-fonts)  
-  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;2.1.4 [Color setup examples](./README.md#214-color-setup-examples)  
+  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;2.1.4 [Hardware setup examples](./README.md#214-hardware-setup-examples)  
   2.2 [Dependencies](./README.md#21-dependencies)  
-   &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;2.2.1 [Monochrome use](./README.md#211-monochrome-use)  
-   &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;2.2.2 [Color use](./README.md#222-color-use)  
+  2.3 [Verifying hardware configuration](./README.md#23-verifying-hardware-configuration)  
  3. [The nanogui module](./README.md#3-the-nanogui-module)  
   3.1 [Application Initialisation](./README.md#31-application-initialisation) Initial setup and refresh method.  
   &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;3.1.1 [User defined colors](./README.md#311-user-defined-colors)  
@@ -60,8 +60,6 @@ wiring details, pin names and hardware issues.
   3.7 [Class Textbox](./README.md#37-class-textbox) Scrolling text display.  
  4. [ESP8266](./README.md#4-esp8266) This can work. Contains information on
  minimising the RAM and flash footprints of the GUI.  
- 5. [Hardware configuration](./README.md#5-hardware-configuration) How to write
- color_setup.py  
 
 #### [Device driver document.](./DRIVERS.md)
 
@@ -96,6 +94,8 @@ my GUI's employ the American spelling of `color`.
 
 ## 1.1 Change log
 
+17 Jan 2021 Add ePaper drivers. Ensure monochrome and color setup requirements
+are identical. Substantial update to docs.
 16 Dec 2020 Add ILI9341 driver, 4-bit drivers and SPI bus sharing improvements.
 These mean that `color_setup.py` should now set SPI baudrate.  
 29 Nov 2020 Add ST7735R TFT drivers.  
@@ -134,6 +134,10 @@ Compatible and tested display drivers include:
  [1.44 inch](https://www.adafruit.com/product/2088) documented [here](./DRIVERS.md#4-drivers-for-st7735r).
  * Drivers for ILI9341 such as [Adafruit 3.2 inch](https://www.adafruit.com/product/1743)
  documented [here](./DRIVERS.md#5-drivers-for-ili9341).
+ * [Adafruit 2.9 inch ePaper display](https://www.adafruit.com/product/4262)
+ documented [here](./DRIVERS.md#71-adafruit-flexible-eink-display).
+ * [Waveshare 2.7 inch ePaper HAT](https://www.waveshare.com/wiki/2.7inch_e-Paper_HAT)
+ documented [here with a warning](./DRIVERS.md#72-waveshare-eink-display-hat).
 
 Widgets are intended for the display of data from physical devices such as
 sensors. They are drawn using graphics primitives rather than icons to minimise
@@ -187,25 +191,26 @@ Filesystem space may be conserved by copying only the required driver from
 for SSD1351 displays only the following are actually required:  
 `drivers/ssd1351/ssd1351.py`, `drivers/ssd1351/__init__.py`.
 
+The small `color_setup.py` file contains all hardware definitions (for color or
+monochrome displays). This is the only file which will require editing to match
+the display and its wiring. For information on how to do this, see
+[the drivers document](./DRIVERS.md#1-introduction).
+
 ## 2.1 Files
 
 ### 2.1.1 Core files
 
-The root directory contains two example setup files, for monochrome and color
-displays respectively. Other examples may be found in the `color_setup`
-directory. These are templates for adaptation: only one file is copied to the
-target. On the target a color file should be named `color_setup.py`. The
-monochrome `ssd1306_setup.py` retains its own name.
+The root directory contains an example setup file `color_setup.py` for a color
+OLED display. Other examples may be found in the `color_setup` directory. These
+are templates for adaptation: only one file is copied to the target. On the
+target the file should be named `color_setup.py` and put in the root of the
+filesystem.
 
 The chosen template will need to be edited to match the display in use, the
 MicroPython target and the electrical connections between display and target.
 Electrical connections are detailed in the driver source.
- * `color_setup.py` Setup for color displays. As written supports an SSD1351
- display connected to a Pyboard.
- * `ssd1306_setup.py` Setup file for monochrome displays using the official
- driver. Supports hard or soft SPI or I2C connections, as does the test script
- `mono_test.py`. On non Pyboard targets this will require adaptation to match
- the hardware connections.
+ * `color_setup.py` Hardware setup for the display. As written supports an
+ SSD1351 display connected to a Pyboard.
 
 The `gui/core` directory contains the GUI core and its principal dependencies:
 
@@ -225,6 +230,7 @@ The `gui/core` directory contains the GUI core and its principal dependencies:
 
 The `gui/demos` directory contains test/demo scripts.
 
+Demos for small displays:  
  * `mono_test.py` Tests/demos using the official SSD1306 driver for a
  monochrome 128*64 OLED display.
  * `color96.py` Tests/demos for the Adafruit 0.96 inch color OLED.
@@ -240,22 +246,19 @@ Demos for larger displays.
  * `tbox.py` Demo `Textbox` class. Cross-platform.
  * `scale_ili.py` A special demo of the asychronous mode of the ILI9341 driver.
 
-Demos for ePaper displays:
+Demos for ePaper displays:  
  * `waveshare_test.py` For the Waveshare eInk Display HAT 2.7" 176*274 portrait
  mode display.
+ * `epd29_test.py` Demo for Adafruit 2.9" eInk display.
+
+Demos for Sharp displays:  
+ * `sharptest.py` Basic functionality check.
+ * `clocktest.py` Digital and analog clock demo.
+ * `clock_batt.py` Low power demo of battery operated clock.
 
 Usage with `uasyncio` is discussed [here](./ASYNC.md). In summary the blocking
 which occurs during transfer of the framebuffer to the display may affect more
 demanding `uasyncio` applications. More generally the GUI works well with it.
-
-Demo scripts for Sharp displays are in `drivers/sharp`. Check source code for
-wiring details. See [the docs](./DRIVERS.md#6-drivers-for-sharp-displays). They
-may be run as follows:
-```python
-import drivers.sharp.sharptest
-# or
-import drivers.sharp.clocktest
-```
 
 ###### [Contents](./README.md#contents)
 
@@ -280,12 +283,14 @@ is required `-f` is also required. Supplied examples are:
  * `font10.py`
  * `freesans20.py`
 
-### 2.1.4 Color setup examples
+### 2.1.4 Hardware setup examples
 
 The `color_setup` directory contains example setup files for various hardware.
 These are templates which may be adapted to suit the hardware in use, then
-copied to the hardware root as `color_setup.py`.
+copied to the hardware root as `color_setup.py`. Example files:
 
+ * `ssd1306_setup.py` Setup file for monochrome displays using the official
+ driver. Supports hard or soft SPI or I2C connections.
  * `esp32_setup.py` As written supports an ESP32 connected to a 128x128 SSD1351
  display. After editing to match the display and wiring, it should be copied to
  the target as `/pyboard/color_setup.py`.
@@ -297,6 +302,7 @@ copied to the hardware root as `color_setup.py`.
  [Adafruit 1.44 inch TFT display](https://www.adafruit.com/product/2088).
  * `ili9341_setup.py` A 240*320 ILI9341 display on ESP32.
  * `waveshare_setup.py` 176*274 portrait mode ePaper display.
+ * `epd96_asyn.py` Adafruit 2.9 inch ePaper display, optimised for `uasyncio`.
 
 ## 2.2 Dependencies
 
@@ -310,10 +316,6 @@ Optional feature:
  * An STM32 implementation of
  [this optimisation](https://github.com/peterhinch/micropython-font-to-py/blob/master/writer/WRITER.md#224-a-performance-boost).
 
-###### [Contents](./README.md#contents)
-
-### 2.2.1 Monochrome use
-
 A copy of the official driver for OLED displays using the SSD1306 chip is
 provided. The official file is here:  
  * [SSD1306 driver](https://github.com/micropython/micropython/blob/master/drivers/display/ssd1306.py).
@@ -325,11 +327,13 @@ in this repo but may be found here:
 The Sharp display is supported in `drivers/sharp`. See
 [README](./DRIVERS.md#6-drivers-for-sharp-displays) and demos.
 
-### 2.2.2 Color use
+###### [Contents](./README.md#contents)
+
+## 2.3 Verifying hardware configuration
 
 This script performs a basic check that the `color_setup.py` file matches the
-hardware, that all three primary colors can be displayed and that pixels up to
-the edges of the display can be accessed.
+hardware, that (on color units) all three primary colors can be displayed and
+that pixels up to the edges of the display can be accessed.
 ```python
 from color_setup import ssd  # Create a display instance
 from gui.core.nanogui import refresh
@@ -362,11 +366,11 @@ Text components of widgets are rendered using the `Writer` (monochrome) or
 
 ## 3.1 Application Initialisation
 
-The GUI is initialised for color display by issuing:
+The GUI is initialised by issuing:
 ```python
 from color_setup import ssd
 ```
-This defines the hardware as described in [Hardware configuration](./README.md#5-hardware-configuration).
+This defines the hardware as described in [the drivers document](./DRIVERS.md#1-introduction).
 
 A typical application then imports `nanogui` modules and clears the display:
 ```python
@@ -844,35 +848,5 @@ I modified the demos to regularly report free RAM. `scale.py` reported 10480
 bytes, `tbox.py` reported 10512 bytes, sometimes more, as the demo progressed.
 With the 4 bit driver `scale.py` reported 18112 bytes. In conclusion I think
 that applications of moderate complexity should be feasible.
-
-###### [Contents](./README.md#contents)
-
-# 5. Hardware configuration
-
-The file `color_setup.py` contains the hardware dependent code. It works as
-described below, with the aim of allocating the `FrameBuffer` before importing
-other modules. This is intended to reduce the risk of memory failures.
-
-This example is for SSD1351 devices where a single driver supports displays of
-two different heights. In general [the driver doc](./DRIVERS.md) should be
-consulted for correct SSD constructor arguments.
-
-Firstly the file sets the display height and imports the driver:
-```python
-height = 96  # 1.27 inch 96*128 (rows*cols) display. Set to 128 for 1.5 inch
-import machine
-import gc
-from drivers.ssd1351.ssd1351 import SSD1351 as SSD  # Import the display driver
-```
-It then sets up the bus (SPI or I2C) and instantiates the display. At this
-point the framebuffer is created:
-```python
-pdc = machine.Pin('X1', machine.Pin.OUT_PP, value=0)
-pcs = machine.Pin('X2', machine.Pin.OUT_PP, value=1)
-prst = machine.Pin('X3', machine.Pin.OUT_PP, value=1)
-spi = machine.SPI(1)
-gc.collect()  # Precaution before instantiating framebuf
-ssd = SSD(spi, pcs, pdc, prst, height)  # Create a display instance
-```
 
 ###### [Contents](./README.md#contents)
