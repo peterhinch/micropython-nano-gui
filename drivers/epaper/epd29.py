@@ -91,12 +91,12 @@ class EPD(framebuf.FrameBuffer):
         cmd(b'\x06', b'\x17\x17\x17')
         cmd(b'\x04')  # Power on
         sleep_ms(200)
-        # Panel setting. Adafruit sends 0x5f. Should it be 9f?
-        # Datasheet says reg 61 overrides so maybe it doesn't matter.
+        # Iss https://github.com/adafruit/Adafruit_CircuitPython_IL0373/issues/16
         cmd(b'\x00', b'\x9f')
         # CDI: As used by Adafruit. Datasheet is confusing on this.
         # See https://github.com/adafruit/Adafruit_CircuitPython_IL0373/issues/11
-        # Send 0xf7?
+        # With 0x37 got white border on flexible display, black on FeatherWing
+        # 0xf7 still produced black border on FeatherWing
         cmd(b'\x50', b'\x37')
         # PLL: correct for 150Hz as specified in Adafruit code
         cmd(b'\x30', b'\x29')

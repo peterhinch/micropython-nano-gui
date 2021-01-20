@@ -38,6 +38,7 @@ a bare minimum of functionality required to support the above.
   &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;7.1.1 [EPD constructor args](./DRIVERS.md#711-epd-constructor-args)  
   &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;7.1.2 [EPD public methods](./DRIVERS.md#712-epd-public-methods)  
   &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;7.1.3 [EPD public bound variables](./DRIVERS.md#713-epd-public-bound-variables)  
+  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;7.1.4 [FeatherWing Wiring](./DRIVERS.md#714-featherwing-wiring)  
   7.2 [Waveshare eInk Display HAT](./DRIVERS.md#72-waveshare-eink-display-hat)  
   &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;7.2.1 [EPD constructor args](./DRIVERS.md#721-epd-constructor-args)  
   &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;7.2.2 [EPD public methods](./DRIVERS.md#722-epd-public-methods)  
@@ -543,9 +544,17 @@ The driver assumes an Adafruit 2.9 inch 296*128 pixel flexible
 [display](https://www.adafruit.com/product/4262) interfaced via their
 [interface breakout](https://www.adafruit.com/product/4224).
 
-This is currently my preferred ePaper setup, not least because the breakout
-enables the display to be completely powered down. This facilitates micropower
-applications: the host shuts down the display before going into deep sleep.
+An alternative is the
+[Adafruit 2.9" eInk FeatherWing](https://www.adafruit.com/product/4777) with
+[wiring details](./DRIVERS.md#714-featherwing-wiring) listed below.
+
+These alternatives behave identically except that the FeatherWing shows a black
+border around the display. The reason for this is 
+[unclear](https://github.com/adafruit/Adafruit_CircuitPython_IL0373/issues/11#issuecomment-763704622).
+
+The breakout has an `ENA` pin which enables the display to be powered down.
+This facilitates micropower applications: the host shuts down the display
+before going into deep sleep.
 
 The driver is cross platform and supports landscape or portrait mode. To keep
 the buffer size down (to 4736 bytes) there is no greyscale support. It should
@@ -555,6 +564,9 @@ frequently than every 180s. It is
 an absolute limit or an average rate.
 
 ##### Wiring
+
+The [interface schematic is here](https://learn.adafruit.com/assets/86038). The
+drawing title is confusing but I balieve this is the correct schematic.
 
 The following assumes a Pyboard host. Pyboard pin numbers are based on hardware
 SPI 2 and my arbitrary choice of GPIO. All may be changed and soft SPI may be
@@ -614,13 +626,46 @@ see below.
 
 ##### Micropower use
 
-To power down the display the `ENA` pin must be pulled to 0v. Some
+To power down the breakout the `ENA` pin must be pulled to 0v. Some
 microcontrollers can ensure that a GPIO pin is able to sink current when the
 chip goes into deep sleep. In other cases the pin becomes high impedance. The
 following ensures that a high impedance pin will cause `ENA` to be pulled low.
 The N channel MOSFET must have a low threshold voltage.
 
 ![Image](images/epd_enable.png)
+
+### 7.1.4 FeatherWing wiring
+
+The [pinout is listed here](https://learn.adafruit.com/adafruit-eink-display-breakouts/pinouts-2).
+The `busy` line is brought out to a labelled pad on the PCB. It can be linked
+to an unused pin on the interface connectors.
+
+These are the connections required to run the test scripts on a Pyboard. Viwed
+on the underside of the board with the SD card at the top. Each connector has
+pairs of pins which are linked together.
+
+| Pin   | Pyb  | Pin   | Pyb  |
+|:-----:|:----:|:-----:|:----:|
+| RST   |  Y3  |       |      | Should be open drain (see below).
+| 3V    | 3.3V |       |      |
+|  .    |      |       |      |
+| Gnd   | Gnd  |       |      |
+|  .    |      |   .   |      |
+|  .    |      |   .   |      |
+|  .    |      |   .   |      |
+|  .    |      |   .   |      |
+|  .    |      |   .   |      |
+|  .    |      |   .   |      |
+| SCK   |  Y6  |  DC   |  Y1  |
+| MOSI  |  Y8  |  ECS  |  Y2  |
+|  .    |      |   .   |      |
+|  .    |      |   .   |      |
+|  .    |      |   .   |      |
+| BUSY  |  Y4  |   .   |      | Linked with wire to BUSY pad.
+
+The FeatherWing has a reset button which shorts the RST line to Gnd. To avoid
+risk of damage to the microcontroller pin if the button is pressed, the pin
+should be configured as open drain.
 
 ###### [Contents](./DRIVERS.md#contents)
 
