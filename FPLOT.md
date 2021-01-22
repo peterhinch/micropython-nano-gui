@@ -175,7 +175,7 @@ Mandatory arguments:
 Optional arguments:  
  3. `populate=None` A generator to populate the curve. See below.   
  4. `origin=(0,0)` 2-tuple containing x and y values for the origin. Provides
- for an optional shift of the data's origin.
+ for an optional shift of the data's origin.  
  5. `excursion=(1,1)` 2-tuple containing scaling values for x and y.  
 
 Methods:

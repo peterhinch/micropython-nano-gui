@@ -63,6 +63,8 @@ wiring details, pin names and hardware issues.
  4. [ESP8266](./README.md#4-esp8266) This can work. Contains information on
  minimising the RAM and flash footprints of the GUI.  
 
+#### [Graph plotting module.](./FPLOT.md)
+
 #### [Device driver document.](./DRIVERS.md)
 
 # 1. Introduction
