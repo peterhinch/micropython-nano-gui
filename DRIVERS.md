@@ -528,8 +528,8 @@ Some support a few levels of grey or a very small range of colors. They have
 long refresh times (many seconds). The principal benefit that they consume zero
 current except while being refreshed: it is possible to switch off power
 completely with the device retaining the image indefinitely. Present day EPD
-units perform the slow refresh autonomously. It makes no demands on the CPU
-enabling user code to continue to run.
+units perform the slow refresh autonomously - the process makes no demands on
+the CPU enabling user code to continue to run.
 
 The drivers are compatible with `uasyncio`. One approach is to use synchronous
 methods only and the standard demos (some of which use `uasyncio`) may be run.
@@ -648,24 +648,24 @@ These are the connections required to run the test scripts on a Pyboard. Viwed
 on the underside of the board with the SD card at the top. Each connector has
 pairs of pins which are linked together.
 
-| Pin   | Pyb  | Pin   | Pyb  |
-|:-----:|:----:|:-----:|:----:|
-| RST   |  Y3  |       |      | Should be open drain (see below).
-| 3V    | 3.3V |       |      |
-|  .    |      |       |      |
-| Gnd   | Gnd  |       |      |
-|  .    |      |   .   |      |
-|  .    |      |   .   |      |
-|  .    |      |   .   |      |
-|  .    |      |   .   |      |
-|  .    |      |   .   |      |
-|  .    |      |   .   |      |
-| SCK   |  Y6  |  DC   |  Y1  |
-| MOSI  |  Y8  |  ECS  |  Y2  |
-|  .    |      |   .   |      |
-|  .    |      |   .   |      |
-|  .    |      |   .   |      |
-| BUSY  |  Y4  |   .   |      | Linked with wire to BUSY pad.
+| Pin   | Pyb  | Pin   | Pyb  | Notes                             |
+|:-----:|:----:|:-----:|:----:|:---------------------------------:|
+| RST   |  Y3  |       |      | Should be open drain (see below). |
+| 3V    | 3.3V |       |      |                                   |
+|  .    |      |       |      |                                   |
+| Gnd   | Gnd  |       |      |                                   |
+|  .    |      |   .   |      |                                   |
+|  .    |      |   .   |      |                                   |
+|  .    |      |   .   |      |                                   |
+|  .    |      |   .   |      |                                   |
+|  .    |      |   .   |      |                                   |
+|  .    |      |   .   |      |                                   |
+| SCK   |  Y6  |  DC   |  Y1  |                                   |
+| MOSI  |  Y8  |  ECS  |  Y2  |                                   |
+|  .    |      |   .   |      |                                   |
+|  .    |      |   .   |      |                                   |
+|  .    |      |   .   |      |                                   |
+| BUSY  |  Y4  |   .   |      | Linked with wire to BUSY pad.     |
 
 The FeatherWing has a reset button which shorts the RST line to Gnd. To avoid
 risk of damage to the microcontroller pin if the button is pressed, the pin
