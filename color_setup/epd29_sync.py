@@ -1,7 +1,5 @@
-# epd96_demo.py Allow standard demos to run on ePaper.
-# Customise for your hardware config.
-# Beware of running demos for long as they refresh the display more frequently
-# than is advised by Adafruit.
+# epd29_sync.py Config for synchronous applications on 2.9" ePaper.
+# Customise for your hardware config
 
 # Released under the MIT License (MIT). See LICENSE.
 # Copyright (c) 2020 Peter Hinch
@@ -41,4 +39,4 @@ pbusy = machine.Pin('Y4', machine.Pin.IN)
 spi = machine.SPI(2, baudrate=5_000_000)
 gc.collect()  # Precaution before instantiating framebuf
 ssd = SSD(spi, pcs, pdc, prst, pbusy)  # Create a display instance
-ssd.demo_mode = True
+# ssd.demo_mode = True

@@ -34,7 +34,7 @@ a bare minimum of functionality required to support the above.
   &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;6.4.1 [Micropower applications](./DRIVERS.md#641-micropower-applications)  
   6.5 [Resources](./DRIVERS.md#65-resources)  
  7. [ePaper displays](./DRIVERS.md#7-epaper-displays)  
-  7.1 [Adafruit flexible eInk Display](./DRIVERS.md#71-adafruit-flexible-eink-display)  
+  7.1 [Adafruit monochrome eInk Displays](./DRIVERS.md#71-adafruit-monochrome-eink-displays)  
   &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;7.1.1 [EPD constructor args](./DRIVERS.md#711-epd-constructor-args)  
   &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;7.1.2 [EPD public methods](./DRIVERS.md#712-epd-public-methods)  
   &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;7.1.3 [EPD public bound variables](./DRIVERS.md#713-epd-public-bound-variables)  
@@ -538,9 +538,9 @@ more - which may be problematic for applications which need to respond to
 external events. A specific asynchronous mode provides support for reducing
 blocking time. See [EPD Asynchronous support](./DRIVERS.md#8-epd-asynchronous-support).
 
-## 7.1 Adafruit flexible eInk Display
+## 7.1 Adafruit monochrome eInk Displays
 
-The driver assumes an Adafruit 2.9 inch 296*128 pixel flexible
+The driver supports two Adafruit 2.9 inch 296*128 pixel units. A flexible
 [display](https://www.adafruit.com/product/4262) interfaced via their
 [interface breakout](https://www.adafruit.com/product/4224).
 
@@ -548,28 +548,32 @@ An alternative is the
 [Adafruit 2.9" eInk FeatherWing](https://www.adafruit.com/product/4777) with
 [wiring details](./DRIVERS.md#714-featherwing-wiring) listed below.
 
-These alternatives behave identically except that the FeatherWing shows a black
-border around the display. The reason for this is 
+In my testing there are differences between these alternatives. The FeatherWing
+shows a black border around the display. The reason for this is 
 [unclear](https://github.com/adafruit/Adafruit_CircuitPython_IL0373/issues/11#issuecomment-763704622).
+Secondly, while the FeatherWing behaves as expected the image on the flexible
+display gradually degrades if the display is powered down. The white background
+becomes speckled over a period of a few minutes.
 
-The breakout has an `ENA` pin which enables the display to be powered down.
-This facilitates micropower applications: the host shuts down the display
-before going into deep sleep.
+The interface breakout for the flexible display has an `ENA` pin which enables
+the display to be powered down. This facilitates micropower applications: the
+host shuts down the display before itself going into deep sleep.
 
 The driver is cross platform and supports landscape or portrait mode. To keep
 the buffer size down (to 4736 bytes) there is no greyscale support. It should
-be noted that the Adafruit site cautions against refreshing these displays more
-frequently than every 180s. It is
+be noted that the Adafruit site cautions against refreshing the flexible
+displays more frequently than every 180s. This warning does not appear on the
+FeatherWing pages. No reason for the warning is given and it is
 [unclear](https://forums.adafruit.com/viewtopic.php?f=19&t=174091) if this is
 an absolute limit or an average rate.
 
 ##### Wiring
 
 The [interface schematic is here](https://learn.adafruit.com/assets/86038). The
-drawing title is confusing but I balieve this is the correct schematic.
+drawing title is confusing but I believe this is the correct schematic.
 
 The following assumes a Pyboard host. Pyboard pin numbers are based on hardware
-SPI 2 and my arbitrary choice of GPIO. All may be changed and soft SPI may be
+SPI 2 and an arbitrary choice of GPIO. All may be changed and soft SPI may be
 used.
 
 | Pyb |  Breakout |
@@ -677,7 +681,7 @@ This 2.7" 176*274 display is designed for the Raspberry Pi and is detailed
 I bought two of these units from different sources. Both have hardware issues
 discussed [here](https://forum.micropython.org/viewtopic.php?f=2&t=9564). I
 have failed to achieve consistent behaviour. Units behave perfectly one day and
-fail the next. I published this driver on the assumption that I was sold
+fail the next. I published this driver on the assumption that I was twice sold
 dubious Chinese clones and that genuine ones would be reliable.
 
 The driver is cross-platform.

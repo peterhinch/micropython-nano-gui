@@ -45,7 +45,7 @@ two varying vectors.
    4.2.1 [Scaling](./FPLOT.md#421-scaling) Required scaling of complex points.  
   4.3 [class TSequence](./FPLOT.md#43-class-tsequence) Plot Y values on time axis.  
 
-###### [Main README](../README.md)
+###### [Main README](./README.md)
 
 # 1. Python files
 
@@ -170,7 +170,7 @@ The Cartesian curve constructor takes the following positional arguments:
 
 Mandatory arguments:
  1. `graph` The `CartesianGraph` instance.
- 2. `color`
+ 2. `color` If `None` is passed, the `graph` foreground color is used.
 
 Optional arguments:  
  3. `populate=None` A generator to populate the curve. See below.   

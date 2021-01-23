@@ -33,6 +33,9 @@ floats as the notionally very long scale moves behind its small window.
 ![Image](images/textbox1.JPG) The Textbox widget for scrolling text with word
 wrap or clipping.
 
+![Image](images/seismo.JPG) A mockup of a seismograph screen on an ePaper
+display.
+
 Notes on [Adafruit and other OLED displays](./ADAFRUIT.md) including
 wiring details, pin names and hardware issues.
 
@@ -258,7 +261,8 @@ Demos for larger displays.
 
 Demos for ePaper displays:  
  * `waveshare_test.py` For the Waveshare eInk Display HAT 2.7" 176*274 display.
- * `epd29_test.py` Demo for Adafruit 2.9" eInk display.
+ * `epd29_sync.py` Demo for Adafruit 2.9" eInk display: emulates a seismograph.
+ * `epd29_async.py` Asynchronous demo for Adafruit 2.9" eInk display.
 
 Demos for Sharp displays:  
  * `sharptest.py` Basic functionality check.
@@ -311,7 +315,8 @@ copied to the hardware root as `color_setup.py`. Example files:
  [Adafruit 1.44 inch TFT display](https://www.adafruit.com/product/2088).
  * `ili9341_setup.py` A 240*320 ILI9341 display on ESP32.
  * `waveshare_setup.py` 176*274 ePaper display.
- * `epd96_asyn.py` Adafruit 2.9 inch ePaper display, optimised for `uasyncio`.
+ * `epd29_sync.py` Adafruit 2.9 inch ePaper display for synchronous code.
+ * `epd29_async.py` Adafruit 2.9 inch ePaper display: `uasyncio` applications.
 
 ## 2.2 Dependencies
 

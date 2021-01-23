@@ -1,5 +1,5 @@
-# epd96_asyn.py Config for asynchronous applications on 2.9" ePaper.
-# Customise for your hardware config
+# epd29_async.py Config for asynchronous applications on 2.9" ePaper.
+# Customise for your hardware config.
 
 # Released under the MIT License (MIT). See LICENSE.
 # Copyright (c) 2020 Peter Hinch

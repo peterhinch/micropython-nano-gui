@@ -58,7 +58,7 @@ class Curve():
         self.graph = graph
         self.origin = origin
         self.excursion = excursion
-        self.color = color
+        self.color = color if color is not None else graph.fgcolor
         self.lastpoint = None
         self.newpoint = None
         if populate is not None and self._valid(populate):

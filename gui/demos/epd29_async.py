@@ -1,9 +1,10 @@
-# epd29_test.py Demo program for nano_gui on an Adafruit 2.9" flexible ePaper screen
+# epd29_async.py Demo program for nano_gui on an Adafruit 2.9" flexible ePaper screen
 
 # Released under the MIT License (MIT). See LICENSE.
 # Copyright (c) 2020 Peter Hinch
 
 # color_setup must set landcsape True, asyn True and must not set demo_mode
+from cmath import exp, pi
 import uasyncio as asyncio
 from color_setup import ssd
 # On a monochrome display Writer is more efficient than CWriter.
@@ -11,11 +12,13 @@ from gui.core.writer import Writer
 from gui.core.nanogui import refresh
 from gui.widgets.meter import Meter
 from gui.widgets.label import Label
+from gui.widgets.dial import Dial, Pointer
 
 # Fonts
 import gui.fonts.arial10 as arial10
 import gui.fonts.font6 as small
 
+ssd._asyn = True  # HACK to make it config agnostic
 # Some ports don't support uos.urandom.
 # See https://github.com/peterhinch/micropython-samples/tree/master/random
 def xorshift64star(modulo, seed = 0xf9ac6ba4):
@@ -28,21 +31,20 @@ def xorshift64star(modulo, seed = 0xf9ac6ba4):
         return (x * 0x2545F4914F6CDD1D) % modulo
     return func
 
-async def fields(evt):
-    wri = Writer(ssd, small, verbose=False)
+async def compass(evt):  # TODO why does this not get drawn on 1st pass?
+    wri = Writer(ssd, arial10, verbose=False)
     wri.set_clip(False, False, False)
-    textfield = Label(wri, 0, 2, wri.stringlen('longer'))
-    numfield = Label(wri, 25, 2, wri.stringlen('99.990'), bdcolor=None)
-    countfield = Label(wri, 0, 60, wri.stringlen('1'))
-    n = 1
-    random = xorshift64star(65535)
+    v1 = 0 + 0.9j
+    v2 = exp(0 - (pi / 6) * 1j)
+    dial = Dial(wri, 5, 5, height = 75, ticks = 12, bdcolor=None,
+            label='Direction', style = Dial.COMPASS)
+    ptr = Pointer(dial)
     while True:
-        for s in ('short', 'longer', '1', ''):
-            textfield.value(s)
-            numfield.value('{:5.2f}'.format(random() /1000))
-            countfield.value('{:1d}'.format(n))
-            n += 1
-            await evt.wait()
+        ptr.value(v1)
+        v1 *= v2
+#        await asyncio.sleep_ms(100)
+        await evt.wait()
+
 
 async def multi_fields(evt):
     wri = Writer(ssd, small, verbose=False)
@@ -68,15 +70,16 @@ async def multi_fields(evt):
 
 async def meter(evt):
     wri = Writer(ssd, arial10, verbose=False)
+    wri.set_clip(False, False, False)
     row = 10
-    col = 150
+    col = 170
     args = {'height' : 80,
             'width' : 15,
             'divisions' : 4,
             'style' : Meter.BAR}
     m0 = Meter(wri, row, col, legends=('0.0', '0.5', '1.0'), **args)
-    m1 = Meter(wri, row, col + 50, legends=('-1', '0', '+1'), **args)
-    m2 = Meter(wri, row, col + 100, legends=('-1', '0', '+1'), **args)
+    m1 = Meter(wri, row, col + 40, legends=('-1', '0', '+1'), **args)
+    m2 = Meter(wri, row, col + 80, legends=('-1', '0', '+1'), **args)
     random = xorshift64star(2**24 - 1)
     while True:
         steps = 10
@@ -93,7 +96,7 @@ async def main():
     evt = asyncio.Event()
     asyncio.create_task(meter(evt))
     asyncio.create_task(multi_fields(evt))
-    asyncio.create_task(fields(evt))
+    asyncio.create_task(compass(evt))
     while True:
         # Normal procedure before refresh, but 10s sleep should mean it always returns immediately
         await ssd.wait()
@@ -103,7 +106,7 @@ async def main():
         # framebuffer in background
         evt.set()
         evt.clear()
-        await asyncio.sleep(20)  # Allow for slow refresh
+        await asyncio.sleep(10)  # Allow for slow refresh
         
         
 tstr = '''Test of asynchronous code updating the EPD. This should
