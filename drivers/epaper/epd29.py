@@ -109,17 +109,14 @@ class EPD(framebuf.FrameBuffer):
         print('Init Done.')
 
     # For use in synchronous code: blocking wait on ready state.
-    # TODO remove debug code from Waveshare fiasco.
     def wait_until_ready(self):
         sleep_ms(50)
-        t = ticks_ms()
         while not self.ready():  
             sleep_ms(100)
-        dt = ticks_diff(ticks_ms(), t)
-        print('wait_until_ready {}ms {:5.1f}mins'.format(dt, dt/60_000))
 
     # Asynchronous wait on ready state. Pause (4.9s) for physical refresh.
     async def wait(self):
+        await asyncio.sleep_ms(0)  # Ensure tasks run that might make it unready
         while not self.ready():
             await asyncio.sleep_ms(100)
 

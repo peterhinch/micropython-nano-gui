@@ -31,7 +31,7 @@ def xorshift64star(modulo, seed = 0xf9ac6ba4):
         return (x * 0x2545F4914F6CDD1D) % modulo
     return func
 
-async def compass(evt):  # TODO why does this not get drawn on 1st pass?
+async def compass(evt):
     wri = Writer(ssd, arial10, verbose=False)
     wri.set_clip(False, False, False)
     v1 = 0 + 0.9j
@@ -42,7 +42,6 @@ async def compass(evt):  # TODO why does this not get drawn on 1st pass?
     while True:
         ptr.value(v1)
         v1 *= v2
-#        await asyncio.sleep_ms(100)
         await evt.wait()
 
 

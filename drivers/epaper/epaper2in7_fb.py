@@ -131,6 +131,7 @@ class EPD(framebuf.FrameBuffer):
         print('wait_until_ready {}ms {:5.1f}mins'.format(dt, dt/60_000))
 
     async def wait(self):
+        await asyncio.sleep_ms(0)  # Ensure tasks run that might make it unready
         while not self.ready():
             await asyncio.sleep_ms(100)
 
