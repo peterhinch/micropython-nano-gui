@@ -56,6 +56,7 @@ wiring details, pin names and hardware issues.
  3. [The nanogui module](./README.md#3-the-nanogui-module)  
   3.1 [Application Initialisation](./README.md#31-application-initialisation) Initial setup and refresh method.  
   &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;3.1.1 [User defined colors](./README.md#311-user-defined-colors)  
+  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;3.1.2 [Monochrome displays](./README.md#312-monochrome-displays) A slight "gotcha" with ePaper.  
   3.2 [Label class](./README.md#32-label-class) Dynamic text at any screen location.  
   3.3 [Meter class](./README.md#33-meter-class) A vertical panel meter.  
   3.4 [LED class](./README.md#34-led-class) Virtual LED of any color.  
@@ -349,10 +350,12 @@ that pixels up to the edges of the display can be accessed.
 from color_setup import ssd  # Create a display instance
 from gui.core.nanogui import refresh
 refresh(ssd, True)  # Initialise and clear display.
+# Uncomment for ePaper displays
+# ssd.wait_until_ready()
 ssd.fill(0)
 ssd.line(0, 0, ssd.width - 1, ssd.height - 1, ssd.rgb(0, 255, 0))  # Green diagonal corner-to-corner
 ssd.rect(0, 0, 15, 15, ssd.rgb(255, 0, 0))  # Red square at top left
-ssd.rect(ssd.width -15, ssd.height -15, 15, 15, ssd.rgb(0, 0, 255))  # Blue square at bottm right
+ssd.rect(ssd.width -15, ssd.height -15, 15, 15, ssd.rgb(0, 0, 255))  # Blue square at bottom right
 ssd.show()
 ```
 
@@ -439,12 +442,29 @@ between 4-bit and other drivers, use `create_color()` for all custom colors:
 it will produce appropriate behaviour. See the `vari_fields` function in the
 demo `color15.py` for an example.
 
+### 3.1.2 Monochrome displays
+
+Most widgets work on monochrome displays if color settings are left at default
+values. If a color is specified, drivers in this repo will convert it to black
+or white depending on its level of saturation. A low level will produce the
+background color, a high level the foreground. This can produce a surprise on
+ePaper units where the foreground is white.
+
+At the bit level `1` represents the foreground. This is white on an emitting
+display such as an OLED. On a Sharp display it indicates reflection. On an
+ePaper display it represents black. Given that `1` is the foreground color,
+explicitly specifying `BLACK` on an ePaper will produce `0` as black has (very)
+low saturation. In this context the resultant physically white background
+color may come as a surprise.
+
+In general the solution is to leave color settings at default.
+
 ###### [Contents](./README.md#contents)
 
 ## 3.2 Label class
 
-This supports applications where text is to be rendered at specific screen
-locations.
+The purpose of a `Label` instance is to display text at a specific screen
+location.
 
 Text can be static or dynamic. In the case of dynamic text the background is
 cleared to ensure that short strings cleanly replace longer ones.

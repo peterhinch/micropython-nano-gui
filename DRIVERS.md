@@ -44,7 +44,7 @@ a bare minimum of functionality required to support the above.
   &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;7.2.2 [EPD public methods](./DRIVERS.md#722-epd-public-methods)  
   &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;7.2.3 [EPD public bound variables](./DRIVERS.md#723-epd-public-bound-variables)  
   8. [EPD Asynchronous support](./DRIVERS.md#8-epd-asynchronous-support)  
-  9. [Writing device drivers](./DRIVERS.md#8-writing-device-drivers)  
+  9. [Writing device drivers](./DRIVERS.md#9-writing-device-drivers)  
 
 ###### [Main README](./README.md#1-introduction)
 
