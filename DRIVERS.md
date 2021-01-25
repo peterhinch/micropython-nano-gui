@@ -39,12 +39,16 @@ a bare minimum of functionality required to support the above.
   &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;7.1.2 [EPD public methods](./DRIVERS.md#712-epd-public-methods)  
   &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;7.1.3 [EPD public bound variables](./DRIVERS.md#713-epd-public-bound-variables)  
   &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;7.1.4 [FeatherWing Wiring](./DRIVERS.md#714-featherwing-wiring)  
+  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;7.1.5 [Micropower use](./DRIVERS.md#715-micropower-use)  
   7.2 [Waveshare eInk Display HAT](./DRIVERS.md#72-waveshare-eink-display-hat)  
   &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;7.2.1 [EPD constructor args](./DRIVERS.md#721-epd-constructor-args)  
   &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;7.2.2 [EPD public methods](./DRIVERS.md#722-epd-public-methods)  
   &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;7.2.3 [EPD public bound variables](./DRIVERS.md#723-epd-public-bound-variables)  
   8. [EPD Asynchronous support](./DRIVERS.md#8-epd-asynchronous-support)  
   9. [Writing device drivers](./DRIVERS.md#9-writing-device-drivers)  
+
+The [Micropower use](./DRIVERS.md#715-micropower-use) section is applicable to
+EPD's in general but makes specific reference to the 2.9" micropower demo.
 
 ###### [Main README](./README.md#1-introduction)
 
@@ -551,9 +555,10 @@ An alternative is the
 In my testing there are differences between these alternatives. The FeatherWing
 shows a black border around the display. The reason for this is 
 [unclear](https://github.com/adafruit/Adafruit_CircuitPython_IL0373/issues/11#issuecomment-763704622).
-Secondly, while the FeatherWing behaves as expected the image on the flexible
-display gradually degrades if the display is powered down. The white background
-becomes speckled over a period of a few minutes.
+In development I encountered instances where the image on the flexible display
+gradually degraded after the system was powered down. The white background
+becomes speckled over a period of a few minutes. I'm unsure of the reason for
+this. The `epd29_lowpower` demo did not exhibit this.
 
 The interface breakout for the flexible display has an `ENA` pin which enables
 the display to be powered down. This facilitates micropower applications: the
@@ -628,16 +633,6 @@ see below.
  seconds to enable viewing. This enables generic nanogui demos to be run on an
  EPD.
 
-##### Micropower use
-
-To power down the breakout the `ENA` pin must be pulled to 0v. Some
-microcontrollers can ensure that a GPIO pin is able to sink current when the
-chip goes into deep sleep. In other cases the pin becomes high impedance. The
-following ensures that a high impedance pin will cause `ENA` to be pulled low.
-The N channel MOSFET must have a low threshold voltage.
-
-![Image](images/epd_enable.png)
-
 ### 7.1.4 FeatherWing wiring
 
 The [pinout is listed here](https://learn.adafruit.com/adafruit-eink-display-breakouts/pinouts-2).
@@ -670,6 +665,50 @@ pairs of pins which are linked together.
 The FeatherWing has a reset button which shorts the RST line to Gnd. To avoid
 risk of damage to the microcontroller pin if the button is pressed, the pin
 should be configured as open drain.
+
+### 7.1.5 Micropower use
+
+Developers of micropower applications will need to familiarise themselves with
+the power saving features of their board. Information may be found in
+[micropython-micropower](https://github.com/peterhinch/micropython-micropower).
+Some information is generic, but the code is Pyboard specific. Pyboard users
+should copy `upower.py` to the filesystem root. Further power savings may be
+achieved by precompiling or freezing code as this avoids the energy used by the
+compiler (on each wakeup). Users of other platforms will need to know how to
+enter and exit from deep sleep.
+
+I developed this using the breakout board linked to Wbus DIP28 adaptor and a
+Pyboard D, powered from a LiPo cell. A Pyboard 1.1 could be used identically.
+The test script `epd29_lowpower.py` requires `upower.py` as described above.
+This simplifies access to the Pyboard RTC's alarms which can wake the board
+from deep sleep. Wakeup from certain pins is also possible.
+
+To power down the breakout the `ENA` pin must be pulled to 0v. Some
+microcontrollers can ensure that a GPIO pin is able to sink current when the
+chip goes into deep sleep. In other cases the pin becomes high impedance. The
+following ensures that a high impedance pin will cause `ENA` to be pulled low.
+The N channel MOSFET must have a low threshold voltage.
+
+![Image](images/epd_enable.png)
+
+An alternative, slightly less efficient approach, is to pull down `ENA` with
+a 2.2KΩ resistor and link it to a GPIO pin. The breakout has a 100KΩ resistor
+to Vin. The 2.2KΩ resistor causes the breakout and display to assume the power
+off state if the GPIO pin is high impedance.
+
+The test script `epd29_lowpower.py` assumes pin `Y5` linked to the breakout
+enable. I used the 2.2KΩ resistor pull down. The code comments clarify the mode
+of operation. The demo wakes every 30s. Real applications would do it much less
+frequently with attendant power savings.
+
+Users of other EPD's may want to develop other means of powering down the EPD.
+A p-channel MOSFET could be considered as described
+[here](https://github.com/peterhinch/micropython-micropower/blob/master/HARDWARE.md#hardware-issues).
+
+In use I measured 500μA in the periods when the display is refreshing (a total
+of 10s for each wakeup) and 58μA between wakeups. The Pyboard accounts for
+about 6μA. 33μA will be used by the 100KΩ pullup on the breakout's power enable
+line. I haven't attempted to figure out where the other 19μA is going.
 
 ###### [Contents](./DRIVERS.md#contents)
 

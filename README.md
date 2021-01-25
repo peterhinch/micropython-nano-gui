@@ -264,6 +264,9 @@ Demos for ePaper displays:
  * `waveshare_test.py` For the Waveshare eInk Display HAT 2.7" 176*274 display.
  * `epd29_sync.py` Demo for Adafruit 2.9" eInk display: emulates a seismograph.
  * `epd29_async.py` Asynchronous demo for Adafruit 2.9" eInk display.
+ * `epd29_lowpower.py` Micropower demo for Adafruit 2.9" eInk display. This doc
+ [Micropower use](./DRIVERS.md#715-micropower-use) should be read before
+ attempting to run this.
 
 Demos for Sharp displays:  
  * `sharptest.py` Basic functionality check.
