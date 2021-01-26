@@ -705,10 +705,31 @@ Users of other EPD's may want to develop other means of powering down the EPD.
 A p-channel MOSFET could be considered as described
 [here](https://github.com/peterhinch/micropython-micropower/blob/master/HARDWARE.md#hardware-issues).
 
-In use I measured 500μA in the periods when the display is refreshing (a total
-of 10s for each wakeup) and 58μA between wakeups. The Pyboard accounts for
-about 6μA. 33μA will be used by the 100KΩ pullup on the breakout's power enable
-line. I haven't attempted to figure out where the other 19μA is going.
+##### Measurements
+
+In use I measured 58μA between wakeups. The Pyboard accounts for about 6μA.
+33μA will be used by the 100KΩ pullup on the breakout's power enable line. I
+haven't attempted to figure out where the other 19μA is going.
+
+I measured power consumption for a hypothetical application which wakes once
+per hour, refreshes the screen, and goes back to sleep. In summary it uses
+0.74AH per year. This suggests it could run for ~3 years on a set of alkaline
+AA cells (capacity 2.5AH).
+
+Of the total, the 58μA sleep current accounts for 0.5AH, and the wakeup current
+0.24AH. Of the wakeup current, 28% is used for physical display refresh and a
+further 39% during SPI transfer to the display. The remaining 33% is used by
+boot (3%), initialisation of the device (2.8%), and initialisation of nano-gui
+(27%). This is based on study of the current waveform in conjunction with
+guessing what is going on in each phase of operation.
+
+The measurements used frozen bytecode on a Pyboard D SF6W. No SD card was
+fitted. Code was `epd29_lowpower.py` with the red LED code removed.
+
+The fact that nearly 70% of the energy is used in standby suggests
+improvements. If the EPD subsystem were turned off by a p-channel MOSFET,
+current consumption could be reduced to the 6μA figure of the Pyboard, an order
+of magnitude improvement.
 
 ###### [Contents](./DRIVERS.md#contents)
 
