@@ -80,6 +80,9 @@ work. Note that the Pyboard hardware SPI supports only 10.5MHz and 21MHz.
 In practice the 41ms update time is visually fast for most purposes except some
 games.
 
+Update: even with a PCB and an ESP32 (which supports exactly 20MHz) it did not
+work at that rate.
+
 ## Power consumption
 
 The power consumption of OLED displays is roughly proportional to the number
