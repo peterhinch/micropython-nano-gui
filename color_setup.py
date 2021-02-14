@@ -32,8 +32,8 @@ import gc
 # STM specific driver
 from drivers.ssd1351.ssd1351 import SSD1351 as SSD
 
-height = 96  # 1.27 inch 96*128 (rows*cols) display
-# height = 128 # 1.5 inch 128*128 display
+#height = 96  # 1.27 inch 96*128 (rows*cols) display
+height = 128 # 1.5 inch 128*128 display
 
 pdc = machine.Pin('Y1', machine.Pin.OUT_PP, value=0)
 pcs = machine.Pin('Y2', machine.Pin.OUT_PP, value=1)

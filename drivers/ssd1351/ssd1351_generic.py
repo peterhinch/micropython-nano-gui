@@ -128,3 +128,4 @@ class SSD1351(framebuf.FrameBuffer):
                     start = (191 - l) * self.width
                     _lcopy(lb, buf[start : start + self.width], self.width)
                     self._write(lb, 1)  # Send a line
+
