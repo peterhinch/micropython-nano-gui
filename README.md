@@ -86,7 +86,9 @@ GUI supports multiple displays attached to a single target, but bear in mind
 the RAM requirements for multiple frame buffers. The GUI has been tested on
 Pyboard 1.1, Pyboard D and on the ESP32 reference board without SPIRAM. Running
 on ESP8266 is possible but frozen bytecode must be used owing to its restricted
-RAM.
+RAM. As of 14th March 2021 it has been tested on the Raspberry Pi Pico. The
+`color15` demo fails because the firmware lacks `uos.urandom()` but hopefully
+it will be fixed soon.
 
 It uses synchronous code but is compatible with `uasyncio`. Some demo programs
 illustrate this. Code is standard MicroPython, but some device drivers use the
@@ -233,9 +235,8 @@ The `gui/core` directory contains the GUI core and its principal dependencies:
  * `fplot.py` The graph plotting module.
  * `colors.py` Color constants.
  * `framebuf_utils.mpy` Accelerator for the `CWriter` class. This optional file
- is compiled for STM hardware and will be ignored on other ports (with a
- harmless warning message) unless recompiled. Instructions and code for
- compiling for other architectures may be found
+ is compiled for STM hardware. It is specific to Pyboards (1.x and D) and will
+ be ignored on other ports. Details may be found
  [here](https://github.com/peterhinch/micropython-font-to-py/blob/master/writer/WRITER.md#224-a-performance-boost).
 
 ###### [Contents](./README.md#contents)

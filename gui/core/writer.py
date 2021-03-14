@@ -25,9 +25,9 @@ import framebuf
 from uctypes import bytearray_at, addressof
 from sys import platform
 
-__version__ = (0, 4, 1)
+__version__ = (0, 4, 2)
 
-fast_mode = platform != 'rp2'  # framebuf_utils crashes RP2
+fast_mode = platform == 'pyboard'
 if fast_mode:
     try:
         try:
@@ -39,8 +39,8 @@ if fast_mode:
                 fast_mode = False
     except ValueError:
         fast_mode = False
-if not fast_mode:
-    print('Ignoring framebuf_utils.mpy: compiled for incorrect architecture.')
+    if not fast_mode:
+        print('Ignoring missing or invalid framebuf_utils.mpy.')
 
 
 class DisplayState():
