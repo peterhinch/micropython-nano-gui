@@ -86,9 +86,11 @@ GUI supports multiple displays attached to a single target, but bear in mind
 the RAM requirements for multiple frame buffers. The GUI has been tested on
 Pyboard 1.1, Pyboard D and on the ESP32 reference board without SPIRAM. Running
 on ESP8266 is possible but frozen bytecode must be used owing to its restricted
-RAM. As of 14th March 2021 it has been tested on the Raspberry Pi Pico. The
-`color15` demo fails because the firmware lacks `uos.urandom()` but hopefully
-it will be fixed soon.
+RAM.
+
+As of 14th March 2021 it runs on the Raspberry Pi Pico; on that target firmware
+must be of that date or later. The `color15` demo fails because the firmware
+lacks `uos.urandom()` but hopefully it will be fixed soon.
 
 It uses synchronous code but is compatible with `uasyncio`. Some demo programs
 illustrate this. Code is standard MicroPython, but some device drivers use the
@@ -106,6 +108,7 @@ my GUI's employ the American spelling of `color`.
 
 ## 1.1 Change log
 
+14 Mar 2021 Tested on Pi Pico.  
 17 Jan 2021  
 Add ePaper drivers. Ensure monochrome and color setup requirements are
 identical. Substantial update to docs.  
