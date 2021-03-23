@@ -1,0 +1,163 @@
+# st7789.py Driver for ST7789 LCD displays for nano-gui
+
+# Released under the MIT License (MIT). See LICENSE.
+# Copyright (c) 2021 Peter Hinch
+
+# Tested display
+# Adafruit 1.3" 240x240 Wide Angle TFT LCD Display with MicroSD - ST7789
+# https://www.adafruit.com/product/4313
+# Based on
+# Adfruit https://github.com/adafruit/Adafruit_CircuitPython_ST7789/blob/master/adafruit_st7789.py
+# Also see st7735r_4bit.py for other source acknowledgements
+
+# SPI bus: default mode. Driver performs no read cycles.
+# Datasheet table 6 p44 scl write cycle 16ns == 62.5MHz
+
+from time import sleep_ms, ticks_us, ticks_diff
+import framebuf
+import gc
+import micropython
+
+PORTRAIT = 0x20
+REFLECT = 0x40
+USD = 0x80
+
+
+#_INIT_SEQUENCE = (
+    #b"\x01\x80\x96"  # _SWRESET and Delay 150ms
+    #b"\x11\x80\xFF"  # _SLPOUT and Delay 500ms
+    #b"\x3A\x81\x55\x0A"  # _COLMOD and Delay 10ms
+    #b"\x36\x01\x08"  # _MADCTL
+    #b"\x21\x80\x0A"  # _INVON Hack and Delay 10ms
+    #b"\x13\x80\x0A"  # _NORON and Delay 10ms
+    #b"\x36\x01\xC0"  # _MADCTL
+    #b"\x29\x80\xFF"  # _DISPON and Delay 500ms
+#)
+
+@micropython.viper
+def _lcopy(dest:ptr8, source:ptr8, lut:ptr8, length:int):
+    n = 0
+    for x in range(length):
+        c = source[x]
+        d = (c & 0xf0) >> 3  # 2* LUT indices (LUT is 16 bit color)
+        e = (c & 0x0f) << 1
+        dest[n] = lut[d]
+        n += 1
+        dest[n] = lut[d + 1]
+        n += 1
+        dest[n] = lut[e]
+        n += 1
+        dest[n] = lut[e + 1]
+        n += 1
+
+class ST7789(framebuf.FrameBuffer):
+
+    lut = bytearray(32)
+
+    # Convert r, g, b in range 0-255 to a 16 bit colour value
+    # LS byte goes into LUT offset 0, MS byte into offset 1
+    # Same mapping in linebuf so LS byte is shifted out 1st
+    @staticmethod
+    def rgb(r, g, b):
+        return ((b & 0xf8) << 5 | (g & 0x1c) << 11 | (g & 0xe0) >> 5 | (r & 0xf8)) ^ 0xffff
+
+    # rst and cs are active low, SPI is mode 0
+    def __init__(self, spi, cs, dc, rst, height=240, width=240, disp_mode=PORTRAIT | REFLECT, init_spi=False):
+        self._spi = spi  # Clock cycle time for write 16ns 62.5MHz max (read is 150ns)
+        self._rst = rst  # Pins
+        self._dc = dc
+        self._cs = cs
+        self.height = height  # Required by Writer class
+        self.width = width
+        self._spi_init = init_spi
+        mode = framebuf.GS4_HMSB  # Use 4bit greyscale.
+        gc.collect()
+        buf = bytearray(height * width // 2)
+        self._mvb = memoryview(buf)
+        super().__init__(buf, width, height, mode)
+        self._linebuf = bytearray(self.width * 2)  # 16 bit color out
+        self._init(disp_mode)
+        self.show()
+
+    # Hardware reset
+    def _hwreset(self):
+        self._dc(0)
+        self._rst(1)
+        sleep_ms(1)
+        self._rst(0)
+        sleep_ms(1)
+        self._rst(1)
+        sleep_ms(1)
+
+    # Write a command, a bytes instance (in practice 1 byte).
+    def _wcmd(self, buf):
+        self._dc(0)
+        self._cs(0)
+        self._spi.write(buf)
+        self._cs(1)
+
+    # Write a command followed by a data arg.
+    def _wcd(self, c, d):
+        self._dc(0)
+        self._cs(0)
+        self._spi.write(c)
+        self._cs(1)
+        self._dc(1)
+        self._cs(0)
+        self._spi.write(d)
+        self._cs(1)
+
+    # Initialise the hardware. Blocks 163ms. Adafruit have various sleep delays
+    # where I can find no requirement in the datasheet. I have removed them.
+    def _init(self, disp_mode):
+        self._hwreset()  # Hardware reset. Blocks 3ms
+        if self._spi_init:  # A callback was passed
+            self._spi_init(self._spi)  # Bus may be shared
+        cmd = self._wcmd
+        wcd = self._wcd
+        cmd(b'\x01')  # SW reset datasheet specifies 120ms before SLPOUT
+        sleep_ms(150)
+        cmd(b'\x11')  # SLPOUT: exit sleep mode
+        sleep_ms(10)  # ? Adafruit delay 500ms (datsheet 5ms)
+        wcd(b'\x3a', b'\x55')  # _COLMOD 16 bit/pixel, 64Kib color space
+        cmd(b'\x20') # INVOFF Adafruit turn inversion on. This driver fixes .rgb
+        cmd(b'\x13')  # NORON Normal display mode
+
+        # Adafruit skip setting CA and RA but using it may help portability
+        # CASET column address. start=0, end=width
+        if (disp_mode & USD) and (disp_mode & PORTRAIT):
+            wcd(b'\x2b', int.to_bytes(240 - self.width, 2, 'big') + int.to_bytes(239, 2, 'big'))
+        else:
+            wcd(b'\x2a', int.to_bytes(self.width - 1, 4, 'big'))
+        # RASET row addr. start=0, end=height
+        if (disp_mode & USD) and not (disp_mode & PORTRAIT):
+            wcd(b'\x2b', int.to_bytes(320 - self.height, 2, 'big') + int.to_bytes(319, 2, 'big'))
+        else:
+            wcd(b'\x2b', int.to_bytes(self.height - 1, 4, 'big'))
+
+        # d7..d5 of MADCTL determine rotation/orientation datasheet P124, P231
+        # d7 = MY page addr order
+        # d6 = MX col addr order
+        # d5 = MV row/col exchange
+        wcd(b'\x36', int.to_bytes(disp_mode, 1, 'little'))
+        cmd(b'\x29')  # DISPON
+        #sleep_ms(500)  # Adafruit. Seems unnecessary. No mention in datasheet.
+
+    def show(self):  # Blocks for 83ms @60MHz SPI
+        ts = ticks_us()
+        clut = ST7789.lut
+        wd = self.width // 2
+        end = self.height * wd
+        lb = self._linebuf
+        buf = self._mvb
+        self._dc(0)
+        self._cs(0)
+        if self._spi_init:  # A callback was passed
+            self._spi_init(self._spi)  # Bus may be shared
+        self._spi.write(b'\x2c')  # RAMWR
+        self._dc(1)
+        for start in range(0, end, wd):
+            _lcopy(lb, buf[start :], clut, wd)  # Copy and map colors
+            self._spi.write(lb)
+        self._cs(1)
+        print(ticks_diff(ticks_us(), ts))

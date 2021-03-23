@@ -18,36 +18,39 @@ a bare minimum of functionality required to support the above.
 
  1. [Introduction](./DRIVERS.md#1-introduction)  
   1.1 [Color handling](./DRIVERS.md#11-color-handling)  
- 2. [Drivers for SSD1351](./DRIVERS.md#2-drivers-for-ssd1351) Color OLEDs  
- 3. [Drivers for SSD1331](./DRIVERS.md#3-drivers-for-ssd1331) Small color OLEDs  
- 4. [Drivers for ST7735R](./DRIVERS.md#4-drivers-for-st7735r) Small color TFTs  
- 5. [Drivers for ILI9341](./DRIVERS.md#5-drivers-for-ili9341) Large color TFTs  
- 6. [Drivers for sharp displays](./DRIVERS.md#6-drivers-for-sharp-displays) Large low power monochrome displays  
-  6.1 [Display characteristics](./DRIVERS.md#61-display-characteristics)  
-  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;6.1.1 [The VCOM bit](./DRIVERS.md#611-the-vcom-bit)  
-  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;6.1.2 [Refresh rate](./DRIVERS.md#612-refresh-rate)  
-  6.2 [Test scripts](./DRIVERS.md#62-test-scripts)  
-  6.3 [Device driver constructor](./DRIVERS.md#63-device-driver-constructor)  
-  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;6.3.1 [Device driver methods](./DRIVERS.md#631-device-driver-methods)  
-  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;6.3.2 [The vcom arg](./DRIVERS.md#632-the-vcom-arg)  
-  6.4 [Application design](./DRIVERS.md#64-application-design)  
-  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;6.4.1 [Micropower applications](./DRIVERS.md#641-micropower-applications)  
-  6.5 [Resources](./DRIVERS.md#65-resources)  
- 7. [ePaper displays](./DRIVERS.md#7-epaper-displays)  
-  7.1 [Adafruit monochrome eInk Displays](./DRIVERS.md#71-adafruit-monochrome-eink-displays)  
-  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;7.1.1 [EPD constructor args](./DRIVERS.md#711-epd-constructor-args)  
-  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;7.1.2 [EPD public methods](./DRIVERS.md#712-epd-public-methods)  
-  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;7.1.3 [EPD public bound variables](./DRIVERS.md#713-epd-public-bound-variables)  
-  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;7.1.4 [FeatherWing Wiring](./DRIVERS.md#714-featherwing-wiring)  
-  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;7.1.5 [Micropower use](./DRIVERS.md#715-micropower-use)  
-  7.2 [Waveshare eInk Display HAT](./DRIVERS.md#72-waveshare-eink-display-hat)  
-  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;7.2.1 [EPD constructor args](./DRIVERS.md#721-epd-constructor-args)  
-  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;7.2.2 [EPD public methods](./DRIVERS.md#722-epd-public-methods)  
-  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;7.2.3 [EPD public bound variables](./DRIVERS.md#723-epd-public-bound-variables)  
-  8. [EPD Asynchronous support](./DRIVERS.md#8-epd-asynchronous-support)  
-  9. [Writing device drivers](./DRIVERS.md#9-writing-device-drivers)  
+ 2. [OLED displays](./DRIVERS.md#2-oled-displays)  
+  2.1 [Drivers for SSD1351](./DRIVERS.md#21-drivers-for-ssd1351) Color OLEDs  
+  2.2 [Drivers for SSD1331](./DRIVERS.md#22-drivers-for-ssd1331) Small color OLEDs  
+ 3. [Color TFT displays](./DRIVERS.md#3-color-tft-displays)  
+  3.1 [Drivers for ST7735R](./DRIVERS.md#31-drivers-for-st7735r) Small TFTs  
+  3.2 [Drivers for ILI9341](./DRIVERS.md#32-drivers-for-ili9341) Large TFTs  
+  3.3 [Drivers for ST7789](./DRIVERS.md#33-drivers-for-st7789) Small high density TFTs  
+ 4. [Drivers for sharp displays](./DRIVERS.md#4-drivers-for-sharp-displays) Large low power monochrome displays  
+  4.1 [Display characteristics](./DRIVERS.md#41-display-characteristics)  
+  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;4.1.1 [The VCOM bit](./DRIVERS.md#411-the-vcom-bit)  
+  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;4.1.2 [Refresh rate](./DRIVERS.md#412-refresh-rate)  
+  4.2 [Test scripts](./DRIVERS.md#42-test-scripts)  
+  4.3 [Device driver constructor](./DRIVERS.md#43-device-driver-constructor)  
+  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;4.3.1 [Device driver methods](./DRIVERS.md#431-device-driver-methods)  
+  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;4.3.2 [The vcom arg](./DRIVERS.md#432-the-vcom-arg)  
+  4.4 [Application design](./DRIVERS.md#44-application-design)  
+  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;4.4.1 [Micropower applications](./DRIVERS.md#441-micropower-applications)  
+  4.5 [Resources](./DRIVERS.md#45-resources)  
+ 5. [ePaper displays](./DRIVERS.md#5-epaper-displays)  
+  5.1 [Adafruit monochrome eInk Displays](./DRIVERS.md#51-adafruit-monochrome-eink-displays)  
+  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;5.1.1 [EPD constructor args](./DRIVERS.md#511-epd-constructor-args)  
+  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;5.1.2 [EPD public methods](./DRIVERS.md#512-epd-public-methods)  
+  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;5.1.3 [EPD public bound variables](./DRIVERS.md#513-epd-public-bound-variables)  
+  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;5.1.4 [FeatherWing Wiring](./DRIVERS.md#514-featherwing-wiring)  
+  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;5.1.5 [Micropower use](./DRIVERS.md#515-micropower-use)  
+  5.2 [Waveshare eInk Display HAT](./DRIVERS.md#52-waveshare-eink-display-hat)  
+  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;5.2.1 [EPD constructor args](./DRIVERS.md#521-epd-constructor-args)  
+  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;5.2.2 [EPD public methods](./DRIVERS.md#522-epd-public-methods)  
+  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;5.2.3 [EPD public bound variables](./DRIVERS.md#523-epd-public-bound-variables)  
+  6. [EPD Asynchronous support](./DRIVERS.md#6-epd-asynchronous-support)  
+  7. [Writing device drivers](./DRIVERS.md#7-writing-device-drivers)  
 
-The [Micropower use](./DRIVERS.md#715-micropower-use) section is applicable to
+The [Micropower use](./DRIVERS.md#515-micropower-use) section is applicable to
 EPD's in general but makes specific reference to the 2.9" micropower demo.
 
 ###### [Main README](./README.md#1-introduction)
@@ -96,7 +99,9 @@ specifying custom colors. For detail see the main README
 
 ###### [Contents](./DRIVERS.md#contents)
 
-# 2. Drivers for SSD1351
+# 2. OLED displays
+
+## 2.1 Drivers for SSD1351
 
 This is an OLED driver. The supported displays produce excellent images with
 extreme contrast and bright colors. Power consumption is low.
@@ -173,7 +178,7 @@ color streams sent to the display are:
 
 ###### [Contents](./DRIVERS.md#contents)
 
-# 3. Drivers for SSD1331
+## 2.2 Drivers for SSD1331
 
 This is an OLED driver for small displays. The supported display produces
 excellent images with extreme contrast and bright colors. Power consumption is
@@ -219,7 +224,9 @@ def spi_init(spi):
 
 ###### [Contents](./DRIVERS.md#contents)
 
-# 4. Drivers for ST7735R
+# 3. Color TFT displays
+
+## 3.1 Drivers for ST7735R
 
 This chip is for small TFT displays. Four drivers are provided. All are
 cross-platform but assume `micropython.viper` capability. They use 8-bit or
@@ -287,7 +294,7 @@ def spi_init(spi):
 
 ###### [Contents](./DRIVERS.md#contents)
 
-# 5. Drivers for ILI9341
+## 3.2 Drivers for ILI9341
 
 Adafruit make several displays using this chip, for example
 [this 3.2 inch unit](https://www.adafruit.com/product/1743).
@@ -360,7 +367,83 @@ The response may be of interest.
 
 ###### [Contents](./DRIVERS.md#contents)
 
-# 6. Drivers for sharp displays
+## 3.3 Drivers for ST7789
+
+** UNDER DEVELOPMENT **  
+Works on Adafruit display in landscape mode. Anything else is dubious. 
+
+These displays tend to be physically small with a high pixel density. The chip
+supports up to 240x320 displays. The Adafruit units tested are 240x240. To keep
+the buffer size down, the driver uses 4-bit color with dynamic conversion to 16
+bit RGB565 at runtime. This uses a lookup table (LUT) enabling user defined
+colors. The resultant buffer size for the Adafruit displays is 28800 bytes.
+
+[Tested display](# https://www.adafruit.com/product/4313). The Adafruit
+[1.54 inch](https://www.adafruit.com/product/3787) has identical resolution and
+uses the same CircuitPython driver so can be expected to work.
+
+The `color_setup.py` file should initialise the SPI bus with a baudrate of
+30_000_000. Args `polarity`, `phase`, `bits`, `firstbit` are defaults. Hard or
+soft SPI may be used but hard may be faster. 30MHz is a conservative value: see
+below.
+
+#### ST7789 Constructor args:
+ * `spi` An initialised SPI bus instance. The chip supports clock rates of upto
+ 62.5MHz (datasheet table 6). I have tested 60MHz. High speeds may be sensitive
+ to electrical issues such as lead lengths, PCB layout and grounding.
+ * `cs` An initialised output pin. Initial value should be 1.
+ * `dc` An initialised output pin. Initial value should be 0.
+ * `rst` An initialised output pin. Initial value should be 1.
+ * `height=240` Display dimensions in pixels. For portrait mode exchange
+ `height` and `width` values: this ensures that `nano-gui` gets the correct
+ aspect ratio.
+ * `width=240`
+ * `disp_mode=0` By default the display chip operates in landscape mode. This
+ arg enables portrait mode and other configurations. See below.
+ * `init_spi=False` This optional arg enables flexible options in configuring
+ the SPI bus. The default assumes exclusive access to the bus. In this normal
+ case, `color_setup.py` initialises it and the settings will be left in place.
+ If the bus is shared with devices which require different settings, a callback
+ function should be passed. It will be called prior to each SPI bus write. The
+ callback will receive a single arg  being the SPI bus instance. It will
+ typically be a one-liner or lambda  initialising the bus. A minimal example is
+ this function:
+```python
+def spi_init(spi):
+    spi.init(baudrate=30_000_000)
+```
+#### Display mode
+
+This is povided in the hope of supporting other displays which may not be
+symmetrical. It also enables the Adafruit display image to be rotated.
+
+The driver exports the following constants:  
+```python
+PORTRAIT = 0x20  # Rotate 90°
+REFLECT = 0x40  # Swap pixels left-right
+USD = 0x80   # Upside down: swap pixels top-bottom
+```
+For non-standard modes these may be combined using the bitwise-or `|` operator.
+Exammple `color_setup.py` is for Pi Pico.
+```python
+from drivers.st7789.st7789_4bit import ST7789 as SSD, PORTRAIT, USD
+
+pdc = Pin(13, Pin.OUT, value=0)  # Arbitrary pins
+pcs = Pin(14, Pin.OUT, value=1)
+prst = Pin(15, Pin.OUT, value=1)
+
+gc.collect()  # Precaution before instantiating framebuf
+spi = SPI(1, 40_000_000, sck=Pin(10), mosi=Pin(11), miso=Pin(8))
+ssd = SSD(spi, dc=pdc, cs=pcs, rst=prst, disp_mode=PORTRAIT | USD)
+```
+On Adafruit displays, valid combinations are:
+ 1. No arg: landscape mode.
+ 2. `USD | REFLECT` Upside down landscape mode (rotate 180°).
+ 3. `PORTRAIT | REFLECT` Portrait mode (rotate 90°)
+
+###### [Contents](./DRIVERS.md#contents)
+
+# 4. Drivers for sharp displays
 
 These displays have characteristics which mean that they are best suited to
 micropower applications. Inevitably this means that deployment is more involved
@@ -376,7 +459,7 @@ I have tested on the first of these. However the
 [Adfruit driver](https://github.com/adafruit/Adafruit_CircuitPython_SharpMemoryDisplay)
 supports all of these and I would expect this one also to do so.
 
-## 6.1. Display characteristics
+## 4.1. Display characteristics
 
 These displays have extremely low current consumption: I measured ~90μA on the
 2.7" board when in use. Refresh is fast, visually excellent and can run at up
@@ -395,7 +478,7 @@ fonts. In other respects the display quality is not as good as ePaper. For good
 contrast best results are achieved if the viewing angle and the direction of
 the light source are positioned to achieve reflection.
 
-### 6.1.1 The VCOM bit
+### 4.1.1 The VCOM bit
 
 The significance of this is somewhat glossed-over in the Adafruit docs, and a
 study of the datasheet is confusing in the absence of prior knowledge of LCD
@@ -430,11 +513,11 @@ In my opinion the easiest way to deal with this is usually to use software
 control, ensuring that the driver's `show` method is called at regular
 intervals of at least 1Hz.
 
-### 6.1.2 Refresh rate
+### 4.1.2 Refresh rate
 
 The datasheet specifies a minimum refresh rate of 1Hz.
 
-## 6.2. Test scripts
+## 4.2. Test scripts
 
  1. `sharptest.py` Basic functionality test.
  2. `clocktest.py` Digital and analog clock display.
@@ -453,7 +536,7 @@ Testing was done on a Pyboard D SF6W: frozen bytecode was not required. I
 suspect a Pyboard 1.x would require it to prevent memory errors. Fonts in
 particular benefit from freezing as their RAM usage is radically reduced.
 
-## 6.3. Device driver constructor
+## 4.3. Device driver constructor
 
 Positional args:
  1. `spi` An SPI bus instance. The constructor initialises this to the baudrate
@@ -463,9 +546,9 @@ Positional args:
  3. `height=240` Dimensions in pixels. Defaults are for 2.7" display.
  4. `width=400`
  5. `vcom=False` Accept the default unless using `pyb.standby`. See
- [6.3.2](./DRIVERS.md#632-the-vcom-arg).
+ [4.3.2](./DRIVERS.md#432-the-vcom-arg).
 
-### 6.3.1 Device driver methods
+### 4.3.1 Device driver methods
 
  1. `show` No args. Transfers the framebuffer contents to the device, updating
  the display.
@@ -473,7 +556,7 @@ Positional args:
  is a power saving method for cases where the application calls `show` at a
  rate of < 1Hz. In such cases `update` should be called at a 1Hz rate.
 
-### 6.3.2 The vcom arg
+### 4.3.2 The vcom arg
 
 It purpose is to support micropower applications which use `pyb.standby`.
 Wakeup from standby is similar to a reboot in that program execution starts
@@ -486,14 +569,14 @@ Persistent storage exists in the RTC registers and backup RAM. See
 [micopython-micropower](https://github.com/peterhinch/micropython-micropower)
 for details of how to acces these resources.
 
-## 6.4. Application design
+## 4.4. Application design
 
 In all cases the frame buffer is located on the target hardware. In the case of
 the 2.7 inch display this is 400*240//8 = 12000 bytes in size. This should be
 instantiated as soon as possible in the application to ensure that sufficient
 contiguous RAM is available.
 
-### 6.4.1 Micropower applications
+### 4.4.1 Micropower applications
 
 These comments largely assume a Pyboard host. The application should import
 `upower` from 
@@ -515,7 +598,7 @@ frozen bytecode is used, there is still significant power usage importing
 modules and instantiating classes; this usage is not incurred in the loop in
 the demo.
 
-## 6.5. Resources
+## 4.5. Resources
 
 [Schematic for 2.7" unit](https://learn.adafruit.com/assets/94077)
 
@@ -525,7 +608,7 @@ the demo.
 
 ###### [Contents](./DRIVERS.md#contents)
 
-# 7. ePaper displays
+# 5. ePaper displays
 
 Known as ePaper or eInk, electrophoretic (EPD) displays are usually monochrome.
 Some support a few levels of grey or a very small range of colors. They have
@@ -540,9 +623,9 @@ methods only and the standard demos (some of which use `uasyncio`) may be run.
 However copying the framebuffer to the device blocks for some time - 250ms or
 more - which may be problematic for applications which need to respond to
 external events. A specific asynchronous mode provides support for reducing
-blocking time. See [EPD Asynchronous support](./DRIVERS.md#8-epd-asynchronous-support).
+blocking time. See [EPD Asynchronous support](./DRIVERS.md#6-epd-asynchronous-support).
 
-## 7.1 Adafruit monochrome eInk Displays
+## 5.1 Adafruit monochrome eInk Displays
 
 The driver supports two Adafruit 2.9 inch 296*128 pixel units. A flexible
 [display](https://www.adafruit.com/product/4262) interfaced via their
@@ -550,7 +633,7 @@ The driver supports two Adafruit 2.9 inch 296*128 pixel units. A flexible
 
 An alternative is the
 [Adafruit 2.9" eInk FeatherWing](https://www.adafruit.com/product/4777) with
-[wiring details](./DRIVERS.md#714-featherwing-wiring) listed below.
+[wiring details](./DRIVERS.md#514-featherwing-wiring) listed below.
 
 In my testing there are differences between these alternatives. The FeatherWing
 shows a black border around the display. The reason for this is 
@@ -595,7 +678,7 @@ used.
 In normal use the `ENA` pin (12) may be left unconnected. For micropower use,
 see below.
 
-### 7.1.1 EPD constructor args
+### 5.1.1 EPD constructor args
  * `spi` An initialised SPI bus instance. The device can support clock rates of
  upto 10MHz.
  * `cs` An initialised output pin. Initial value should be 1.
@@ -604,9 +687,9 @@ see below.
  * `busy` An initialised input pin.
  * `landscape=True` By default the long axis is horizontal.
  * `asyn=False` Setting this `True` invokes an asynchronous mode. See
- [EPD Asynchronous support](./DRIVERS.md#8-epd-asynchronous-support).
+ [EPD Asynchronous support](./DRIVERS.md#6-epd-asynchronous-support).
 
-### 7.1.2 EPD public methods
+### 5.1.2 EPD public methods
 
 ##### Synchronous methods
  * `init` No args. Issues a hardware reset and initialises the hardware. This
@@ -624,7 +707,7 @@ see below.
  to the display.
  * `wait` Asynchronous. No args. Pause until the display refresh is complete.
 
-### 7.1.3 EPD public bound variables
+### 5.1.3 EPD public bound variables
 
  * `height` Integer. Height in pixels. Treat as read-only.
  * `width` Integer. Width in pixels. Treat as read-only.
@@ -633,7 +716,7 @@ see below.
  seconds to enable viewing. This enables generic nanogui demos to be run on an
  EPD.
 
-### 7.1.4 FeatherWing wiring
+### 5.1.4 FeatherWing wiring
 
 The [pinout is listed here](https://learn.adafruit.com/adafruit-eink-display-breakouts/pinouts-2).
 The `busy` line is brought out to a labelled pad on the PCB. It can be linked
@@ -666,7 +749,7 @@ The FeatherWing has a reset button which shorts the RST line to Gnd. To avoid
 risk of damage to the microcontroller pin if the button is pressed, the pin
 should be configured as open drain.
 
-### 7.1.5 Micropower use
+### 5.1.5 Micropower use
 
 Developers of micropower applications will need to familiarise themselves with
 the power saving features of their board. Information may be found in
@@ -733,7 +816,7 @@ of magnitude improvement.
 
 ###### [Contents](./DRIVERS.md#contents)
 
-## 7.2 Waveshare eInk Display HAT
+## 5.2 Waveshare eInk Display HAT
 
 This 2.7" 176*274 display is designed for the Raspberry Pi and is detailed
 [here](https://www.waveshare.com/wiki/2.7inch_e-Paper_HAT).
@@ -772,7 +855,7 @@ powered from 5V or 3.3V: there is a regulator on board.
 
 Pins 26-40 unused and omitted.
 
-### 7.2.1 EPD constructor args
+### 5.2.1 EPD constructor args
  * `spi` An initialised SPI bus instance. The device can support clock rates of
  upto 2MHz.
  * `cs` An initialised output pin. Initial value should be 1.
@@ -782,7 +865,7 @@ Pins 26-40 unused and omitted.
  * `landscape=False` By default the long axis is vertical.
  * `asyn=False`
 
-### 7.2.2 EPD public methods
+### 5.2.2 EPD public methods
 
 ##### Synchronous methods
  * `init` No args. Issues a hardware reset and initialises the hardware. This
@@ -800,7 +883,7 @@ Pins 26-40 unused and omitted.
  to the display.
  * `wait` Asynchronous. No args. Pause until the display refresh is complete.
 
-### 7.2.3 EPD public bound variables
+### 5.2.3 EPD public bound variables
 
  * `height` Integer. Height in pixels. Treat as read-only.
  * `width` Integer. Width in pixels. Treat as read-only.
@@ -811,7 +894,7 @@ Pins 26-40 unused and omitted.
 
 ###### [Contents](./DRIVERS.md#contents)
 
-# 8. EPD Asynchronous support
+# 6. EPD Asynchronous support
 
 Normally when GUI code issues
 ```python
@@ -854,7 +937,7 @@ The following illustrates the kind of approach which may be used:
 
 ###### [Contents](./DRIVERS.md#contents)
 
-# 9. Writing device drivers
+# 7. Writing device drivers
 
 Device drivers capable of supporting `nanogui` can be extremely simple: see
 `drivers/sharp/sharp.py` for a minimal example. It should be noted that the
