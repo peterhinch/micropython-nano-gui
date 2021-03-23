@@ -12,6 +12,13 @@ All drivers provide a display class subclassed from the built-in
 It should be noted that in the interests of conserving RAM these drivers offer
 a bare minimum of functionality required to support the above.
 
+This document is written to support users of `nano-gui`, who only need to
+instantiate a display to use the GUI. Hence only device constructors are
+documented. Required methods and bound variables are detailed in
+[Writing device drivers](./DRIVERS.md#7-writing-device-drivers). Low level
+access via the `Writer` and `CWriter` classes is documented
+[here](https://github.com/peterhinch/micropython-font-to-py/blob/master/writer/WRITER.md).
+
 ###### [Main README](./README.md#1-introduction)
 
 # Contents
@@ -426,15 +433,15 @@ USD = 0x80   # Upside down: swap pixels top-bottom
 For non-standard modes these may be combined using the bitwise-or `|` operator.  
 The following example `color_setup.py` is for Pi Pico.
 ```python
-from drivers.st7789.st7789_4bit import ST7789 as SSD, PORTRAIT, USD
+from drivers.st7789.st7789_4bit import ST7789 as SSD, PORTRAIT, USD, REFLECT
 
 pdc = Pin(13, Pin.OUT, value=0)  # Arbitrary pins
 pcs = Pin(14, Pin.OUT, value=1)
 prst = Pin(15, Pin.OUT, value=1)
 
 gc.collect()  # Precaution before instantiating framebuf
-spi = SPI(1, 40_000_000, sck=Pin(10), mosi=Pin(11), miso=Pin(8))
-ssd = SSD(spi, dc=pdc, cs=pcs, rst=prst, disp_mode=PORTRAIT | USD)
+spi = SPI(1, 30_000_000, sck=Pin(10), mosi=Pin(11), miso=Pin(8))
+ssd = SSD(spi, dc=pdc, cs=pcs, rst=prst, disp_mode=PORTRAIT | REFLECT)
 ```
 On Adafruit displays, valid combinations are:
  1. No arg: landscape mode.
@@ -1014,12 +1021,15 @@ configuring `color_setup.py`. It draws squares at the extreme corners of the
 display and a corner to corner diagonal.
 ```python
 from color_setup import ssd  # Create a display instance
+from gui.core.colors import RED, BLUE, GREEN
 from gui.core.nanogui import refresh
 refresh(ssd, True)  # Initialise and clear display.
+# Uncomment for ePaper displays
+# ssd.wait_until_ready()
 ssd.fill(0)
-ssd.line(0, 0, ssd.width - 1, ssd.height - 1, ssd.rgb(0, 255, 0))  # Green diagonal
-ssd.rect(0, 0, 15, 15, ssd.rgb(255, 0, 0))  # Red square at top left
-ssd.rect(ssd.width -15, ssd.height -15, 15, 15, ssd.rgb(0, 0, 255))  # Blue square at bottm right
+ssd.line(0, 0, ssd.width - 1, ssd.height - 1, GREEN)  # Green diagonal corner-to-corner
+ssd.rect(0, 0, 15, 15, RED)  # Red square at top left
+ssd.rect(ssd.width -15, ssd.height -15, 15, 15, BLUE)  # Blue square at bottom right
 ssd.show()
 ```
 
