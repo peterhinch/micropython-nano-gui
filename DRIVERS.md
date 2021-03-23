@@ -369,7 +369,7 @@ The response may be of interest.
 
 ## 3.3 Drivers for ST7789
 
-** UNDER DEVELOPMENT **  
+**UNDER DEVELOPMENT**  
 Works on Adafruit display in landscape mode. Anything else is dubious. 
 
 These displays tend to be physically small with a high pixel density. The chip
@@ -378,7 +378,7 @@ the buffer size down, the driver uses 4-bit color with dynamic conversion to 16
 bit RGB565 at runtime. This uses a lookup table (LUT) enabling user defined
 colors. The resultant buffer size for the Adafruit displays is 28800 bytes.
 
-[Tested display](# https://www.adafruit.com/product/4313). The Adafruit
+[Tested display](https://www.adafruit.com/product/4313). The Adafruit
 [1.54 inch](https://www.adafruit.com/product/3787) has identical resolution and
 uses the same CircuitPython driver so can be expected to work.
 
@@ -423,8 +423,8 @@ PORTRAIT = 0x20  # Rotate 90°
 REFLECT = 0x40  # Swap pixels left-right
 USD = 0x80   # Upside down: swap pixels top-bottom
 ```
-For non-standard modes these may be combined using the bitwise-or `|` operator.
-Exammple `color_setup.py` is for Pi Pico.
+For non-standard modes these may be combined using the bitwise-or `|` operator.  
+The following example `color_setup.py` is for Pi Pico.
 ```python
 from drivers.st7789.st7789_4bit import ST7789 as SSD, PORTRAIT, USD
 
@@ -439,7 +439,9 @@ ssd = SSD(spi, dc=pdc, cs=pcs, rst=prst, disp_mode=PORTRAIT | USD)
 On Adafruit displays, valid combinations are:
  1. No arg: landscape mode.
  2. `USD | REFLECT` Upside down landscape mode (rotate 180°).
- 3. `PORTRAIT | REFLECT` Portrait mode (rotate 90°)
+ 3. `PORTRAIT | REFLECT` Portrait mode (rotate 90°).
+ 4. `PORTRAIT | USD | REFLECT` Upside down portrait (rotate 270°).
+ **DOES NOT YET WORK**
 
 ###### [Contents](./DRIVERS.md#contents)
 
