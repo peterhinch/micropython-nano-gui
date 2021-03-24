@@ -377,7 +377,7 @@ The response may be of interest.
 ## 3.3 Drivers for ST7789
 
 **UNDER DEVELOPMENT**  
-Works on Adafruit display in landscape mode. Anything else is dubious. 
+Initial testing on Adafruit display looks good. 
 
 These displays tend to be physically small with a high pixel density. The chip
 supports up to 240x320 displays. The Adafruit units tested are 240x240. To keep
@@ -443,12 +443,11 @@ gc.collect()  # Precaution before instantiating framebuf
 spi = SPI(1, 30_000_000, sck=Pin(10), mosi=Pin(11), miso=Pin(8))
 ssd = SSD(spi, dc=pdc, cs=pcs, rst=prst, disp_mode=PORTRAIT | REFLECT)
 ```
-On Adafruit displays, valid combinations are:
+On Adafruit displays, combinations that don't produce mirror images are:
  1. No arg: landscape mode.
  2. `USD | REFLECT` Upside down landscape mode (rotate 180°).
- 3. `PORTRAIT | REFLECT` Portrait mode (rotate 90°).
- 4. `PORTRAIT | USD | REFLECT` Upside down portrait (rotate 270°).
- **DOES NOT YET WORK**
+ 3. `PORTRAIT | REFLECT` Portrait mode (rotate 90° CCW).
+ 4. `PORTRAIT | USD` Upside down portrait (rotate 90° CW).
 
 ###### [Contents](./DRIVERS.md#contents)
 

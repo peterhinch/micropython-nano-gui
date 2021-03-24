@@ -62,7 +62,8 @@ class ST7789(framebuf.FrameBuffer):
         return ((b & 0xf8) << 5 | (g & 0x1c) << 11 | (g & 0xe0) >> 5 | (r & 0xf8)) ^ 0xffff
 
     # rst and cs are active low, SPI is mode 0
-    def __init__(self, spi, cs, dc, rst, height=240, width=240, disp_mode=PORTRAIT | REFLECT, init_spi=False):
+    # TEST height=140, width=200, disp_mode=PORTRAIT|REFLECT
+    def __init__(self, spi, cs, dc, rst, height=240, width=240, disp_mode=0, init_spi=False):
         self._spi = spi  # Clock cycle time for write 16ns 62.5MHz max (read is 150ns)
         self._rst = rst  # Pins
         self._dc = dc
@@ -123,28 +124,51 @@ class ST7789(framebuf.FrameBuffer):
         cmd(b'\x20') # INVOFF Adafruit turn inversion on. This driver fixes .rgb
         cmd(b'\x13')  # NORON Normal display mode
 
-        # Adafruit skip setting CA and RA but using it may help portability
-        # CASET column address. start=0, end=width
-        if (disp_mode & USD) and (disp_mode & PORTRAIT):
-            wcd(b'\x2b', int.to_bytes(240 - self.width, 2, 'big') + int.to_bytes(239, 2, 'big'))
-        else:
-            wcd(b'\x2a', int.to_bytes(self.width - 1, 4, 'big'))
-        # RASET row addr. start=0, end=height
-        if (disp_mode & USD) and not (disp_mode & PORTRAIT):
-            wcd(b'\x2b', int.to_bytes(320 - self.height, 2, 'big') + int.to_bytes(319, 2, 'big'))
-        else:
-            wcd(b'\x2b', int.to_bytes(self.height - 1, 4, 'big'))
-
+        # Adafruit skip setting CA and RA. We do it to enable rotation and
+        # reflection. Also hopefully to help portability. Set display window
+        # depending on mode, .height and .width.
+        self.set_window(disp_mode)
         # d7..d5 of MADCTL determine rotation/orientation datasheet P124, P231
         # d7 = MY page addr order
         # d6 = MX col addr order
         # d5 = MV row/col exchange
         wcd(b'\x36', int.to_bytes(disp_mode, 1, 'little'))
         cmd(b'\x29')  # DISPON
-        #sleep_ms(500)  # Adafruit. Seems unnecessary. No mention in datasheet.
+
+    # Define the mapping between RAM and the display
+    # May need modifying for non-Adafruit hardware which may use a different
+    # mapping between chip RAM and LCD. Datasheet section 8.12 p124.
+    def set_window(self, mode):
+        rht = 320
+        rwd = 240  # RAM ht and width
+        wht = self.height
+        wwd = self.width  # Window dimensions
+        # Determine x and y start and end. Defaults for LANDSCAPE and PORTRAIT
+        ys = 0  # y start
+        ye = wht - 1  # y end
+        xs = 0
+        xe = wwd - 1
+        if mode & PORTRAIT:
+            if mode & REFLECT:
+                ys = rwd - wht
+                ye = rwd - 1
+            if mode & USD:
+                xs = rht - wwd
+                xe = rht - 1
+        else:  # LANDSCAPE
+            if mode & REFLECT:
+                xs = rwd - wht
+                xe = rwd - 1
+            if mode & USD:
+                ys = rht - wwd
+                ye = rht - 1
+        # Col address set
+        self._wcd(b'\x2a', int.to_bytes(xs, 2, 'big') + int.to_bytes(xe, 2, 'big'))
+        # Row address set
+        self._wcd(b'\x2b', int.to_bytes(ys, 2, 'big') + int.to_bytes(ye, 2, 'big'))
 
     def show(self):  # Blocks for 83ms @60MHz SPI
-        ts = ticks_us()
+#        ts = ticks_us()
         clut = ST7789.lut
         wd = self.width // 2
         end = self.height * wd
@@ -160,4 +184,4 @@ class ST7789(framebuf.FrameBuffer):
             _lcopy(lb, buf[start :], clut, wd)  # Copy and map colors
             self._spi.write(lb)
         self._cs(1)
-        print(ticks_diff(ticks_us(), ts))
+#        print(ticks_diff(ticks_us(), ts))
