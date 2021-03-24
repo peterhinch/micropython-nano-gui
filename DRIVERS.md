@@ -325,8 +325,8 @@ soft SPI may be used but hard may be faster. See note on overclocking below.
  case, `color_setup.py` initialises it and the settings will be left in place.
  If the bus is shared with devices which require different settings, a callback
  function should be passed. It will be called prior to each SPI bus write. The
- callback will receive a single arg  being the SPI bus instance. It will
- typically be a one-liner or lambda  initialising the bus. A minimal example is
+ callback will receive a single arg being the SPI bus instance. It will
+ typically be a one-liner or lambda initialising the bus. A minimal example is
  this function:
 ```python
 def spi_init(spi):
@@ -383,7 +383,9 @@ These displays tend to be physically small with a high pixel density. The chip
 supports up to 240x320 displays. The Adafruit units tested are 240x240. To keep
 the buffer size down, the driver uses 4-bit color with dynamic conversion to 16
 bit RGB565 at runtime. This uses a lookup table (LUT) enabling user defined
-colors. The resultant buffer size for the Adafruit displays is 28800 bytes.
+colors. The resultant buffer size for the Adafruit displays is 28800 bytes. See
+[Color handling](./DRIVERS.md#11-color-handling) for the implications of 4-bit
+color.
 
 [Tested display](https://www.adafruit.com/product/4313). The Adafruit
 [1.54 inch](https://www.adafruit.com/product/3787) has identical resolution and
@@ -412,8 +414,8 @@ below.
  case, `color_setup.py` initialises it and the settings will be left in place.
  If the bus is shared with devices which require different settings, a callback
  function should be passed. It will be called prior to each SPI bus write. The
- callback will receive a single arg  being the SPI bus instance. It will
- typically be a one-liner or lambda  initialising the bus. A minimal example is
+ callback will receive a single arg being the SPI bus instance. It will
+ typically be a one-liner or lambda initialising the bus. A minimal example is
  this function:
 ```python
 def spi_init(spi):
@@ -448,6 +450,11 @@ On Adafruit displays, combinations that don't produce mirror images are:
  2. `USD | REFLECT` Upside down landscape mode (rotate 180°).
  3. `PORTRAIT | REFLECT` Portrait mode (rotate 90° CCW).
  4. `PORTRAIT | USD` Upside down portrait (rotate 90° CW).
+
+#### Use with uasyncio
+
+Running the SPI bus at 60MHz a refresh blocks for 83ms. Considering whether to
+offer a solution as per ili9341.
 
 ###### [Contents](./DRIVERS.md#contents)
 
