@@ -13,26 +13,16 @@
 # SPI bus: default mode. Driver performs no read cycles.
 # Datasheet table 6 p44 scl write cycle 16ns == 62.5MHz
 
-from time import sleep_ms, ticks_us, ticks_diff
+from time import sleep_ms #, ticks_us, ticks_diff
 import framebuf
 import gc
 import micropython
+import uasyncio as asyncio
 
 PORTRAIT = 0x20
 REFLECT = 0x40
 USD = 0x80
 
-
-#_INIT_SEQUENCE = (
-    #b"\x01\x80\x96"  # _SWRESET and Delay 150ms
-    #b"\x11\x80\xFF"  # _SLPOUT and Delay 500ms
-    #b"\x3A\x81\x55\x0A"  # _COLMOD and Delay 10ms
-    #b"\x36\x01\x08"  # _MADCTL
-    #b"\x21\x80\x0A"  # _INVON Hack and Delay 10ms
-    #b"\x13\x80\x0A"  # _NORON and Delay 10ms
-    #b"\x36\x01\xC0"  # _MADCTL
-    #b"\x29\x80\xFF"  # _DISPON and Delay 500ms
-#)
 
 @micropython.viper
 def _lcopy(dest:ptr8, source:ptr8, lut:ptr8, length:int):
@@ -62,7 +52,6 @@ class ST7789(framebuf.FrameBuffer):
         return ((b & 0xf8) << 5 | (g & 0x1c) << 11 | (g & 0xe0) >> 5 | (r & 0xf8)) ^ 0xffff
 
     # rst and cs are active low, SPI is mode 0
-    # TEST height=140, width=200, disp_mode=PORTRAIT|REFLECT
     def __init__(self, spi, cs, dc, rst, height=240, width=240, disp_mode=0, init_spi=False):
         self._spi = spi  # Clock cycle time for write 16ns 62.5MHz max (read is 150ns)
         self._rst = rst  # Pins
@@ -167,21 +156,47 @@ class ST7789(framebuf.FrameBuffer):
         # Row address set
         self._wcd(b'\x2b', int.to_bytes(ys, 2, 'big') + int.to_bytes(ye, 2, 'big'))
 
+    #@micropython.native # Made virtually no difference to timing.
     def show(self):  # Blocks for 83ms @60MHz SPI
-#        ts = ticks_us()
+        #ts = ticks_us()
         clut = ST7789.lut
         wd = self.width // 2
         end = self.height * wd
         lb = self._linebuf
         buf = self._mvb
-        self._dc(0)
-        self._cs(0)
         if self._spi_init:  # A callback was passed
             self._spi_init(self._spi)  # Bus may be shared
+        self._dc(0)
+        self._cs(0)
         self._spi.write(b'\x2c')  # RAMWR
         self._dc(1)
         for start in range(0, end, wd):
             _lcopy(lb, buf[start :], clut, wd)  # Copy and map colors
             self._spi.write(lb)
         self._cs(1)
-#        print(ticks_diff(ticks_us(), ts))
+        #print(ticks_diff(ticks_us(), ts))
+
+    # Asynchronous refresh with support for reducing blocking time.
+    async def do_refresh(self, split=4):
+        lines, mod = divmod(self.height, split)  # Lines per segment
+        if mod:
+            raise ValueError('Invalid do_refresh arg.')
+        clut = ST7789.lut
+        wd = self.width // 2
+        lb = self._linebuf
+        buf = self._mvb
+        while True:
+            line = 0
+            for n in range(split):
+                if self._spi_init:  # A callback was passed
+                    self._spi_init(self._spi)  # Bus may be shared
+                self._dc(0)
+                self._cs(0)
+                self._spi.write(b'\x3c' if n else b'\x2c')  # RAMWR/Write memory continue
+                self._dc(1)
+                for start in range(wd * line, wd * (line + lines), wd):
+                    _lcopy(lb, buf[start :], clut, wd)  # Copy and map colors
+                    self._spi.write(lb)
+                line += lines
+                self._cs(1)
+                await asyncio.sleep(0)

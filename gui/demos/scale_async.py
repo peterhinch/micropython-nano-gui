@@ -1,4 +1,5 @@
-# scale_ili.py Test/demo of scale widget for nano-gui
+# scale_async.py Test/demo of scale widget for nano-gui using asynchronous code
+# Requires a supporting display (ili9341 or ST7789)
 
 # Released under the MIT License (MIT). See LICENSE.
 # Copyright (c) 2020 Peter Hinch

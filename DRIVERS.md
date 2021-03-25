@@ -350,13 +350,14 @@ are required. However this period may be unacceptable for some `uasyncio`
 applications. The driver provides an asynchronous `do_refresh(split=4)` method.
 If this is run the display will regularly be refreshed, but will periodically
 yield to the scheduler enabling other tasks to run. The arg determines the
-number of times this will occur, so by default it will block for about 50ms.
-A `ValueError` will result if `split` is not an integer divisor of the display
-height.
+number of times in a frame where this will occur, so by default it will block
+for about 50ms. A `ValueError` will result if `split` is not an integer divisor
+of the `height` passed to the constructor.
 
 An application using this should call `refresh(ssd, True)` once at the start,
 then launch the `do_refresh` method. After that, no calls to `refresh` should
-be made. See `gui/demos/scale_ili.py`.
+be made. See `gui/demos/scale_async.py`. The initial synchronous `refresh` call
+will block for the full refresh period.
 
 Another option to reduce blocking is overclocking the SPI bus.
 
@@ -376,9 +377,6 @@ The response may be of interest.
 
 ## 3.3 Drivers for ST7789
 
-**UNDER DEVELOPMENT**  
-Initial testing on Adafruit display looks good. 
-
 These displays tend to be physically small with a high pixel density. The chip
 supports up to 240x320 displays. The Adafruit units tested are 240x240. To keep
 the buffer size down, the driver uses 4-bit color with dynamic conversion to 16
@@ -394,7 +392,7 @@ uses the same CircuitPython driver so can be expected to work.
 The `color_setup.py` file should initialise the SPI bus with a baudrate of
 30_000_000. Args `polarity`, `phase`, `bits`, `firstbit` are defaults. Hard or
 soft SPI may be used but hard may be faster. 30MHz is a conservative value: see
-below.
+below. An example file for the Pi Pico is in `color_setup/ssd7789.py`.
 
 #### ST7789 Constructor args:
  * `spi` An initialised SPI bus instance. The chip supports clock rates of upto
@@ -453,8 +451,22 @@ On Adafruit displays, combinations that don't produce mirror images are:
 
 #### Use with uasyncio
 
-Running the SPI bus at 60MHz a refresh blocks for 83ms. Considering whether to
-offer a solution as per ili9341.
+Running the SPI bus at 60MHz a refresh blocks for 83ms. If this is acceptable,
+no special precautions are required. This period may be unacceptable for some
+`uasyncio` applications. Some may use lower SPI baudrates either for electrical
+reasons or where the host cannot support high speeds.
+
+The driver provides an asynchronous `do_refresh(split=4)` method. If this is
+run the display will regularly be refreshed, but will periodically yield to the
+scheduler enabling other tasks to run. The arg determines the number of times
+in a frame where this will occur, so by default it will block for about 15ms. A
+`ValueError` will result if `split` is not an integer divisor of the `height`
+passed to the constructor.
+
+An application using this should call `refresh(ssd, True)` once at the start,
+then launch the `do_refresh` method. After that, no calls to `refresh` should
+be made. See `gui/demos/scale_async.py`. The initial synchronous `refresh` call
+will block for the full refresh period.
 
 ###### [Contents](./DRIVERS.md#contents)
 

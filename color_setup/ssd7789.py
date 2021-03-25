@@ -26,15 +26,14 @@
 from machine import Pin, SPI
 import gc
 
-# *** Choose your color display driver here ***
-
-from drivers.st7789.st7789_4bit import ST7789 as SSD, PORTRAIT, USD
+from drivers.st7789.st7789_4bit import ST7789 as SSD, PORTRAIT, USD, REFLECT
 
 pdc = Pin(13, Pin.OUT, value=0)  # Arbitrary pins
 pcs = Pin(14, Pin.OUT, value=1)
 prst = Pin(15, Pin.OUT, value=1)
 
 gc.collect()  # Precaution before instantiating framebuf
-spi = SPI(1, 60_000_000, sck=Pin(10), mosi=Pin(11), miso=Pin(8))
+# Conservative low baudrate. Can go to 62.5MHz.
+spi = SPI(1, 30_000_000, sck=Pin(10), mosi=Pin(11), miso=Pin(8))
 ssd = SSD(spi, dc=pdc, cs=pcs, rst=prst)  #, disp_mode=PORTRAIT | USD)
 
