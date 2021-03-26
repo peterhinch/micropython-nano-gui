@@ -1,5 +1,9 @@
 # nanogui: Use in asynchronous code
 
+###### [Main README](../README.md)
+
+###### [Driver doc](../DRIVERS.md)
+
 ## Blocking
 
 The suitability of `nanogui` for use with cooperative schedulers such as
@@ -24,11 +28,42 @@ applications which might wait for user input from a switch this blocking is
 not apparent and the response appears immediate. It may have consequences in
 applications performing fast concurrent input over devices such as UARTs.
 
+### Reducing latency
+
+Some display drivers have an asynchronous `do_refresh()` method which takes a
+single optional arg `split=4`. This may be used in place of the synchronous
+`refresh()` method. With the default value the method will yield to the
+scheduler four times during a refresh, reducing the latency experienced by
+other tasks by a factor of four. A `ValueError` will result if `split` is not
+an integer divisor of the `height` passed to the constructor.
+
+Such applications should issue the synchronous
+```python
+refresh(ssd, True)
+```
+at the start to initialise the display. This will block for the full refresh
+period.
+
+The coroutine performing screen refresh might use the following for portability
+between devices having a `do_refresh` method and those that do not:
+```python
+    while True:
+        # Update widgets
+        if hasattr(ssd, 'do_refresh'):
+            # Option to reduce uasyncio latency
+            await ssd.do_refresh()
+        else:
+            # Normal synchronous call
+            refresh(ssd)
+        await asyncio.sleep_ms(250)  # Determine update rate
+```
+
 ## Demo scripts
 
-These require uasyncio V3. This is incorporated in daily builds and will be
-available in release builds starting with MicroPython V1.13. The demos assume
-a Pyboard.
+These require uasyncio V3. This is incorporated in daily builds and became
+available in release builds starting with MicroPython V1.13. The `asnano` and
+`asnano_sync` demos assume a Pyboard. `scale.py` is portable between hosts and
+sufficiently large displays.
 
  * `asnano.py` Runs until the usr button is pressed. In this demo each meter
  updates independently and mutually asynchronously to test the response to
@@ -37,5 +72,8 @@ a Pyboard.
  themselves as data becomes available but screen updates occur asynchronously
  at a low frequency. An asynchronous iterator is used to stop the demo when the
  pyboard usr button is pressed.
+ * `scale.py` Illustrates the use of `do_refresh()` where available.
 
 ###### [Main README](../README.md)
+
+###### [Driver doc](../DRIVERS.md)

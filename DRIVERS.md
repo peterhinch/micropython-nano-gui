@@ -348,16 +348,9 @@ to use the `micropython.native` decorator.
 A full refresh blocks for ~200ms. If this is acceptable, no special precautions
 are required. However this period may be unacceptable for some `uasyncio`
 applications. The driver provides an asynchronous `do_refresh(split=4)` method.
-If this is run the display will regularly be refreshed, but will periodically
-yield to the scheduler enabling other tasks to run. The arg determines the
-number of times in a frame where this will occur, so by default it will block
-for about 50ms. A `ValueError` will result if `split` is not an integer divisor
-of the `height` passed to the constructor.
-
-An application using this should call `refresh(ssd, True)` once at the start,
-then launch the `do_refresh` method. After that, no calls to `refresh` should
-be made. See `gui/demos/scale_async.py`. The initial synchronous `refresh` call
-will block for the full refresh period.
+If this is run the display will be refreshed, but will periodically yield to
+the scheduler enabling other tasks to run. This is documented
+[here](./ASYNC.md).
 
 Another option to reduce blocking is overclocking the SPI bus.
 
@@ -457,16 +450,8 @@ no special precautions are required. This period may be unacceptable for some
 reasons or where the host cannot support high speeds.
 
 The driver provides an asynchronous `do_refresh(split=4)` method. If this is
-run the display will regularly be refreshed, but will periodically yield to the
-scheduler enabling other tasks to run. The arg determines the number of times
-in a frame where this will occur, so by default it will block for about 15ms. A
-`ValueError` will result if `split` is not an integer divisor of the `height`
-passed to the constructor.
-
-An application using this should call `refresh(ssd, True)` once at the start,
-then launch the `do_refresh` method. After that, no calls to `refresh` should
-be made. See `gui/demos/scale_async.py`. The initial synchronous `refresh` call
-will block for the full refresh period.
+run the display will be refreshed, but will periodically yield to the scheduler
+enabling other tasks to run. This is documented [here](./ASYNC.md).
 
 ###### [Contents](./DRIVERS.md#contents)
 

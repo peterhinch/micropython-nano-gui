@@ -47,6 +47,7 @@ class ST7789(framebuf.FrameBuffer):
     # Convert r, g, b in range 0-255 to a 16 bit colour value
     # LS byte goes into LUT offset 0, MS byte into offset 1
     # Same mapping in linebuf so LS byte is shifted out 1st
+    # For some reason color must be inverted on this controller.
     @staticmethod
     def rgb(r, g, b):
         return ((b & 0xf8) << 5 | (g & 0x1c) << 11 | (g & 0xe0) >> 5 | (r & 0xf8)) ^ 0xffff
@@ -59,7 +60,8 @@ class ST7789(framebuf.FrameBuffer):
         self._cs = cs
         self.height = height  # Required by Writer class
         self.width = width
-        self._spi_init = init_spi
+        self._spi_init = init_spi  # Possible user callback
+        self._lock = asyncio.Lock()
         mode = framebuf.GS4_HMSB  # Use 4bit greyscale.
         gc.collect()
         buf = bytearray(height * width // 2)
@@ -98,7 +100,8 @@ class ST7789(framebuf.FrameBuffer):
         self._cs(1)
 
     # Initialise the hardware. Blocks 163ms. Adafruit have various sleep delays
-    # where I can find no requirement in the datasheet. I have removed them.
+    # where I can find no requirement in the datasheet. I removed them with
+    # other redundant code.
     def _init(self, disp_mode):
         self._hwreset()  # Hardware reset. Blocks 3ms
         if self._spi_init:  # A callback was passed
@@ -114,15 +117,15 @@ class ST7789(framebuf.FrameBuffer):
         cmd(b'\x13')  # NORON Normal display mode
 
         # Adafruit skip setting CA and RA. We do it to enable rotation and
-        # reflection. Also hopefully to help portability. Set display window
-        # depending on mode, .height and .width.
+        # reflection. Also hopefully to localise any display portability issues?
+        # Set display window depending on mode, .height and .width.
         self.set_window(disp_mode)
         # d7..d5 of MADCTL determine rotation/orientation datasheet P124, P231
         # d7 = MY page addr order
         # d6 = MX col addr order
         # d5 = MV row/col exchange
         wcd(b'\x36', int.to_bytes(disp_mode, 1, 'little'))
-        cmd(b'\x29')  # DISPON
+        cmd(b'\x29')  # DISPON. Adafruit then delay 500ms.
 
     # Define the mapping between RAM and the display
     # May need modifying for non-Adafruit hardware which may use a different
@@ -178,14 +181,14 @@ class ST7789(framebuf.FrameBuffer):
 
     # Asynchronous refresh with support for reducing blocking time.
     async def do_refresh(self, split=4):
-        lines, mod = divmod(self.height, split)  # Lines per segment
-        if mod:
-            raise ValueError('Invalid do_refresh arg.')
-        clut = ST7789.lut
-        wd = self.width // 2
-        lb = self._linebuf
-        buf = self._mvb
-        while True:
+        async with self._lock:
+            lines, mod = divmod(self.height, split)  # Lines per segment
+            if mod:
+                raise ValueError('Invalid do_refresh arg.')
+            clut = ST7789.lut
+            wd = self.width // 2
+            lb = self._linebuf
+            buf = self._mvb
             line = 0
             for n in range(split):
                 if self._spi_init:  # A callback was passed

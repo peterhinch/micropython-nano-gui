@@ -66,6 +66,7 @@ class ILI9341(framebuf.FrameBuffer):
         sleep_ms(50)
         if self._spi_init:  # A callback was passed
             self._spi_init(spi)  # Bus may be shared
+        self._lock = asyncio.Lock()
         # Send initialization commands
         self._wcmd(b'\x01')  # SWRESET Software reset
         sleep_ms(100)
@@ -138,15 +139,15 @@ class ILI9341(framebuf.FrameBuffer):
         self._cs(1)
 
     async def do_refresh(self, split=4):
-        lines, mod = divmod(self.height, split)  # Lines per segment
-        if mod:
-            raise ValueError('Invalid do_refresh arg.')
-        clut = ILI9341.lut
-        wd = self.width // 2
-        ht = self.height
-        lb = self._linebuf
-        buf = self._mvb
-        while True:  # Perform a refresh
+        async with self._lock:
+            lines, mod = divmod(self.height, split)  # Lines per segment
+            if mod:
+                raise ValueError('Invalid do_refresh arg.')
+            clut = ILI9341.lut
+            wd = self.width // 2
+            ht = self.height
+            lb = self._linebuf
+            buf = self._mvb
             # Commands needed to start data write 
             self._wcd(b'\x2a', int.to_bytes(self.width, 4, 'big'))  # SET_COLUMN
             self._wcd(b'\x2b', int.to_bytes(ht, 4, 'big'))  # SET_PAGE

@@ -108,6 +108,7 @@ my GUI's employ the American spelling of `color`.
 
 ## 1.1 Change log
 
+26 Mar 2021 Add ST7789. Alter uasyncio support on ili9341.
 14 Mar 2021 Tested on Pi Pico.  
 17 Jan 2021  
 Add ePaper drivers. Ensure monochrome and color setup requirements are
@@ -150,6 +151,9 @@ Compatible and tested display drivers include:
  * Drivers for Adafruit ST7735R based TFT's: 
  [1.8 inch](https://www.adafruit.com/product/358) and
  [1.44 inch](https://www.adafruit.com/product/2088) documented [here](./DRIVERS.md#4-drivers-for-st7735r).
+ * Drivers for Adafruit ST7789 TFT's:
+ [1.3 inch](https://www.adafruit.com/product/4313) and
+[1.54 inch](https://www.adafruit.com/product/3787).
  * Drivers for ILI9341 such as [Adafruit 3.2 inch](https://www.adafruit.com/product/1743)
  documented [here](./DRIVERS.md#5-drivers-for-ili9341).
  * [Adafruit 2.9 inch ePaper display](https://www.adafruit.com/product/4262)
@@ -198,7 +202,8 @@ code. This stuff is easier than you might think.
 
 # 2. Files and Dependencies
 
-Firmware should be V1.13 or later.
+Firmware should be V1.13 or later. At the time of writing the Pi Pico was new:
+firmware should be from a daily build or >=V1.15 when it arrives.
 
 Installation comprises copying the `gui` and `drivers` directories, with their
 contents, plus a hardware configuration file, to the target. The directory
@@ -258,11 +263,10 @@ Demos for larger displays.
  * `aclock.py` Analog clock demo. Cross platform.
  * `alevel.py` Spirit level using Pyboard accelerometer.
  * `fpt.py` Plot demo. Cross platform.
- * `scale.py` A demo of the new `Scale` widget. Cross platform.
+ * `scale.py` A demo of the `Scale` widget. Cross platform. Uses `uasyncio`.
  * `asnano_sync.py` Two Pyboard specific demos using the GUI with `uasyncio`.
  * `asnano.py` Could readily be adapted for other targets.
  * `tbox.py` Demo `Textbox` class. Cross-platform.
- * `scale_ili.py` A special demo of the asychronous mode of the ILI9341 driver.
 
 Demos for ePaper displays:  
  * `waveshare_test.py` For the Waveshare eInk Display HAT 2.7" 176*274 display.
@@ -279,7 +283,9 @@ Demos for Sharp displays:
 
 Usage with `uasyncio` is discussed [here](./ASYNC.md). In summary the GUI works
 well with `uasyncio` but the blocking which occurs during transfer of the
-framebuffer to the display may affect more demanding applications.
+framebuffer to the display may affect more demanding applications. Some display
+drivers have an additional asynchronous refresh method. This may optionally be
+used to mitigate the resultant latency.
 
 ###### [Contents](./README.md#contents)
 
@@ -322,6 +328,7 @@ copied to the hardware root as `color_setup.py`. Example files:
  * `st7735r144_setup.py` For a Pyboard with an
  [Adafruit 1.44 inch TFT display](https://www.adafruit.com/product/2088).
  * `ili9341_setup.py` A 240*320 ILI9341 display on ESP32.
+ * `ssd7789.py` Example with SSD7789 driver and Pi Pico host.
  * `waveshare_setup.py` 176*274 ePaper display.
  * `epd29_sync.py` Adafruit 2.9 inch ePaper display for synchronous code.
  * `epd29_async.py` Adafruit 2.9 inch ePaper display: `uasyncio` applications.

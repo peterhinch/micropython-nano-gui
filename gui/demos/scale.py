@@ -1,12 +1,15 @@
 # scale.py Test/demo of scale widget for nano-gui
 
 # Released under the MIT License (MIT). See LICENSE.
-# Copyright (c) 2020 Peter Hinch
+# Copyright (c) 2020-2021 Peter Hinch
 
 # Usage:
 # import gui.demos.scale
 
 # Initialise hardware and framebuf before importing modules.
+# Uses uasyncio and also the asynchronous do_refresh method if the driver
+# supports it.
+
 from color_setup import ssd  # Create a display instance
 
 from gui.core.nanogui import refresh
@@ -44,7 +47,12 @@ async def default(scale, lbl):
             cv += delta
             scale.value(cv)
             lbl.value('{:4.3f}'.format(cv))
-            refresh(ssd)
+            if hasattr(ssd, 'do_refresh'):
+                # Option to reduce uasyncio latency
+                await ssd.do_refresh()
+            else:
+                # Normal synchronous call
+                refresh(ssd)
             await asyncio.sleep_ms(250)
         val, cv = v2, v1
 
@@ -68,7 +76,10 @@ def test():
 
     lbl = Label(wri, ssd.height - wri.height - 2, 2, 50, 
                 bgcolor = DARKGREEN, bdcolor = RED, fgcolor=WHITE)
-    scale = Scale(wri, 45, 2, width = 124, tickcb = tickcb,
+    # do_refresh is called with arg 4. In landscape mode this splits screen
+    # into segments of 240/4=60 lines. Here we ensure a scale straddles
+    # this boundary
+    scale = Scale(wri, 55, 2, width = 124, tickcb = tickcb,
                   pointercolor=RED, fontcolor=YELLOW, bdcolor=CYAN)
     asyncio.run(default(scale, lbl))
 
