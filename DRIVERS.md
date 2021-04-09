@@ -444,14 +444,23 @@ On Adafruit displays, combinations that don't produce mirror images are:
 
 #### Use with uasyncio
 
-Running the SPI bus at 60MHz a refresh blocks for 83ms. If this is acceptable,
-no special precautions are required. This period may be unacceptable for some
-`uasyncio` applications. Some may use lower SPI baudrates either for electrical
-reasons or where the host cannot support high speeds.
+Running the SPI bus at 60MHz a refresh blocks for 83ms (tested on a Pi Pico at
+standard clock frequency). If the blocking period is acceptable, no special
+precautions are required. This period may be unacceptable for some `uasyncio`
+applications. Some may use lower SPI baudrates either for electrical reasons or
+where the host cannot support high speeds, and some platforms may run Python
+code at a different speed.
 
 The driver provides an asynchronous `do_refresh(split=4)` method. If this is
 run the display will be refreshed, but will periodically yield to the scheduler
 enabling other tasks to run. This is documented [here](./ASYNC.md).
+
+The amount of data for SPI transfer for a 240x240 display is  
+240x240x16 = 921.6K bits  
+At a 60MHz baudrate this equates to  
+240x240x16/6e7=15.36ms  
+This suggests that about 80% of the latency results from the Python code. An
+option may be to overclock.
 
 ###### [Contents](./DRIVERS.md#contents)
 

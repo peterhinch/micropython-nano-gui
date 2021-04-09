@@ -752,7 +752,7 @@ Method:
  * `value=None` Set or get the current value. Always returns the current value.
  A passed `float` is constrained to the range -1.0 <= V <= 1.0 and becomes the
  `Scale`'s current value. The `Scale` is updated. Passing `None` enables
- reading the current value.
+ reading the current value, but see note below on precision.
 
 ### Callback legendcb
 
@@ -795,6 +795,12 @@ with 20 ticks displayed. If the scale becomes 10x longer, the value diference
 between consecutive large ticks and legends is divided by 10. This means that
 the `tickcb` callback must return a string having an additional significant
 digit. If this is not done, consecutive legends will have the same value.
+
+### Precision
+
+For performance reasons the control stores values as integers. This means that
+if you set `value` and subsequently retrieve it, there may be some loss of
+precision. Each visible division on the control represents 10 integer units.
 
 ###### [Contents](./README.md#contents)
 
