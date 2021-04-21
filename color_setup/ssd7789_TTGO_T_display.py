@@ -4,7 +4,7 @@
 # Copyright (c) 2021 Peter Hinch, Ihor Nehrutsa
 
 # Supports:
-# TTGO T-Display 1.14" 135*240(Pixel) with MicroSD - ST7789V
+# TTGO T-Display 1.14" 135*240(Pixel) based on ST7789V
 # http://www.lilygo.cn/claprod_view.aspx?TypeId=62&Id=1274
 # http://www.lilygo.cn/prod_view.aspx?TypeId=50044&Id=1126
 # https://github.com/Xinyuan-LilyGO/TTGO-T-Display
@@ -38,9 +38,6 @@ BUTTON2 =     0  # left of the USB connector
 #DAC1 25
 #DAC2 26
 
-# ESP32 chip
-VSPI_ID = 2  # hardware SPI number
-
 from machine import Pin, SPI, ADC
 import gc
 
@@ -53,8 +50,10 @@ pbl = Pin(TFT_BL, Pin.OUT, value=1)
 
 gc.collect()  # Precaution before instantiating framebuf
 # Conservative low baudrate. Can go to 62.5MHz.
-spi = SPI(VSPI_ID, 30_000_000, sck=Pin(TFT_SCLK), mosi=Pin(TFT_MOSI))
-ssd = SSD(spi, width=135, height=240, dc=pdc, cs=pcs, rst=prst) #, disp_mode=PORTRAIT | USD) 
+spi = SPI(1, 30_000_000, sck=Pin(TFT_SCLK), mosi=Pin(TFT_MOSI))
+
+#ssd = SSD(spi, height=240, width=135, dc=pdc, cs=pcs, rst=prst) #, disp_mode=PORTRAIT | USD) 
+ssd = SSD(spi, height=(135+5)*2, width=240, dc=pdc, cs=pcs, rst=prst) #, disp_mode=PORTRAIT | USD) 
 
 # optional
 # b1 = Pin(BUTTON1, Pin.IN)
