@@ -400,14 +400,23 @@ below. An example file for the Pi Pico is in `color_setup/ssd7789.py`.
  * `width=240`
  * `disp_mode=0` By default the display chip operates in landscape mode. This
  arg enables portrait mode and other configurations. See below.
- * `init_spi=False` This optional arg enables flexible options in configuring
- the SPI bus. The default assumes exclusive access to the bus. In this normal
- case, `color_setup.py` initialises it and the settings will be left in place.
- If the bus is shared with devices which require different settings, a callback
- function should be passed. It will be called prior to each SPI bus write. The
- callback will receive a single arg being the SPI bus instance. It will
- typically be a one-liner or lambda initialising the bus. A minimal example is
- this function:
+ * `init_spi=False` For shared SPI bus applications. See note below.
+ * `offset=(0, 0)` This is intended for display hardware where the display
+ hardware's coordinate system is offset relative to the chip's RAM origin. An
+ `(x, y)` tuple (where `x` and `y` are positive integers) can offset this. In
+ practice, when other display hardware is supported, this doc will be amended
+ to specify the values to be used.
+
+### init_spi
+
+This optional arg enables flexible options in configuring the SPI bus. The
+default assumes exclusive access to the bus. In this normal case,
+`color_setup.py` initialises it and the settings will be left in place. If the
+bus is shared with devices which require different settings, a callback
+function should be passed. It will be called prior to each SPI bus write. The
+callback will receive a single arg being the SPI bus instance. It will
+typically be a one-liner or lambda initialising the bus. A minimal example is
+this function:
 ```python
 def spi_init(spi):
     spi.init(baudrate=30_000_000)

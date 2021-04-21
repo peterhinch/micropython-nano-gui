@@ -53,13 +53,15 @@ class ST7789(framebuf.FrameBuffer):
         return ((b & 0xf8) << 5 | (g & 0x1c) << 11 | (g & 0xe0) >> 5 | (r & 0xf8)) ^ 0xffff
 
     # rst and cs are active low, SPI is mode 0
-    def __init__(self, spi, cs, dc, rst, height=240, width=240, disp_mode=0, init_spi=False):
+    def __init__(self, spi, cs, dc, rst, height=240, width=240,
+                 disp_mode=0, init_spi=False, offset=(0, 0):
         self._spi = spi  # Clock cycle time for write 16ns 62.5MHz max (read is 150ns)
         self._rst = rst  # Pins
         self._dc = dc
         self._cs = cs
         self.height = height  # Required by Writer class
         self.width = width
+        self._offset = offset
         self._spi_init = init_spi  # Possible user callback
         self._lock = asyncio.Lock()
         mode = framebuf.GS4_HMSB  # Use 4bit greyscale.
@@ -138,8 +140,10 @@ class ST7789(framebuf.FrameBuffer):
         # Determine x and y start and end. Defaults for LANDSCAPE and PORTRAIT
         ys = 0  # y start
         ye = wht - 1  # y end
+        yoff = self._offset[1]
         xs = 0
         xe = wwd - 1
+        xoff = self._offset[0]
         if mode & PORTRAIT:
             if mode & REFLECT:
                 ys = rwd - wht
@@ -154,9 +158,13 @@ class ST7789(framebuf.FrameBuffer):
             if mode & USD:
                 ys = rht - wwd
                 ye = rht - 1
-        # Col address set
+        # Col address set. Add in any offset.
+        xs += xoff
+        xe += xoff
         self._wcd(b'\x2a', int.to_bytes(xs, 2, 'big') + int.to_bytes(xe, 2, 'big'))
         # Row address set
+        ys += yoff
+        ye += yoff
         self._wcd(b'\x2b', int.to_bytes(ys, 2, 'big') + int.to_bytes(ye, 2, 'big'))
 
     #@micropython.native # Made virtually no difference to timing.
