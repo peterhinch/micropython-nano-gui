@@ -202,8 +202,8 @@ code. This stuff is easier than you might think.
 
 # 2. Files and Dependencies
 
-Firmware should be V1.13 or later. At the time of writing the Pi Pico was new:
-firmware should be from a daily build or >=V1.15 when it arrives.
+Firmware should be V1.13 or later. On the Pi Pico firmware should be V1.15 or
+later.
 
 Installation comprises copying the `gui` and `drivers` directories, with their
 contents, plus a hardware configuration file, to the target. The directory
