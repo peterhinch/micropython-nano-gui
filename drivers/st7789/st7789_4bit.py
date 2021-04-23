@@ -54,7 +54,7 @@ class ST7789(framebuf.FrameBuffer):
 
     # rst and cs are active low, SPI is mode 0
     def __init__(self, spi, cs, dc, rst, height=240, width=240,
-                 disp_mode=0, init_spi=False, offset=(0, 0):
+                 disp_mode=0, init_spi=False, offset=(0, 0)):
         self._spi = spi  # Clock cycle time for write 16ns 62.5MHz max (read is 150ns)
         self._rst = rst  # Pins
         self._dc = dc
