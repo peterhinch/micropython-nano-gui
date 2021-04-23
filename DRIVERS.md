@@ -32,6 +32,7 @@ access via the `Writer` and `CWriter` classes is documented
   3.1 [Drivers for ST7735R](./DRIVERS.md#31-drivers-for-st7735r) Small TFTs  
   3.2 [Drivers for ILI9341](./DRIVERS.md#32-drivers-for-ili9341) Large TFTs  
   3.3 [Drivers for ST7789](./DRIVERS.md#33-drivers-for-st7789) Small high density TFTs  
+  3.3.1 [TTGO T Display](./DRIVERS.md#331-ttgo-t-display) Low cost ESP32 with integrated display  
  4. [Drivers for sharp displays](./DRIVERS.md#4-drivers-for-sharp-displays) Large low power monochrome displays  
   4.1 [Display characteristics](./DRIVERS.md#41-display-characteristics)  
   &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;4.1.1 [The VCOM bit](./DRIVERS.md#411-the-vcom-bit)  
@@ -470,6 +471,15 @@ At a 60MHz baudrate this equates to
 240x240x16/6e7=15.36ms  
 This suggests that about 80% of the latency results from the Python code. An
 option may be to overclock.
+
+### 3.3.1 TTGO T Display
+
+This is an ESP32 based device with an integrated 1.14" 135x240 pixel display
+based on ST7789.
+
+It is supported by `color_setup_ttgo.py` in `drivers/st7789`. Copy to
+`/pyboard/color_setup.py` on the device. It produces a landscape mode display
+with the top left hand corner adjacent to pin 36.
 
 ###### [Contents](./DRIVERS.md#contents)
 

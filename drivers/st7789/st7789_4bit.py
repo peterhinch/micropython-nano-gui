@@ -19,6 +19,7 @@ import gc
 import micropython
 import uasyncio as asyncio
 
+LANDSCAPE = 0  # Default
 PORTRAIT = 0x20
 REFLECT = 0x40
 USD = 0x80
@@ -138,33 +139,21 @@ class ST7789(framebuf.FrameBuffer):
         wht = self.height
         wwd = self.width  # Window dimensions
         # Determine x and y start and end. Defaults for LANDSCAPE and PORTRAIT
-        ys = 0  # y start
-        ye = wht - 1  # y end
-        yoff = self._offset[1]
-        xs = 0
-        xe = wwd - 1
         xoff = self._offset[0]
-        if mode & PORTRAIT:
-            if mode & REFLECT:
-                ys = rwd - wht
-                ye = rwd - 1
-            if mode & USD:
-                xs = rht - wwd
-                xe = rht - 1
-        else:  # LANDSCAPE
-            if mode & REFLECT:
-                xs = rwd - wht
-                xe = rwd - 1
-            if mode & USD:
-                ys = rht - wwd
-                ye = rht - 1
+        xs = xoff
+        xe = wwd + xoff - 1
+        yoff = self._offset[1]
+        ys = yoff  # y start
+        ye = wht + yoff - 1 # y end
+        if mode & REFLECT:
+            ys = rwd - wht - yoff
+            ye = rwd - yoff - 1
+        if mode & USD:
+            xs = rht - wwd - xoff
+            xe = rht - xoff - 1
         # Col address set. Add in any offset.
-        xs += xoff
-        xe += xoff
         self._wcd(b'\x2a', int.to_bytes(xs, 2, 'big') + int.to_bytes(xe, 2, 'big'))
         # Row address set
-        ys += yoff
-        ye += yoff
         self._wcd(b'\x2b', int.to_bytes(ys, 2, 'big') + int.to_bytes(ye, 2, 'big'))
 
     #@micropython.native # Made virtually no difference to timing.
