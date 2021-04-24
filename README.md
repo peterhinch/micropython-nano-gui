@@ -108,7 +108,8 @@ my GUI's employ the American spelling of `color`.
 
 ## 1.1 Change log
 
-26 Mar 2021 Add ST7789. Alter uasyncio support on ili9341.
+24 Apr 2021 Support TTGO T-Display.  
+26 Mar 2021 Add ST7789. Alter uasyncio support on ili9341.  
 14 Mar 2021 Tested on Pi Pico.  
 17 Jan 2021  
 Add ePaper drivers. Ensure monochrome and color setup requirements are
@@ -151,9 +152,10 @@ Compatible and tested display drivers include:
  * Drivers for Adafruit ST7735R based TFT's: 
  [1.8 inch](https://www.adafruit.com/product/358) and
  [1.44 inch](https://www.adafruit.com/product/2088) documented [here](./DRIVERS.md#4-drivers-for-st7735r).
- * Drivers for Adafruit ST7789 TFT's:
+ * Drivers for Adafruit ST7789 TFT's and TTGO T-Display ESP32 with TFT display:
  [1.3 inch](https://www.adafruit.com/product/4313) and
 [1.54 inch](https://www.adafruit.com/product/3787).
+[TTGO Product page](http://www.lilygo.cn/claprod_view.aspx?TypeId=62&Id=1274)  
  * Drivers for ILI9341 such as [Adafruit 3.2 inch](https://www.adafruit.com/product/1743)
  documented [here](./DRIVERS.md#5-drivers-for-ili9341).
  * [Adafruit 2.9 inch ePaper display](https://www.adafruit.com/product/4262)
@@ -332,6 +334,9 @@ copied to the hardware root as `color_setup.py`. Example files:
  * `waveshare_setup.py` 176*274 ePaper display.
  * `epd29_sync.py` Adafruit 2.9 inch ePaper display for synchronous code.
  * `epd29_async.py` Adafruit 2.9 inch ePaper display: `uasyncio` applications.
+
+The setup file for the TTGO T-Display is located with the ST7789 driver. See
+the [Driver doc: ST7789](./DRIVERS.md#33-drivers-for-st7789).
 
 ## 2.2 Dependencies
 

@@ -491,6 +491,12 @@ is because the display hardware is designed in portrait mode. The color setup
 file transposes the `PORTRAIT` and `LANDSCAPE` constants with consequent
 changes to the effect of the `USD` and `REFLECT` constants.
 
+URL's. More in `color_setup_ttgo.py`  
+[TTGO Product page](http://www.lilygo.cn/claprod_view.aspx?TypeId=62&Id=1274)  
+[Ihor Nehrutsa's PR](https://github.com/peterhinch/micropython-nano-gui/pull/8)  
+[Another MicroPython driver](https://github.com/jikegong/TTGO-Esp32-ST7789-Display-MicroPython/blob/2ed1816c41f25c8993038c35ef40b2efeb225dcc/st7789.py)  
+[Factory test (C)](https://github.com/Xinyuan-LilyGO/TTGO-T-Display/blob/master/TFT_eSPI/examples/FactoryTest/FactoryTest.ino)  
+
 ###### [Contents](./DRIVERS.md#contents)
 
 # 4. Drivers for sharp displays
