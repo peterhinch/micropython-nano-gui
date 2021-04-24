@@ -67,7 +67,8 @@ class ST7789(framebuf.FrameBuffer):
         self._lock = asyncio.Lock()
         mode = framebuf.GS4_HMSB  # Use 4bit greyscale.
         gc.collect()
-        buf = bytearray(height * width // 2)
+        #buf = bytearray(height * width // 2)
+        buf = bytearray(height * -(-width // 2))  # Ceiling division for odd widths
         self._mvb = memoryview(buf)
         super().__init__(buf, width, height, mode)
         self._linebuf = bytearray(self.width * 2)  # 16 bit color out
@@ -130,28 +131,41 @@ class ST7789(framebuf.FrameBuffer):
         wcd(b'\x36', int.to_bytes(disp_mode, 1, 'little'))
         cmd(b'\x29')  # DISPON. Adafruit then delay 500ms.
 
-    # Define the mapping between RAM and the display
-    # May need modifying for non-Adafruit hardware which may use a different
-    # mapping between chip RAM and LCD. Datasheet section 8.12 p124.
+    # Define the mapping between RAM and the display.
+    # Datasheet section 8.12 p124.
     def set_window(self, mode):
         rht = 320
         rwd = 240  # RAM ht and width
-        wht = self.height
-        wwd = self.width  # Window dimensions
-        # Determine x and y start and end. Defaults for LANDSCAPE and PORTRAIT
-        xoff = self._offset[0]
-        xs = xoff
-        xe = wwd + xoff - 1
-        yoff = self._offset[1]
-        ys = yoff  # y start
-        ye = wht + yoff - 1 # y end
-        if mode & REFLECT:
-            ys = rwd - wht - yoff
-            ye = rwd - yoff - 1
-        if mode & USD:
-            xs = rht - wwd - xoff
-            xe = rht - xoff - 1
-        # Col address set. Add in any offset.
+        wht = self.height  # Window (framebuf) dimensions.
+        wwd = self.width  # In portrait mode wht > wwd
+        if mode & PORTRAIT:
+            xoff = self._offset[1]  # x and y transposed
+            yoff = self._offset[0]
+            xs = xoff
+            xe = wwd + xoff - 1
+            ys = yoff  # y start
+            ye = wht + yoff - 1 # y end
+            if mode & REFLECT:
+                ys = rwd - wht - yoff
+                ye = rwd - yoff - 1
+            if mode & USD:
+                xs = rht - wwd - xoff
+                xe = rht - xoff - 1
+        else:  # LANDSCAPE
+            xoff = self._offset[0]
+            yoff = self._offset[1]
+            xs = xoff
+            xe = wwd + xoff - 1
+            ys = yoff  # y start
+            ye = wht + yoff - 1 # y end
+            if mode & USD:
+                ys = rht - wht - yoff
+                ye = rht - yoff - 1
+            if mode & REFLECT:
+                xs = rwd - wwd - xoff
+                xe = rwd - xoff - 1
+
+        # Col address set.
         self._wcd(b'\x2a', int.to_bytes(xs, 2, 'big') + int.to_bytes(xe, 2, 'big'))
         # Row address set
         self._wcd(b'\x2b', int.to_bytes(ys, 2, 'big') + int.to_bytes(ye, 2, 'big'))
@@ -160,7 +174,8 @@ class ST7789(framebuf.FrameBuffer):
     def show(self):  # Blocks for 83ms @60MHz SPI
         #ts = ticks_us()
         clut = ST7789.lut
-        wd = self.width // 2
+        #wd = self.width // 2
+        wd = -(-self.width // 2)  # Ceiling division for odd number widths
         end = self.height * wd
         lb = self._linebuf
         buf = self._mvb
@@ -183,7 +198,8 @@ class ST7789(framebuf.FrameBuffer):
             if mod:
                 raise ValueError('Invalid do_refresh arg.')
             clut = ST7789.lut
-            wd = self.width // 2
+            #wd = self.width // 2
+            wd = -(-self.width // 2)
             lb = self._linebuf
             buf = self._mvb
             line = 0

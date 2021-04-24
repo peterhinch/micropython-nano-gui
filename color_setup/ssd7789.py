@@ -33,7 +33,7 @@ pcs = Pin(14, Pin.OUT, value=1)
 prst = Pin(15, Pin.OUT, value=1)
 
 gc.collect()  # Precaution before instantiating framebuf
-# Conservative low baudrate. Can go to 62.5MHz.
+# Conservative low baudrate. Can go to 62.5MHz. Depending on wiring.
 spi = SPI(1, 30_000_000, sck=Pin(10), mosi=Pin(11), miso=Pin(8))
 ssd = SSD(spi, dc=pdc, cs=pcs, rst=prst)  #, disp_mode=PORTRAIT | USD)
 

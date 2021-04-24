@@ -390,8 +390,8 @@ below. An example file for the Pi Pico is in `color_setup/ssd7789.py`.
 
 #### ST7789 Constructor args:
  * `spi` An initialised SPI bus instance. The chip supports clock rates of upto
- 62.5MHz (datasheet table 6). I have tested 60MHz. High speeds may be sensitive
- to electrical issues such as lead lengths, PCB layout and grounding.
+ 62.5MHz (datasheet table 6). I have tested 60MHz. High speeds are sensitive to
+ electrical issues such as lead lengths, PCB layout and grounding.
  * `cs` An initialised output pin. Initial value should be 1.
  * `dc` An initialised output pin. Initial value should be 0.
  * `rst` An initialised output pin. Initial value should be 1.
@@ -424,11 +424,12 @@ def spi_init(spi):
 ```
 #### Display mode
 
-This is povided in the hope of supporting other displays which may not be
-symmetrical. It also enables the Adafruit display image to be rotated.
+This is provided mainly to support asymmetrical displays. It also enables the
+Adafruit display image to be rotated.
 
 The driver exports the following constants:  
 ```python
+LANDSCAPE = 0  # Normal display
 PORTRAIT = 0x20  # Rotate 90°
 REFLECT = 0x40  # Swap pixels left-right
 USD = 0x80   # Upside down: swap pixels top-bottom
@@ -474,12 +475,21 @@ option may be to overclock.
 
 ### 3.3.1 TTGO T Display
 
+Thanks to [Ihor Nehrutsa](https://github.com/IhorNehrutsa) who wrote much of
+the setup file for this device.
+
 This is an ESP32 based device with an integrated 1.14" 135x240 pixel display
 based on ST7789.
 
 It is supported by `color_setup_ttgo.py` in `drivers/st7789`. Copy to
 `/pyboard/color_setup.py` on the device. It produces a landscape mode display
 with the top left hand corner adjacent to pin 36.
+
+Commented-out code offers portrait mode with variants for upside-down and
+reflected display modes. These differ from those for the Adafruit display. This
+is because the display hardware is designed in portrait mode. The color setup
+file transposes the `PORTRAIT` and `LANDSCAPE` constants with consequent
+changes to the effect of the `USD` and `REFLECT` constants.
 
 ###### [Contents](./DRIVERS.md#contents)
 
