@@ -20,23 +20,16 @@ import gc
 import micropython
 import uasyncio as asyncio
 
+# d7..d5 of MADCTL determine rotation/orientation datasheet P124, P231
+# d5 = MV row/col exchange
+# d6 = MX col addr order
+# d7 = MY page addr order
+# These constants are also used as user specifiers for orientation. However
+# mapping is required between user value and that presented to hardware.
 LANDSCAPE = 0  # Default
 PORTRAIT = 0x20
 REFLECT = 0x40
 USD = 0x80
-
-# Display modes correspond to values expected by hardware.
-# Table entries map user request onto what is required. idx values:
-# 0 Normal 
-# 1 Reflect
-# 2 USD
-# 3 USD reflect
-def _modify(mode, pmode):
-    if pmode:  # Display hardware is portrait mode
-        mode ^= PORTRAIT
-    idx = mode >> 6
-    tbl = (0x60, 0xe0, 0xa0, 0x20) if mode & PORTRAIT else (0, 0x40, 0xc0, 0x80)
-    return tbl[idx]
 
 @micropython.viper
 def _lcopy(dest:ptr8, source:ptr8, lut:ptr8, length:int):
@@ -85,7 +78,7 @@ class ST7789(framebuf.FrameBuffer):
         self._mvb = memoryview(buf)
         super().__init__(buf, width, height, mode)
         self._linebuf = bytearray(self.width * 2)  # 16 bit color out
-        self._init(_modify(disp_mode, offset[2]))
+        self._init(disp_mode, offset[2])
         self.show()
 
     # Hardware reset
@@ -119,7 +112,7 @@ class ST7789(framebuf.FrameBuffer):
     # Initialise the hardware. Blocks 163ms. Adafruit have various sleep delays
     # where I can find no requirement in the datasheet. I removed them with
     # other redundant code.
-    def _init(self, disp_mode):
+    def _init(self, disp_mode, orientation):
         self._hwreset()  # Hardware reset. Blocks 3ms
         if self._spi_init:  # A callback was passed
             self._spi_init(self._spi)  # Bus may be shared
@@ -128,19 +121,25 @@ class ST7789(framebuf.FrameBuffer):
         cmd(b'\x01')  # SW reset datasheet specifies 120ms before SLPOUT
         sleep_ms(150)
         cmd(b'\x11')  # SLPOUT: exit sleep mode
-        sleep_ms(10)  # ? Adafruit delay 500ms (datsheet 5ms)
+        sleep_ms(10)  # Adafruit delay 500ms (datsheet 5ms)
         wcd(b'\x3a', b'\x55')  # _COLMOD 16 bit/pixel, 64Kib color space
         cmd(b'\x20') # INVOFF Adafruit turn inversion on. This driver fixes .rgb
         cmd(b'\x13')  # NORON Normal display mode
 
-        # Adafruit skip setting CA and RA. We do it to enable rotation and
-        # reflection. Also hopefully to localise any display portability issues?
+        # Display modes correspond to values expected by hardware. Sometimes
+        # these have to be applied in combination to achieve what the user wants.
+        # Table entries map user request onto what is required. idx values:
+        # 0 Normal 
+        # 1 Reflect
+        # 2 USD
+        # 3 USD reflect
+        # Followed by same for LANDSCAPE
+        if orientation:  # Display hardware is portrait mode
+            disp_mode ^= PORTRAIT
+        idx = disp_mode >> 6 if disp_mode & PORTRAIT else (disp_mode >> 6) + 4
+        disp_mode = (0x60, 0xe0, 0xa0, 0x20, 0, 0x40, 0xc0, 0x80)[idx]
         # Set display window depending on mode, .height and .width.
         self.set_window(disp_mode)
-        # d7..d5 of MADCTL determine rotation/orientation datasheet P124, P231
-        # d7 = MY page addr order
-        # d6 = MX col addr order
-        # d5 = MV row/col exchange
         wcd(b'\x36', int.to_bytes(disp_mode, 1, 'little'))
         cmd(b'\x29')  # DISPON. Adafruit then delay 500ms.
 
@@ -187,7 +186,6 @@ class ST7789(framebuf.FrameBuffer):
     def show(self):  # Blocks for 83ms @60MHz SPI
         #ts = ticks_us()
         clut = ST7789.lut
-        #wd = self.width // 2
         wd = -(-self.width // 2)  # Ceiling division for odd number widths
         end = self.height * wd
         lb = self._linebuf
@@ -211,7 +209,6 @@ class ST7789(framebuf.FrameBuffer):
             if mod:
                 raise ValueError('Invalid do_refresh arg.')
             clut = ST7789.lut
-            #wd = self.width // 2
             wd = -(-self.width // 2)
             lb = self._linebuf
             buf = self._mvb
