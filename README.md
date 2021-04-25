@@ -108,7 +108,7 @@ my GUI's employ the American spelling of `color`.
 
 ## 1.1 Change log
 
-24 Apr 2021 Support TTGO T-Display.  
+25 Apr 2021 Support TTGO T-Display.  
 26 Mar 2021 Add ST7789. Alter uasyncio support on ili9341.  
 14 Mar 2021 Tested on Pi Pico.  
 17 Jan 2021  

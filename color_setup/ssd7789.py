@@ -26,7 +26,7 @@
 from machine import Pin, SPI
 import gc
 
-from drivers.st7789.st7789_4bit import ST7789 as SSD, PORTRAIT, USD, REFLECT
+from drivers.st7789.st7789_4bit import ST7789 as SSD, PORTRAIT, USD, REFLECT, LANDSCAPE
 
 pdc = Pin(13, Pin.OUT, value=0)  # Arbitrary pins
 pcs = Pin(14, Pin.OUT, value=1)
@@ -35,5 +35,5 @@ prst = Pin(15, Pin.OUT, value=1)
 gc.collect()  # Precaution before instantiating framebuf
 # Conservative low baudrate. Can go to 62.5MHz. Depending on wiring.
 spi = SPI(1, 30_000_000, sck=Pin(10), mosi=Pin(11), miso=Pin(8))
-ssd = SSD(spi, dc=pdc, cs=pcs, rst=prst)  #, disp_mode=PORTRAIT | USD)
+ssd = SSD(spi, dc=pdc, cs=pcs, rst=prst)
 

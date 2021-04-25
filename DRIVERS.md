@@ -32,7 +32,8 @@ access via the `Writer` and `CWriter` classes is documented
   3.1 [Drivers for ST7735R](./DRIVERS.md#31-drivers-for-st7735r) Small TFTs  
   3.2 [Drivers for ILI9341](./DRIVERS.md#32-drivers-for-ili9341) Large TFTs  
   3.3 [Drivers for ST7789](./DRIVERS.md#33-drivers-for-st7789) Small high density TFTs  
-  3.3.1 [TTGO T Display](./DRIVERS.md#331-ttgo-t-display) Low cost ESP32 with integrated display  
+  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;3.3.1 [TTGO T Display](./DRIVERS.md#331-ttgo-t-display) Low cost ESP32 with integrated display  
+  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;3.3.2 [Troubleshooting](./DRIVERS.md#332-troubleshooting)  
  4. [Drivers for sharp displays](./DRIVERS.md#4-drivers-for-sharp-displays) Large low power monochrome displays  
   4.1 [Display characteristics](./DRIVERS.md#41-display-characteristics)  
   &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;4.1.1 [The VCOM bit](./DRIVERS.md#411-the-vcom-bit)  
@@ -388,6 +389,9 @@ The `color_setup.py` file should initialise the SPI bus with a baudrate of
 soft SPI may be used but hard may be faster. 30MHz is a conservative value: see
 below. An example file for the Pi Pico is in `color_setup/ssd7789.py`.
 
+Note to existing users: the `disp_mode` args now behave as expected. This may
+mean changing the constructor arg in your `color_setup.py`.
+
 #### ST7789 Constructor args:
  * `spi` An initialised SPI bus instance. The chip supports clock rates of upto
  62.5MHz (datasheet table 6). I have tested 60MHz. High speeds are sensitive to
@@ -399,14 +403,17 @@ below. An example file for the Pi Pico is in `color_setup/ssd7789.py`.
  `height` and `width` values: this ensures that `nano-gui` gets the correct
  aspect ratio.
  * `width=240`
- * `disp_mode=0` By default the display chip operates in landscape mode. This
- arg enables portrait mode and other configurations. See below.
+ * `disp_mode=0` By default the driver operates in landscape mode. This arg
+ enables portrait mode and other configurations. See below.
  * `init_spi=False` For shared SPI bus applications. See note below.
- * `offset=(0, 0)` This is intended for display hardware where the display
- hardware's coordinate system is offset relative to the chip's RAM origin. An
- `(x, y)` tuple (where `x` and `y` are positive integers) can offset this. In
- practice, when other display hardware is supported, this doc will be amended
- to specify the values to be used.
+ * `offset=(0, 0, 0)` This is intended for display hardware where the display
+ hardware's coordinate system is offset relative to the chip's RAM origin and
+ the case where the display hardware is configured in portrait mode. Elements
+ are `(x, y, p)` where `x` and `y` (being positive integers) represent the RAM
+ offset. `p==1` indicates display hardware which is in portrait mode. This
+ currently only applies to the TTGO T-Display. In practice, when other display
+ hardware is supported, this doc will specify the values to be used. Adafruit
+ uses the `(0, 0, 0)` default, TTGO uses `(52, 40, 1)`.
 
 ### init_spi
 
@@ -435,9 +442,10 @@ REFLECT = 0x40  # Swap pixels left-right
 USD = 0x80   # Upside down: swap pixels top-bottom
 ```
 For non-standard modes these may be combined using the bitwise-or `|` operator.  
-The following example `color_setup.py` is for Pi Pico.
+The following example `color_setup.py` is for Pi Pico and produces an upside
+down portrait display.
 ```python
-from drivers.st7789.st7789_4bit import ST7789 as SSD, PORTRAIT, USD, REFLECT
+from drivers.st7789.st7789_4bit import ST7789 as SSD, PORTRAIT, USD, REFLECT, LANDSCAPE
 
 pdc = Pin(13, Pin.OUT, value=0)  # Arbitrary pins
 pcs = Pin(14, Pin.OUT, value=1)
@@ -445,13 +453,8 @@ prst = Pin(15, Pin.OUT, value=1)
 
 gc.collect()  # Precaution before instantiating framebuf
 spi = SPI(1, 30_000_000, sck=Pin(10), mosi=Pin(11), miso=Pin(8))
-ssd = SSD(spi, dc=pdc, cs=pcs, rst=prst, disp_mode=PORTRAIT | REFLECT)
+ssd = SSD(spi, dc=pdc, cs=pcs, rst=prst, disp_mode=PORTRAIT | USD)
 ```
-On Adafruit displays, combinations that don't produce mirror images are:
- 1. No arg: landscape mode.
- 2. `USD | REFLECT` Upside down landscape mode (rotate 180°).
- 3. `PORTRAIT | REFLECT` Portrait mode (rotate 90° CCW).
- 4. `PORTRAIT | USD` Upside down portrait (rotate 90° CW).
 
 #### Use with uasyncio
 
@@ -481,21 +484,24 @@ the setup file for this device.
 This is an ESP32 based device with an integrated 1.14" 135x240 pixel display
 based on ST7789.
 
-It is supported by `color_setup_ttgo.py` in `drivers/st7789`. Copy to
+It is supported by `color_setup/color_setup_ttgo.py`. Copy to
 `/pyboard/color_setup.py` on the device. It produces a landscape mode display
 with the top left hand corner adjacent to pin 36.
 
-Commented-out code offers portrait mode with variants for upside-down and
-reflected display modes. These differ from those for the Adafruit display. This
-is because the display hardware is designed in portrait mode. The color setup
-file transposes the `PORTRAIT` and `LANDSCAPE` constants with consequent
-changes to the effect of the `USD` and `REFLECT` constants.
+Commented-out code offers portrait mode.
 
 URL's. More in `color_setup_ttgo.py`  
 [TTGO Product page](http://www.lilygo.cn/claprod_view.aspx?TypeId=62&Id=1274)  
 [Ihor Nehrutsa's PR](https://github.com/peterhinch/micropython-nano-gui/pull/8)  
 [Another MicroPython driver](https://github.com/jikegong/TTGO-Esp32-ST7789-Display-MicroPython/blob/2ed1816c41f25c8993038c35ef40b2efeb225dcc/st7789.py)  
 [Factory test (C)](https://github.com/Xinyuan-LilyGO/TTGO-T-Display/blob/master/TFT_eSPI/examples/FactoryTest/FactoryTest.ino)  
+
+### 3.3.2 Troubleshooting
+
+If your display shows garbage, check the following (I have seen both):
+ * SPI baudrate too high for your physical layout.
+ * `height` and `width` not matching the choice of `LANDSCAPE` or `PORTRAIT`
+ display mode.
 
 ###### [Contents](./DRIVERS.md#contents)
 

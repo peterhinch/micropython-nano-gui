@@ -3,9 +3,10 @@
 # Released under the MIT License (MIT). See LICENSE.
 # Copyright (c) 2021 Peter Hinch
 
-# Tested display
+# Tested displays:
 # Adafruit 1.3" 240x240 Wide Angle TFT LCD Display with MicroSD - ST7789
 # https://www.adafruit.com/product/4313
+# TTGO T-Display
 # Based on
 # Adfruit https://github.com/adafruit/Adafruit_CircuitPython_ST7789/blob/master/adafruit_st7789.py
 # Also see st7735r_4bit.py for other source acknowledgements
@@ -24,6 +25,18 @@ PORTRAIT = 0x20
 REFLECT = 0x40
 USD = 0x80
 
+# Display modes correspond to values expected by hardware.
+# Table entries map user request onto what is required. idx values:
+# 0 Normal 
+# 1 Reflect
+# 2 USD
+# 3 USD reflect
+def _modify(mode, pmode):
+    if pmode:  # Display hardware is portrait mode
+        mode ^= PORTRAIT
+    idx = mode >> 6
+    tbl = (0x60, 0xe0, 0xa0, 0x20) if mode & PORTRAIT else (0, 0x40, 0xc0, 0x80)
+    return tbl[idx]
 
 @micropython.viper
 def _lcopy(dest:ptr8, source:ptr8, lut:ptr8, length:int):
@@ -55,7 +68,7 @@ class ST7789(framebuf.FrameBuffer):
 
     # rst and cs are active low, SPI is mode 0
     def __init__(self, spi, cs, dc, rst, height=240, width=240,
-                 disp_mode=0, init_spi=False, offset=(0, 0)):
+                 disp_mode=0, init_spi=False, offset=(0, 0, 0)):
         self._spi = spi  # Clock cycle time for write 16ns 62.5MHz max (read is 150ns)
         self._rst = rst  # Pins
         self._dc = dc
@@ -72,7 +85,7 @@ class ST7789(framebuf.FrameBuffer):
         self._mvb = memoryview(buf)
         super().__init__(buf, width, height, mode)
         self._linebuf = bytearray(self.width * 2)  # 16 bit color out
-        self._init(disp_mode)
+        self._init(_modify(disp_mode, offset[2]))
         self.show()
 
     # Hardware reset
