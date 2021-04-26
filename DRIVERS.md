@@ -380,17 +380,18 @@ colors. The resultant buffer size for the Adafruit displays is 28800 bytes. See
 [Color handling](./DRIVERS.md#11-color-handling) for the implications of 4-bit
 color.
 
-[Tested display](https://www.adafruit.com/product/4313). The Adafruit
-[1.54 inch](https://www.adafruit.com/product/3787) has identical resolution and
-uses the same CircuitPython driver so can be expected to work.
+[Tested display: Adafruit 1.3 inch](https://www.adafruit.com/product/4313). The
+Adafruit [1.54 inch](https://www.adafruit.com/product/3787) has identical
+resolution and uses the same CircuitPython driver so can be expected to work.
+
+The driver also supports the
+[TTGO T-Display](http://www.lilygo.cn/claprod_view.aspx?TypeId=62&Id=1274).
+This is an inexpensive ESP32 with a 135x240 color TFT display.
 
 The `color_setup.py` file should initialise the SPI bus with a baudrate of
 30_000_000. Args `polarity`, `phase`, `bits`, `firstbit` are defaults. Hard or
 soft SPI may be used but hard may be faster. 30MHz is a conservative value: see
 below. An example file for the Pi Pico is in `color_setup/ssd7789.py`.
-
-Note to existing users: the `disp_mode` args now behave as expected. This may
-mean changing the constructor arg in your `color_setup.py`.
 
 #### ST7789 Constructor args:
  * `spi` An initialised SPI bus instance. The chip supports clock rates of upto
@@ -403,17 +404,30 @@ mean changing the constructor arg in your `color_setup.py`.
  `height` and `width` values: this ensures that `nano-gui` gets the correct
  aspect ratio.
  * `width=240`
- * `disp_mode=0` By default the driver operates in landscape mode. This arg
- enables portrait mode and other configurations. See below.
+ * `disp_mode=LANDSCAPE` This arg enables portrait mode and other
+ configurations. See below.
  * `init_spi=False` For shared SPI bus applications. See note below.
- * `offset=(0, 0, 0)` This is intended for display hardware where the display
- hardware's coordinate system is offset relative to the chip's RAM origin and
- the case where the display hardware is configured in portrait mode. Elements
- are `(x, y, p)` where `x` and `y` (being positive integers) represent the RAM
- offset. `p==1` indicates display hardware which is in portrait mode. This
- currently only applies to the TTGO T-Display. In practice, when other display
- hardware is supported, this doc will specify the values to be used. Adafruit
- uses the `(0, 0, 0)` default, TTGO uses `(52, 40, 1)`.
+ * `display=GENERIC` The `display` arg is an opaque type defining the display
+ hardware. Current options (exported by the driver) are `GENERIC` for Adafruit
+ displays and `TDISPLAY` for the TTGO board.
+
+#### Constants exported by the driver
+
+The `color_setup.py` file should invoke the driver as follows:
+```python
+from drivers.st7789.st7789_4bit import *
+SSD = ST7789
+```
+The following constants are available:  
+Orientation (values for `disp_mode`):  
+`LANDSCAPE` Normal display, text is parallel to long axis.  
+`PORTRAIT` Text is parallel to short axis.  
+`USD` Upside down rendering.  
+`REFLECT` Mirror image rendering.  
+
+Display types (values for `display`):  
+`GENERIC` For Adafruit displays.  
+`TDISPLAY` For the TTGO T-Display.  
 
 ### init_spi
 
@@ -432,20 +446,18 @@ def spi_init(spi):
 #### Display mode
 
 This is provided mainly to support asymmetrical displays. It also enables the
-Adafruit display image to be rotated.
+Adafruit display image to be rotated. Any of the orientation constants listed
+above may be applied, and multiple options may be combined using the bitwise-or
+`|` operator.  
 
-The driver exports the following constants:  
-```python
-LANDSCAPE = 0  # Normal display
-PORTRAIT = 0x20  # Rotate 90°
-REFLECT = 0x40  # Swap pixels left-right
-USD = 0x80   # Upside down: swap pixels top-bottom
-```
-For non-standard modes these may be combined using the bitwise-or `|` operator.  
+When choosing `LANDSCAPE` or `PORTRAIT` mode it is essential that `height` and
+`width` constructor args match the mode.
+
 The following example `color_setup.py` is for Pi Pico and produces an upside
 down portrait display.
 ```python
-from drivers.st7789.st7789_4bit import ST7789 as SSD, PORTRAIT, USD, REFLECT, LANDSCAPE
+from drivers.st7789.st7789_4bit import *
+SSD = ST7789
 
 pdc = Pin(13, Pin.OUT, value=0)  # Arbitrary pins
 pcs = Pin(14, Pin.OUT, value=1)

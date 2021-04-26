@@ -7,6 +7,7 @@
 # Adafruit 1.3" 240x240 Wide Angle TFT LCD Display with MicroSD - ST7789
 # https://www.adafruit.com/product/4313
 # TTGO T-Display
+
 # Based on
 # Adfruit https://github.com/adafruit/Adafruit_CircuitPython_ST7789/blob/master/adafruit_st7789.py
 # Also see st7735r_4bit.py for other source acknowledgements
@@ -20,16 +21,14 @@ import gc
 import micropython
 import uasyncio as asyncio
 
-# d7..d5 of MADCTL determine rotation/orientation datasheet P124, P231
-# d5 = MV row/col exchange
-# d6 = MX col addr order
-# d7 = MY page addr order
-# These constants are also used as user specifiers for orientation. However
-# mapping is required between user value and that presented to hardware.
+# User orientation constants
 LANDSCAPE = 0  # Default
-PORTRAIT = 0x20
-REFLECT = 0x40
-USD = 0x80
+REFLECT = 1
+USD = 2
+PORTRAIT = 4
+# Display types
+GENERIC = (0, 0, 0)
+TDISPLAY = (52, 40, 1)
 
 @micropython.viper
 def _lcopy(dest:ptr8, source:ptr8, lut:ptr8, length:int):
@@ -61,24 +60,28 @@ class ST7789(framebuf.FrameBuffer):
 
     # rst and cs are active low, SPI is mode 0
     def __init__(self, spi, cs, dc, rst, height=240, width=240,
-                 disp_mode=0, init_spi=False, offset=(0, 0, 0)):
+                 disp_mode=LANDSCAPE, init_spi=False, display=GENERIC):
+        if not 0 <= disp_mode <= 7:
+            raise ValueError('Invalid display mode:', disp_mode)
+        if not display in (GENERIC, TDISPLAY):
+            raise ValueError('Invalid display type.')
         self._spi = spi  # Clock cycle time for write 16ns 62.5MHz max (read is 150ns)
         self._rst = rst  # Pins
         self._dc = dc
         self._cs = cs
         self.height = height  # Required by Writer class
         self.width = width
-        self._offset = offset
+        self._offset = display[:2]  # display arg is (x, y, orientation)
+        orientation = display[2]  # where x, y is the RAM offset
         self._spi_init = init_spi  # Possible user callback
         self._lock = asyncio.Lock()
         mode = framebuf.GS4_HMSB  # Use 4bit greyscale.
         gc.collect()
-        #buf = bytearray(height * width // 2)
         buf = bytearray(height * -(-width // 2))  # Ceiling division for odd widths
         self._mvb = memoryview(buf)
         super().__init__(buf, width, height, mode)
         self._linebuf = bytearray(self.width * 2)  # 16 bit color out
-        self._init(disp_mode, offset[2])
+        self._init(disp_mode, orientation)
         self.show()
 
     # Hardware reset
@@ -112,7 +115,7 @@ class ST7789(framebuf.FrameBuffer):
     # Initialise the hardware. Blocks 163ms. Adafruit have various sleep delays
     # where I can find no requirement in the datasheet. I removed them with
     # other redundant code.
-    def _init(self, disp_mode, orientation):
+    def _init(self, user_mode, orientation):
         self._hwreset()  # Hardware reset. Blocks 3ms
         if self._spi_init:  # A callback was passed
             self._spi_init(self._spi)  # Bus may be shared
@@ -126,41 +129,48 @@ class ST7789(framebuf.FrameBuffer):
         cmd(b'\x20') # INVOFF Adafruit turn inversion on. This driver fixes .rgb
         cmd(b'\x13')  # NORON Normal display mode
 
-        # Display modes correspond to values expected by hardware. Sometimes
-        # these have to be applied in combination to achieve what the user wants.
-        # Table entries map user request onto what is required. idx values:
+        # Table maps user request onto hardware values. index values:
         # 0 Normal 
         # 1 Reflect
         # 2 USD
         # 3 USD reflect
         # Followed by same for LANDSCAPE
-        if orientation:  # Display hardware is portrait mode
-            disp_mode ^= PORTRAIT
-        idx = disp_mode >> 6 if disp_mode & PORTRAIT else (disp_mode >> 6) + 4
-        disp_mode = (0x60, 0xe0, 0xa0, 0x20, 0, 0x40, 0xc0, 0x80)[idx]
+        if not orientation:
+            user_mode ^= PORTRAIT
+        # Hardware mappings
+        # d7..d5 of MADCTL determine rotation/orientation datasheet P124, P231
+        # d5 = MV row/col exchange
+        # d6 = MX col addr order
+        # d7 = MY page addr order
+        # LANDSCAPE = 0
+        # PORTRAIT = 0x20
+        # REFLECT = 0x40
+        # USD = 0x80
+        mode = (0x60, 0xe0, 0xa0, 0x20, 0, 0x40, 0xc0, 0x80)[user_mode]
         # Set display window depending on mode, .height and .width.
-        self.set_window(disp_mode)
-        wcd(b'\x36', int.to_bytes(disp_mode, 1, 'little'))
+        self.set_window(mode)
+        wcd(b'\x36', int.to_bytes(mode, 1, 'little'))
         cmd(b'\x29')  # DISPON. Adafruit then delay 500ms.
 
     # Define the mapping between RAM and the display.
     # Datasheet section 8.12 p124.
     def set_window(self, mode):
+        portrait, reflect, usd = 0x20, 0x40, 0x80
         rht = 320
         rwd = 240  # RAM ht and width
         wht = self.height  # Window (framebuf) dimensions.
         wwd = self.width  # In portrait mode wht > wwd
-        if mode & PORTRAIT:
+        if mode & portrait:
             xoff = self._offset[1]  # x and y transposed
             yoff = self._offset[0]
             xs = xoff
             xe = wwd + xoff - 1
             ys = yoff  # y start
             ye = wht + yoff - 1 # y end
-            if mode & REFLECT:
+            if mode & reflect:
                 ys = rwd - wht - yoff
                 ye = rwd - yoff - 1
-            if mode & USD:
+            if mode & usd:
                 xs = rht - wwd - xoff
                 xe = rht - xoff - 1
         else:  # LANDSCAPE
@@ -170,17 +180,17 @@ class ST7789(framebuf.FrameBuffer):
             xe = wwd + xoff - 1
             ys = yoff  # y start
             ye = wht + yoff - 1 # y end
-            if mode & USD:
+            if mode & usd:
                 ys = rht - wht - yoff
                 ye = rht - yoff - 1
-            if mode & REFLECT:
+            if mode & reflect:
                 xs = rwd - wwd - xoff
                 xe = rwd - xoff - 1
 
         # Col address set.
-        self._wcd(b'\x2a', int.to_bytes(xs, 2, 'big') + int.to_bytes(xe, 2, 'big'))
+        self._wcd(b'\x2a', int.to_bytes((xs << 16) + xe, 4, 'big'))
         # Row address set
-        self._wcd(b'\x2b', int.to_bytes(ys, 2, 'big') + int.to_bytes(ye, 2, 'big'))
+        self._wcd(b'\x2b', int.to_bytes((ys << 16) + ye, 4, 'big'))
 
     #@micropython.native # Made virtually no difference to timing.
     def show(self):  # Blocks for 83ms @60MHz SPI

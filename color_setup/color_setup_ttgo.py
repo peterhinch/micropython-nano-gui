@@ -3,11 +3,6 @@
 # Released under the MIT License (MIT). See LICENSE.
 # Copyright (c) 2021 Peter Hinch, Ihor Nehrutsa
 
-# Notes: Peter Hinch April 2021
-# UNDER DEVELOPMENT. This file and the ST7789 driver may change.
-# These settings produce a landscape mode display with top left
-# adjacent to pin 36.
-
 # Supports:
 # TTGO T-Display 1.14" 135*240(Pixel) based on ST7789V
 # http://www.lilygo.cn/claprod_view.aspx?TypeId=62&Id=1274
@@ -46,7 +41,8 @@ BUTTON2 =     0  # left of the USB connector
 from machine import Pin, SPI, ADC
 import gc
 
-from drivers.st7789.st7789_4bit import ST7789 as SSD, PORTRAIT, USD, REFLECT, LANDSCAPE
+from drivers.st7789.st7789_4bit import *
+SSD = ST7789
 
 pdc = Pin(TFT_DC, Pin.OUT, value=0)  # Arbitrary pins
 pcs = Pin(TFT_CS, Pin.OUT, value=1)
@@ -57,12 +53,10 @@ gc.collect()  # Precaution before instantiating framebuf
 # Conservative low baudrate. Can go to 62.5MHz.
 spi = SPI(1, 30_000_000, sck=Pin(TFT_SCLK), mosi=Pin(TFT_MOSI))
 
-# Display config. Tweak for TTGO.
-OFFSET = (52, 40, 1)
 # Right way up landscape: defined as top left adjacent to pin 36
-ssd = SSD(spi, height=135, width=240, dc=pdc, cs=pcs, rst=prst, disp_mode=LANDSCAPE, offset=OFFSET)
+ssd = SSD(spi, height=135, width=240, dc=pdc, cs=pcs, rst=prst, disp_mode=LANDSCAPE, display=TDISPLAY)
 # Normal portrait display: consistent with TTGO logo at top
-# ssd = SSD(spi, height=240, width=135, dc=pdc, cs=pcs, rst=prst, disp_mode=PORTRAIT, offset=OFFSET)
+# ssd = SSD(spi, height=240, width=135, dc=pdc, cs=pcs, rst=prst, disp_mode=PORTRAIT, display=TDISPLAY)
 
 # optional
 # b1 = Pin(BUTTON1, Pin.IN)

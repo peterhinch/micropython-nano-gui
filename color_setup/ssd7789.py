@@ -26,7 +26,8 @@
 from machine import Pin, SPI
 import gc
 
-from drivers.st7789.st7789_4bit import ST7789 as SSD, PORTRAIT, USD, REFLECT, LANDSCAPE
+from drivers.st7789.st7789_4bit import *
+SSD = ST7789
 
 pdc = Pin(13, Pin.OUT, value=0)  # Arbitrary pins
 pcs = Pin(14, Pin.OUT, value=1)
