@@ -11,32 +11,52 @@
 # https://github.com/Xinyuan-LilyGO/TTGO-T-Display/blob/master/image/pinmap.jpg
 # https://github.com/Xinyuan-LilyGO/TTGO-T-Display/blob/master/schematic/ESP32-TFT(6-26).pdf
 
-# Demo of initialisation procedure designed to minimise risk of memory fail
-# when instantiating the frame buffer. The aim is to do this as early as
-# possible before importing other modules.
-
-# WIRING (TTGO T-Display pin nos and names).
-# Pinout of TFT Driver 
+# WIRING (TTGO T-Display pin numbers and names).
+# Pinout of TFT Driver
 # ST7789     ESP32
 # TFT_MISO  N/A
-TFT_MOSI =   19
-TFT_SCLK =   18
-TFT_CS =      5
-TFT_DC =     16
-TFT_RST =    23
-TFT_BL =      4  # LEDK = BL Display backlight control pin
+TFT_MOSI =   19  # (SDA on schematic pdf) SPI interface output/input pin.
+TFT_SCLK =   18  # This pin is used to be serial interface clock.
+TFT_CS =      5  # Chip selection pin, low enable, high disable.
+TFT_DC =     16  # Display data/command selection pin in 4-line serial interface.
+TFT_RST =    23  # This signal will reset the device,Signal is active low.
+TFT_BL =      4  # (LEDK on schematic pdf) Display backlight control pin
 
-ADC_IN =     34
-ADC_EN =     14  # PWR_EN = ADC_EN is the ADC detection enable port
+ADC_IN =     34  # Measuring battery or USB voltage, see comment below
+ADC_EN =     14  # (PWR_EN on schematic pdf) is the ADC detection enable port
 
 BUTTON1 =    35  # right of the USB connector
 BUTTON2 =     0  # left of the USB connector
 
-#I2C_SDA =    19
-#I2C_SCL =    18
+# ESP32 pins, free for use in user applications
+#I2C_SDA =    21  # hardware ID 0
+#I2C_SCL =    22
 
-#DAC1 25
-#DAC2 26
+#UART2TXD =   17
+
+#GPIO2 =       2
+#GPIO15 =     15
+#GPIO13 =     13
+#GPIO12 =     12
+
+#GPIO37 =     37
+#GPIO38 =     38
+#UART1TXD =    4
+#UART1RXD =    5
+#GPIO18 =     18
+#GPIO19 =     19
+#GPIO17 =     17
+
+#DAC1 =       25
+#DAC2 =       26
+
+# Input only pins
+#GPIO36 = 36  # input only
+#GPIO39 = 39  # input only
+
+# Demo of initialisation procedure designed to minimise risk of memory fail
+# when instantiating the frame buffer. The aim is to do this as early as
+# possible before importing other modules.
 
 from machine import Pin, SPI, ADC
 import gc
@@ -52,7 +72,22 @@ pbl = Pin(TFT_BL, Pin.OUT, value=1)
 gc.collect()  # Precaution before instantiating framebuf
 # Conservative low baudrate. Can go to 62.5MHz.
 spi = SPI(1, 30_000_000, sck=Pin(TFT_SCLK), mosi=Pin(TFT_MOSI))
-
+'''            TTGO 
+     v  +----------------+
+ 40  |  |                |
+     ^  |    +------+    | pin 36
+     |  |    |      |    |
+     |  |    |      |    |
+240  |  |    |      |    |
+     |  |    |      |    |
+     |  |    |      |    |
+     v  |    +------+    |
+ 40  |  |                | Reset button
+     ^  +----------------+
+        >----<------>----<        
+          52   135    xx
+        BUTTON2    BUTTON1
+'''
 # Right way up landscape: defined as top left adjacent to pin 36
 ssd = SSD(spi, height=135, width=240, dc=pdc, cs=pcs, rst=prst, disp_mode=LANDSCAPE, display=TDISPLAY)
 # Normal portrait display: consistent with TTGO logo at top
@@ -65,11 +100,11 @@ ssd = SSD(spi, height=135, width=240, dc=pdc, cs=pcs, rst=prst, disp_mode=LANDSC
 # adc_in = ADC(Pin(ADC_IN))
 # adc_en.value(0)
 '''
-Set PWR_EN to "1" and read voltage in BAT_ADC, 
+Set ADC_EN to "1" and read voltage in BAT_ADC, 
 if this voltage more than 4.3 V device have powered from USB. 
 If less then 4.3 V - device have power from battery. 
-To save battery you can set PWR_EN to "0" and in this case the USB converter 
+To save battery you can set ADC_EN to "0" and in this case the USB converter 
 will be power off and do not use your battery. 
-When you need to measure battery voltage first set PWR_EN to "1", 
-measure voltage and then set PWR_EN back to "0" for save battery.
+When you need to measure battery voltage first set ADC_EN to "1", 
+measure voltage and then set ADC_EN back to "0" for save battery.
 '''
