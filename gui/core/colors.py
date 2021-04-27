@@ -4,7 +4,7 @@
 # Copyright (c) 2020 Peter Hinch
 
 # See color names and hexadecimal codes at
-# https://en.wikipedia.org/wiki/Web_colors
+# https://en.wikipedia.org/wiki/Web_colors#Basic_colors
 
 from color_setup import SSD
 
@@ -25,20 +25,18 @@ def create_color(idx, r, g, b):
 
 if hasattr(SSD, 'lut'):  # Colors defined by LUT
     BLACK = create_color(0, 0, 0, 0)
-    RED = create_color(1, 255, 0, 0)  # pure colors
-    GREEN = create_color(2, 0, 255, 0)
-    BLUE = create_color(3, 0, 0, 255)
-    DARKTRED = create_color(4, 0x80, 0, 0)  # dark pure colors
-    DARKGREEN = create_color(5, 0, 0x80, 0)
-    DARKBLUE = create_color(6, 0, 0, 0x80)
-    CYAN = create_color(7, 0, 255, 255)  # composite colors
-    MAGENTA = create_color(8, 255, 0, 255)
-    YELLOW = create_color(9, 255, 255, 0)
-    DARKCYAN = create_color(10, 0, 0x80, 0x80)  # dark composite colors
-    DARKMAGENTA = create_color(11, 0x80, 0, 0x80)
-    BROWN = create_color(12, 0x80, 0x80, 0)
-    GREY = create_color(13, 0x80, 0x80, 0x80)  # gray colors
-    SILVER = create_color(14, 0xC0, 0xC0, 0xC0)
+    GREEN = create_color(1, 0, 255, 0)
+    RED = create_color(2, 255, 0, 0)
+    LIGHTRED = create_color(3, 140, 0, 0)  # actually darker than red !!!
+    BLUE = create_color(4, 0, 0, 255)
+    YELLOW = create_color(5, 255, 255, 0)
+    GREY = create_color(6, 100, 100, 100)
+    MAGENTA = create_color(7, 255, 0, 255)
+    CYAN = create_color(8, 0, 255, 255)
+    LIGHTGREEN = create_color(9, 0, 100, 0)  # actually darker than green !!!
+    DARKGREEN = create_color(10, 0, 80, 0)
+    DARKBLUE = create_color(11, 0, 0, 90)
+    # 12, 13, 14 free for user definition
     WHITE = create_color(15, 255, 255, 255)
 else:
     BLACK = SSD.rgb(0, 0, 0)
@@ -54,13 +52,3 @@ else:
     DARKGREEN = SSD.rgb(0, 80, 0)
     DARKBLUE = SSD.rgb(0, 0, 90)
     WHITE = SSD.rgb(255, 255, 255)
-
-# Some synonyms of colors
-LIME = GREEN
-AQUA = CYAN
-FUCKSIA = MAGENTA
-MAROON = DARKTRED
-NAVY = DARKBLUE
-TEAL = DARKCYAN
-PURPLE = DARKMAGENTA
-OLIVE = BROWN
