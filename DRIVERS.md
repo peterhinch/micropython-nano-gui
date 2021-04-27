@@ -391,7 +391,7 @@ This is an inexpensive ESP32 with a 135x240 color TFT display.
 The `color_setup.py` file should initialise the SPI bus with a baudrate of
 30_000_000. Args `polarity`, `phase`, `bits`, `firstbit` are defaults. Hard or
 soft SPI may be used but hard may be faster. 30MHz is a conservative value: see
-below. An example file for the Pi Pico is in `color_setup/ssd7789.py`.
+below. An example file for the Pi Pico is in `color_setup/st7789.py`.
 
 #### ST7789 Constructor args:
  * `spi` An initialised SPI bus instance. The chip supports clock rates of upto
@@ -496,13 +496,13 @@ the setup file for this device.
 This is an ESP32 based device with an integrated 1.14" 135x240 pixel display
 based on ST7789.
 
-It is supported by `color_setup/color_setup_ttgo.py`. Copy to
+It is supported by `color_setup/st7789_ttgo.py`. Copy to
 `/pyboard/color_setup.py` on the device. It produces a landscape mode display
 with the top left hand corner adjacent to pin 36.
 
 Commented-out code offers portrait mode.
 
-URL's. More in `color_setup_ttgo.py`  
+URL's. More in `st7789_ttgo.py`  
 [TTGO Product page](http://www.lilygo.cn/claprod_view.aspx?TypeId=62&Id=1274)  
 [Ihor Nehrutsa's PR](https://github.com/peterhinch/micropython-nano-gui/pull/8)  
 [Another MicroPython driver](https://github.com/jikegong/TTGO-Esp32-ST7789-Display-MicroPython/blob/2ed1816c41f25c8993038c35ef40b2efeb225dcc/st7789.py)  
