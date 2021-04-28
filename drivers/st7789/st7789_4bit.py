@@ -7,7 +7,8 @@
 # Adafruit 1.3" 240x240 Wide Angle TFT LCD Display with MicroSD - ST7789
 # https://www.adafruit.com/product/4313
 # TTGO T-Display
-
+# http://www.lilygo.cn/prod_view.aspx?TypeId=50044&Id=1126
+ 
 # Based on
 # Adfruit https://github.com/adafruit/Adafruit_CircuitPython_ST7789/blob/master/adafruit_st7789.py
 # Also see st7735r_4bit.py for other source acknowledgements
@@ -31,7 +32,7 @@ GENERIC = (0, 0, 0)
 TDISPLAY = (52, 40, 1)
 
 @micropython.viper
-def _lcopy(dest:ptr8, source:ptr8, lut:ptr8, length:int):
+def _lcopy0(dest:ptr8, source:ptr8, lut:ptr8, length:int):
     n = 0
     for x in range(length):
         c = source[x]
@@ -46,11 +47,22 @@ def _lcopy(dest:ptr8, source:ptr8, lut:ptr8, length:int):
         dest[n] = lut[e + 1]
         n += 1
 
+@micropython.viper
+def _lcopy(dest:ptr16, source:ptr8, lut:ptr16, length:int):
+    # rgb565 - 16bit/pixel
+    n = 0
+    for x in range(length):
+        c = source[x]
+        dest[n] = lut[c >> 4]  # current pixel
+        n += 1
+        dest[n] = lut[c & 0x0f]  # next pixel
+        n += 1
+
 class ST7789(framebuf.FrameBuffer):
 
     lut = bytearray(32)
 
-    # Convert r, g, b in range 0-255 to a 16 bit colour value
+    # Convert r, g, b in range 0-255 to a 16 bit colour value rgb565.
     # LS byte goes into LUT offset 0, MS byte into offset 1
     # Same mapping in linebuf so LS byte is shifted out 1st
     # For some reason color must be inverted on this controller.
@@ -125,7 +137,7 @@ class ST7789(framebuf.FrameBuffer):
         sleep_ms(150)
         cmd(b'\x11')  # SLPOUT: exit sleep mode
         sleep_ms(10)  # Adafruit delay 500ms (datsheet 5ms)
-        wcd(b'\x3a', b'\x55')  # _COLMOD 16 bit/pixel, 64Kib color space
+        wcd(b'\x3a', b'\x55')  # _COLMOD 16 bit/pixel, 65Kbit color space
         cmd(b'\x20') # INVOFF Adafruit turn inversion on. This driver fixes .rgb
         cmd(b'\x13')  # NORON Normal display mode
 
@@ -194,6 +206,7 @@ class ST7789(framebuf.FrameBuffer):
 
     #@micropython.native # Made virtually no difference to timing.
     def show(self):  # Blocks for 83ms @60MHz SPI
+        # Blocks for 60ms @30MHz SPI on TTGO ESP32
         #ts = ticks_us()
         clut = ST7789.lut
         wd = -(-self.width // 2)  # Ceiling division for odd number widths
@@ -207,7 +220,7 @@ class ST7789(framebuf.FrameBuffer):
         self._spi.write(b'\x2c')  # RAMWR
         self._dc(1)
         for start in range(0, end, wd):
-            _lcopy(lb, buf[start :], clut, wd)  # Copy and map colors
+            _lcopy(lb, buf[start:], clut, wd)  # Copy and map colors
             self._spi.write(lb)
         self._cs(1)
         #print(ticks_diff(ticks_us(), ts))
