@@ -1,7 +1,7 @@
 # st7789.py Driver for ST7789 LCD displays for nano-gui
 
 # Released under the MIT License (MIT). See LICENSE.
-# Copyright (c) 2021 Peter Hinch
+# Copyright (c) 2021 Peter Hinch, Ihor Nehrutsa
 
 # Tested displays:
 # Adafruit 1.3" 240x240 Wide Angle TFT LCD Display with MicroSD - ST7789
@@ -31,21 +31,6 @@ PORTRAIT = 4
 GENERIC = (0, 0, 0)
 TDISPLAY = (52, 40, 1)
 
-@micropython.viper
-def _lcopy0(dest:ptr8, source:ptr8, lut:ptr8, length:int):
-    n = 0
-    for x in range(length):
-        c = source[x]
-        d = (c & 0xf0) >> 3  # 2* LUT indices (LUT is 16 bit color)
-        e = (c & 0x0f) << 1
-        dest[n] = lut[d]
-        n += 1
-        dest[n] = lut[d + 1]
-        n += 1
-        dest[n] = lut[e]
-        n += 1
-        dest[n] = lut[e + 1]
-        n += 1
 
 @micropython.viper
 def _lcopy(dest:ptr16, source:ptr8, lut:ptr16, length:int):
