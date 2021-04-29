@@ -48,12 +48,22 @@ class ST7789(framebuf.FrameBuffer):
     lut = bytearray(32)
 
     # Convert r, g, b in range 0-255 to a 16 bit colour value rgb565.
-    # LS byte goes into LUT offset 0, MS byte into offset 1
-    # Same mapping in linebuf so LS byte is shifted out 1st
+    # LS byte goes into LUT offset 0, MS byte into offset 1.
+    # Same mapping in linebuf so LS byte is shifted out 1st.
     # For some reason color must be inverted on this controller.
     @staticmethod
     def rgb(r, g, b):
+        # bit swapped rgb565
         return ((b & 0xf8) << 5 | (g & 0x1c) << 11 | (g & 0xe0) >> 5 | (r & 0xf8)) ^ 0xffff
+    
+    # This is inverse functions for rgb(r, g, b)
+    @staticmethod
+    def unpack_to_rgb(color_index:ptr16):
+        reinverted = self.lut[color_index] ^ 0xffff
+        r = reinverted & 0xf8
+        g = (reinverted  >> 11) & 0x1c | (inverted << 5) & 0xe0
+        b = (reinverted >> 5) & 0xf8
+        return r, g, b
 
     # rst and cs are active low, SPI is mode 0
     def __init__(self, spi, cs, dc, rst, height=240, width=240,

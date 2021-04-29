@@ -17,6 +17,15 @@ def create_color(idx, r, g, b):
     SSD.lut[x + 1] = c >> 8
     return idx
 
+# unpack_color_to_rgb() is inverse function of create_color()
+# _r, _g, _b = unpack_color_to_rgb(create_color(idx, r, g, b))
+# Note: _r, _g, _b may not equal to r, g, b if driver uses rgb565, rgb444 or other reduced color maps.
+def unpack_color_to_rgb(color):
+    # color is the driver-dependent instance.
+    # color is an index in 'lut' if 'lut' is present in the display driver, or
+    # color is rgb888, rgb565, rgb444, etc. according to the driver.
+    return SSD.unpack_rgb(color)
+
 if hasattr(SSD, 'lut'):  # Colors defined by LUT
     BLACK = create_color(0, 0, 0, 0)
     GREEN = create_color(1, 0, 255, 0)
