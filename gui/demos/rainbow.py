@@ -73,7 +73,7 @@ def sinebow():
 
 
 try:
-    #sinebow()
+    sinebow()
     HSV()
 except KeyboardInterrupt:
     pass
