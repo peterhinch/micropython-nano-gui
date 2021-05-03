@@ -81,10 +81,12 @@ gc.collect()
 ssd = SSD(spi, pcs, pdc, prst, 96)  # Create a display instance
 ```
 The directory `color_setup` contains example files for various displays. These
-may be adapted and copied to `color_setup.py` on the target's root. The entry
-in this doc for the specific display should be consulted for SSD constructor
-arguments and SPI baudrate. The more exotic displays (Sharp and ePaper) have
-additional features and requirements detailed below.
+are named by graphics chip ID followed by host, thus `ssd1306_pyb.py` is for an
+SSD1306 based display connected to a Pyboard. Files may be adapted and copied
+to `color_setup.py` on the target's root. The section in this doc for the
+specific display chip should be consulted for SSD constructor arguments and SPI
+baudrate. The more exotic displays (Sharp and ePaper) have additional features
+and requirements detailed below.
 
 ## 1.1 Color handling
 
@@ -391,7 +393,7 @@ This is an inexpensive ESP32 with a 135x240 color TFT display.
 The `color_setup.py` file should initialise the SPI bus with a baudrate of
 30_000_000. Args `polarity`, `phase`, `bits`, `firstbit` are defaults. Hard or
 soft SPI may be used but hard may be faster. 30MHz is a conservative value: see
-below. An example file for the Pi Pico is in `color_setup/st7789.py`.
+below. An example file for the Pi Pico is in `color_setup/st7789_pico.py`.
 
 #### ST7789 Constructor args:
  * `spi` An initialised SPI bus instance. The chip supports clock rates of upto
