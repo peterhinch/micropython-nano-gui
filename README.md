@@ -227,9 +227,9 @@ the display and its wiring. For information on how to do this, see
 ### 2.1.1 Core files
 
 The root directory contains an example setup file `color_setup.py` for a color
-OLED display. Other examples may be found in the `color_setup` directory. These
-are templates for adaptation: only one file is copied to the target. On the
-target the file should be named `color_setup.py` and put in the root of the
+OLED display. Other examples may be found in the `setup_examples` directory.
+These are templates for adaptation: only one file is copied to the target. On
+the target the file should be named `color_setup.py` and put in the root of the
 filesystem.
 
 The chosen template will need to be edited to match the display in use, the
@@ -304,39 +304,37 @@ font files with
 `-x` option for horizontal mapping must be specified. If fixed pitch rendering
 is required `-f` is also required. Supplied examples are:
 
- * `arial10.py` Variable pitch Arial in various sizes.
- * `arial35.py`
- * `arial_50.py`
- * `courier20.py` Fixed pitch font.
- * `font6.py`
- * `font10.py`
- * `freesans20.py`
+ * `arial10.py` Variable pitch Arial. 10 pixels high.
+ * `arial35.py` Arial 35 high.
+ * `arial_50.py` Arial 50 high.
+ * `courier20.py` Fixed pitch Courier, 20 high.
+ * `font6.py` FreeSans 14 high.
+ * `font10.py` FreeSans 17 high.
+ * `freesans20.py` FreeSans 20 high.
 
 ### 2.1.4 Hardware setup examples
 
-The `color_setup` directory contains example setup files for various hardware.
+The `setup_examples` directory contains example setup files for various hardware.
 These are templates which may be adapted to suit the hardware in use, then
 copied to the hardware root as `color_setup.py`. Example files:
 
- * `ssd1306_setup.py` Setup file for monochrome displays using the official
+ * `ssd1306_pyb.py` Setup file for monochrome displays using the official
  driver. Supports hard or soft SPI or I2C connections.
- * `esp32_setup.py` As written supports an ESP32 connected to a 128x128 SSD1351
+ * `ssd1351_esp32.py` As written supports an ESP32 connected to a 128x128 SSD1351
  display. After editing to match the display and wiring, it should be copied to
  the target as `/pyboard/color_setup.py`.
- * `esp8266_setup.py` Similar for [ESP8266](./README.md#4-esp8266). Usage is
+ * `ssd1351_esp8266.py` Similar for [ESP8266](./README.md#4-esp8266). Usage is
  somewhat experimental.
- * `st7735r_setup.py` Assumes a Pyboard with an
+ * `st7735r_pyb.py` Assumes a Pyboard with an
  [Adafruit 1.8 inch TFT display](https://www.adafruit.com/product/358).
- * `st7735r144_setup.py` For a Pyboard with an
+ * `st7735r144_pyb.py` For a Pyboard with an
  [Adafruit 1.44 inch TFT display](https://www.adafruit.com/product/2088).
- * `ili9341_setup.py` A 240*320 ILI9341 display on ESP32.
- * `ssd7789.py` Example with SSD7789 driver and Pi Pico host.
- * `waveshare_setup.py` 176*274 ePaper display.
- * `epd29_sync.py` Adafruit 2.9 inch ePaper display for synchronous code.
- * `epd29_async.py` Adafruit 2.9 inch ePaper display: `uasyncio` applications.
-
-The setup file for the TTGO T-Display is located with the ST7789 driver. See
-the [Driver doc: ST7789](./DRIVERS.md#33-drivers-for-st7789).
+ * `ili9341_esp32.py` A 240*320 ILI9341 display on ESP32.
+ * `st7789_pico.py` Example with SSD7789 driver and Pi Pico host.
+ * `st7789_ttgo.py` Setup for the TTGO T-Display device.
+ * `waveshare_pyb.py` 176*274 ePaper display on Pyboard.
+ * `epd29_pyb_sync.py` Adafruit 2.9 inch ePaper display for synchronous code.
+ * `epd29_pyb_async.py` Adafruit 2.9 inch ePaper display: `uasyncio` applications.
 
 ## 2.2 Dependencies
 
@@ -896,7 +894,7 @@ directory before I added the 4 bit driver:
 ![Image](images/esp8266_tree.JPG) 
 
 I erased flash, built and installed the new firmware. Finally I copied
-`color_setup/esp8266_setup.py` to `/pyboard/color_setup.py`. This could have
+`setup_examples/esp8266_setup.py` to `/pyboard/color_setup.py`. This could have
 been frozen but I wanted to be able to change pins if required.
 
 Both demos worked perfectly.
