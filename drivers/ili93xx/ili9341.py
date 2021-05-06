@@ -15,19 +15,14 @@ import framebuf
 import uasyncio as asyncio
 
 @micropython.viper
-def _lcopy(dest:ptr8, source:ptr8, lut:ptr8, length:int):
+def _lcopy(dest:ptr16, source:ptr8, lut:ptr16, length:int):
+    # rgb565 - 16bit/pixel
     n = 0
     for x in range(length):
         c = source[x]
-        d = (c & 0xf0) >> 3  # 2* pointers (lut is 16 bit color)
-        e = (c & 0x0f) << 1
-        dest[n] = lut[d]  # LS byte 1st
+        dest[n] = lut[c >> 4]  # current pixel
         n += 1
-        dest[n] = lut[d + 1]
-        n += 1
-        dest[n] = lut[e]
-        n += 1
-        dest[n] = lut[e + 1]
+        dest[n] = lut[c & 0x0f]  # next pixel
         n += 1
 
 
