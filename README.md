@@ -1,9 +1,9 @@
 # MicroPython nano-gui
 
 A lightweight and minimal MicroPython GUI library for display drivers based on
-the `FrameBuffer` class. Various display technologies are supported, including
-small color and monochrome OLED's, color TFT's, ePaper and Sharp units. The GUI
-is cross-platform.
+the `FrameBuffer` class. It is portable between a range of MicroPython hosts
+and display devices. Various display technologies are supported, including
+small color and monochrome OLED's, color TFT's, ePaper and Sharp units.
 
 These images, most from OLED displays, fail to reproduce the quality of these
 displays. OLEDs are visually impressive displays with bright colors, wide

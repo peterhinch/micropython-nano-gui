@@ -1,25 +1,22 @@
-# aclock.py Test/demo program for nanogui
-# Orinally for ssd1351-based OLED displays but runs on most displays
-# Adafruit 1.5" 128*128 OLED display: https://www.adafruit.com/product/1431
-# Adafruit 1.27" 128*96 display https://www.adafruit.com/product/1673
+# aclock_large.py Test/demo program for displays of 240x240 pixels or larger
 
 # Released under the MIT License (MIT). See LICENSE.
-# Copyright (c) 2018-2020 Peter Hinch
+# Copyright (c) 2018-2021 Peter Hinch
 
 # Initialise hardware and framebuf before importing modules.
 from color_setup import ssd  # Create a display instance
 from gui.core.nanogui import refresh
-from gui.widgets.label import Label
-from gui.widgets.dial import Dial, Pointer
 refresh(ssd, True)  # Initialise and clear display.
 
 # Now import other modules
+from gui.widgets.label import Label
+from gui.widgets.dial import Dial, Pointer
 import cmath
 import utime
 from gui.core.writer import CWriter
 
 # Font for CWriter
-import gui.fonts.arial10 as arial10
+import gui.fonts.freesans20 as font
 from gui.core.colors import *
 
 def aclock():
@@ -31,12 +28,12 @@ def aclock():
               'Aug', 'Sept', 'Oct', 'Nov', 'Dec')
     # Instantiate CWriter
     CWriter.set_textpos(ssd, 0, 0)  # In case previous tests have altered it
-    wri = CWriter(ssd, arial10, GREEN, BLACK, verbose=False)
+    wri = CWriter(ssd, font, GREEN, BLACK, verbose=False)
     wri.set_clip(True, True, False)
 
     # Instantiate displayable objects
-    dial = Dial(wri, 2, 2, height = 75, ticks = 12, bdcolor=None, label=120, pip=False)  # Border in fg color
-    lbltim = Label(wri, 5, 85, 35)
+    dial = Dial(wri, 2, 2, height = 150, ticks = 12, bdcolor=None, label=240, pip=False)  # Border in fg color
+    lbltim = Label(wri, 200, 2, 35)
     hrs = Pointer(dial)
     mins = Pointer(dial)
     secs = Pointer(dial)
