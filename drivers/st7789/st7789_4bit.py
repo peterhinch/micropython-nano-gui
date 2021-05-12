@@ -79,6 +79,7 @@ class ST7789(framebuf.FrameBuffer):
         super().__init__(buf, width, height, mode)
         self._linebuf = bytearray(self.width * 2)  # 16 bit color out
         self._init(disp_mode, orientation)
+        self.fill(0)
         self.show()
 
     # Hardware reset
@@ -191,12 +192,13 @@ class ST7789(framebuf.FrameBuffer):
 
     #@micropython.native # Made virtually no difference to timing.
     def show(self):  # Blocks for 83ms @60MHz SPI
-        # Blocks for 60ms @30MHz SPI on TTGO ESP32
+        # Blocks for 60ms @30MHz SPI on TTGO in PORTRAIT mode
+        # Blocks for 46ms @30MHz SPI on TTGO in LANDSCAPE mode
         #ts = ticks_us()
         clut = ST7789.lut
         wd = -(-self.width // 2)  # Ceiling division for odd number widths
         end = self.height * wd
-        lb = self._linebuf
+        lb = memoryview(self._linebuf)
         buf = self._mvb
         if self._spi_init:  # A callback was passed
             self._spi_init(self._spi)  # Bus may be shared
@@ -211,14 +213,14 @@ class ST7789(framebuf.FrameBuffer):
         #print(ticks_diff(ticks_us(), ts))
 
     # Asynchronous refresh with support for reducing blocking time.
-    async def do_refresh(self, split=4):
+    async def do_refresh(self, split=5):
         async with self._lock:
             lines, mod = divmod(self.height, split)  # Lines per segment
             if mod:
                 raise ValueError('Invalid do_refresh arg.')
             clut = ST7789.lut
             wd = -(-self.width // 2)
-            lb = self._linebuf
+            lb = memoryview(self._linebuf)
             buf = self._mvb
             line = 0
             for n in range(split):
