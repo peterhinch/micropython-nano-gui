@@ -45,9 +45,7 @@ def _lcopy(dest:ptr16, source:ptr8, lut:ptr16, length:int):
 
 class ST7789(framebuf.FrameBuffer):
 
-    lut = bytearray(32)
-    for i in range(len(lut)):
-        lut[i] = 0xFF  # set all colors to BLACK
+    lut = bytearray(0xFF for _ in range(32))  # set all colors to BLACK
 
     # Convert r, g, b in range 0-255 to a 16 bit colour value rgb565.
     # LS byte goes into LUT offset 0, MS byte into offset 1
