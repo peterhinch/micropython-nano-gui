@@ -46,6 +46,8 @@ def _lcopy(dest:ptr16, source:ptr8, lut:ptr16, length:int):
 class ST7789(framebuf.FrameBuffer):
 
     lut = bytearray(32)
+    for i in range(len(lut)):
+        lut[i] = 0xFF  # set all colors to BLACK
 
     # Convert r, g, b in range 0-255 to a 16 bit colour value rgb565.
     # LS byte goes into LUT offset 0, MS byte into offset 1
@@ -79,7 +81,6 @@ class ST7789(framebuf.FrameBuffer):
         super().__init__(buf, width, height, mode)
         self._linebuf = bytearray(self.width * 2)  # 16 bit color out
         self._init(disp_mode, orientation)
-        self.fill(0)
         self.show()
 
     # Hardware reset
