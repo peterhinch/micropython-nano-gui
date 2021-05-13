@@ -45,7 +45,7 @@ def _lcopy(dest:ptr16, source:ptr8, lut:ptr16, length:int):
 
 class ST7789(framebuf.FrameBuffer):
 
-    lut = bytearray(32)
+    lut = bytearray(0xFF for _ in range(32))  # set all colors to BLACK
 
     # Convert r, g, b in range 0-255 to a 16 bit colour value rgb565.
     # LS byte goes into LUT offset 0, MS byte into offset 1
@@ -191,12 +191,13 @@ class ST7789(framebuf.FrameBuffer):
 
     #@micropython.native # Made virtually no difference to timing.
     def show(self):  # Blocks for 83ms @60MHz SPI
-        # Blocks for 60ms @30MHz SPI on TTGO ESP32
+        # Blocks for 60ms @30MHz SPI on TTGO in PORTRAIT mode
+        # Blocks for 46ms @30MHz SPI on TTGO in LANDSCAPE mode
         #ts = ticks_us()
         clut = ST7789.lut
         wd = -(-self.width // 2)  # Ceiling division for odd number widths
         end = self.height * wd
-        lb = self._linebuf
+        lb = memoryview(self._linebuf)
         buf = self._mvb
         if self._spi_init:  # A callback was passed
             self._spi_init(self._spi)  # Bus may be shared
@@ -211,14 +212,14 @@ class ST7789(framebuf.FrameBuffer):
         #print(ticks_diff(ticks_us(), ts))
 
     # Asynchronous refresh with support for reducing blocking time.
-    async def do_refresh(self, split=4):
+    async def do_refresh(self, split=5):
         async with self._lock:
             lines, mod = divmod(self.height, split)  # Lines per segment
             if mod:
                 raise ValueError('Invalid do_refresh arg.')
             clut = ST7789.lut
             wd = -(-self.width // 2)
-            lb = self._linebuf
+            lb = memoryview(self._linebuf)
             buf = self._mvb
             line = 0
             for n in range(split):
