@@ -18,7 +18,14 @@ class Meter(DObject):
         if label is not None:
             Label(writer, row + height + 3, col, label)
         self.style = style
-        self.legends = legends
+        if legends is not None: # Legends
+            x = col + width + 4
+            y = row + height
+            dy = 0 if len(legends) <= 1 else height / (len(legends) -1)
+            yl = y - writer.height / 2 # Start at bottom
+            for legend in legends:
+                Label(writer, int(yl), x, legend)
+                yl -= dy
         self.ptcolor = ptcolor if ptcolor is not None else self.fgcolor
         self.value(value)
 
@@ -38,7 +45,6 @@ class Meter(DObject):
         dev = self.device
         width = self.width
         height = self.height
-        legends = self.legends
         x0 = self.col
         x1 = self.col + width
         y0 = self.row
@@ -49,12 +55,6 @@ class Meter(DObject):
                 ypos = int(y0 + dy * tick)
                 dev.hline(x0 + 2, ypos, x1 - x0 - 4, self.fgcolor)
 
-        if legends is not None: # Legends
-            dy = 0 if len(legends) <= 1 else height / (len(legends) -1)
-            yl = y1 - wri.height / 2 # Start at bottom
-            for legend in legends:
-                Label(wri, int(yl), x1 + 4, legend)
-                yl -= dy
         y = int(y1 - val * height) # y position of slider
         if self.style == self.LINE:
             dev.hline(x0, y, width, self.ptcolor) # Draw pointer
