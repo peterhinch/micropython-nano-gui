@@ -3,12 +3,13 @@
 # Move cmath dependency to widgets/dial
 
 # Released under the MIT License (MIT). See LICENSE.
-# Copyright (c) 2018-2020 Peter Hinch
+# Copyright (c) 2018-2021 Peter Hinch
 
 # Base class for a displayable object. Subclasses must implement .show() and .value()
 # Has position, colors and border definition.
 # border: False no border None use bgcolor, int: treat as color
 
+from gui.core.colors import *  # Populate color LUT before use.
 from gui.core.writer import Writer
 import framebuf
 import gc
