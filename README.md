@@ -5,6 +5,10 @@ the `FrameBuffer` class. It is portable between a range of MicroPython hosts
 and display devices. Various display technologies are supported, including
 small color and monochrome OLED's, color TFT's, ePaper and Sharp units.
 
+The `nano-gui` library is display-only. A library supporting user input is
+[micro-gui](https://github.com/peterhinch/micropython-micro-gui); this comes at
+a cost of a substantially greater RAM requirement.
+
 These images, most from OLED displays, fail to reproduce the quality of these
 displays. OLEDs are visually impressive displays with bright colors, wide
 viewing angle and extreme contrast. For some reason I find them hard to
