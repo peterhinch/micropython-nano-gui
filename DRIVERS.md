@@ -7,10 +7,12 @@ All drivers provide a display class subclassed from the built-in
  * Graphics via the `FrameBuffer` graphics primitives.
  * Text rendering in arbitrary fonts via `Writer` and `Cwriter` classes (see
  [font_to_py.py](https://github.com/peterhinch/micropython-font-to-py.git)).
- * Use with nano-gui.
+ * Use with nano-gui and [micro-gui](https://github.com/peterhinch/micropython-micro-gui/).
 
 It should be noted that in the interests of conserving RAM these drivers offer
-a bare minimum of functionality required to support the above.
+a bare minimum of functionality required to support the above. They assume sole
+access to the SPI or I2C bus. Applications which share the bus must do their
+own arbitration.
 
 This document is written to support users of `nano-gui`, who only need to
 instantiate a display to use the GUI. Hence only device constructors are
