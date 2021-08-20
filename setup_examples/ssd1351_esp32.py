@@ -22,7 +22,7 @@
 # IO14  CLK (2 CL SCK)  Hardware SPI1
 # IO13  DATA (1 SI MOSI)
 
-import machine
+from machine import Pin, SPI
 import gc
 
 # *** Choose your color display driver here ***
