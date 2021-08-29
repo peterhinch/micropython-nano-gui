@@ -31,7 +31,7 @@ def aclock():
               'Aug', 'Sept', 'Oct', 'Nov', 'Dec')
     # Instantiate CWriter
     CWriter.set_textpos(ssd, 0, 0)  # In case previous tests have altered it
-    wri = CWriter(ssd, arial10, GREEN, BLACK, verbose=False)
+    wri = CWriter(ssd, arial10, GREEN, BLACK)  # Report on fast mode. Or use verbose=False
     wri.set_clip(True, True, False)
 
     # Instantiate displayable objects

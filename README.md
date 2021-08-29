@@ -113,7 +113,7 @@ my GUI's employ the American spelling of `color`.
 ## 1.1 Change log
 
 26 Aug 2021 Support [PR7682](https://github.com/micropython/micropython/pull/7682)
-for fast text rendering.
+for fast text rendering.  
 25 Apr 2021 Support TTGO T-Display.  
 26 Mar 2021 Add ST7789. Alter uasyncio support on ili9341.  
 14 Mar 2021 Tested on Pi Pico.  
@@ -211,7 +211,9 @@ code. This stuff is easier than you might think.
 As of Aug 2021 color displays can benefit from a substantial performance boost
 in rendering text. To take advantage of this, firmware should be dated after
 26 Aug 21. The display driver and GUI core files should be updated. Ensure that
-the new file `drivers/boolpalette.py` exists on the target hardware.
+the new file `drivers/boolpalette.py` exists on the target hardware. Usge of
+this mode is automatic but can be checked by running the `aclock.py` demo which
+reports the status at the REPL.
 
 ###### [Contents](./README.md#contents)
 
