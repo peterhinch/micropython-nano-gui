@@ -13,6 +13,7 @@ from time import sleep_ms
 import gc
 import framebuf
 import uasyncio as asyncio
+from drivers.boolpalette import BoolPalette
 
 @micropython.viper
 def _lcopy(dest:ptr16, source:ptr8, lut:ptr16, length:int):
@@ -49,6 +50,7 @@ class ILI9341(framebuf.FrameBuffer):
         self.width = width
         self._spi_init = init_spi
         mode = framebuf.GS4_HMSB
+        self.palette = BoolPalette(mode)
         gc.collect()
         buf = bytearray(self.height * self.width // 2)
         self._mvb = memoryview(buf)

@@ -1,9 +1,10 @@
 # writer.py Implements the Writer class.
 # Handles colour, word wrap and tab stops
 
-# V0.40 Jan 2021 Improved handling of word wrap and line clip. Upside-down
+# V0.4.3 Aug 2021 Support for fast blit to color displays (PR7682).
+# V0.4.0 Jan 2021 Improved handling of word wrap and line clip. Upside-down
 # rendering no longer supported: delegate to device driver.
-# V0.35 Sept 2020 Fast rendering option for color displays
+# V0.3.5 Sept 2020 Fast rendering option for color displays
 
 # Released under the MIT License (MIT). See LICENSE.
 # Copyright (c) 2019-2021 Peter Hinch
@@ -14,34 +15,33 @@
 
 # Timings based on a 20 pixel high proportional font, run on a pyboard V1.0.
 # Using CWriter's slow rendering: _printchar 9.5ms typ, 13.5ms max.
-# Using Writer's fast rendering: _printchar 115μs min 480μs typ 950μs max.
-
-# CWriter on Pyboard D SF2W at standard clock rate
-# Fast method 500-600μs typical, up to 1.07ms on larger fonts
-# Revised fast method 691μs avg, up to 2.14ms on larger fonts
-# Slow method 2700μs typical, up to 11ms on larger fonts
 
 import framebuf
 from uctypes import bytearray_at, addressof
-from sys import platform
+from sys import implementation
+import os
 
-__version__ = (0, 4, 2)
+__version__ = (0, 4, 3)
 
-fast_mode = platform == 'pyboard'
-if fast_mode:
+def buildcheck(device):
+    if not hasattr(device, 'palette'):
+        return False
+    i0, i1, _ = implementation[1]
+    if i0 > 1 or i1 > 16:
+        return True
+    # After release of V1.17 require that build. Until then check for date.
+    # TODO simplify this once V1.17 is released.
     try:
-        try:
-            from framebuf_utils import render
-        except ImportError:  # May be running in GUI. Try relative import.
-            try:
-                from .framebuf_utils import render
-            except ImportError:
-                fast_mode = False
-    except ValueError:
-        fast_mode = False
-    if not fast_mode:
-        print('Ignoring missing or invalid framebuf_utils.mpy.')
+        datestring = os.uname()[3]
+        date = datestring.split(' on')[1]
+        date = date.lstrip()[:10]
+        idate = tuple([int(x) for x in date.split('-')])
+        return idate >= (2021, 8, 25)
+    except AttributeError:
+        return False
 
+
+fast_mode = False  # False for mono displays although actually these render fast
 
 class DisplayState():
     def __init__(self):
@@ -264,12 +264,14 @@ class Writer():
     def setcolor(self, *_):
         return self.fgcolor, self.bgcolor
 
-# Writer for colour displays or upside down rendering
+# Writer for colour displays.
 class CWriter(Writer):
 
 
     def __init__(self, device, font, fgcolor=None, bgcolor=None, verbose=True):
         super().__init__(device, font, verbose)
+        global fast_mode
+        fast_mode = buildcheck(device)
         if bgcolor is not None:  # Assume monochrome.
             self.bgcolor = bgcolor
         if fgcolor is not None:
@@ -285,11 +287,12 @@ class CWriter(Writer):
         if self.glyph is None:
             return  # All done
         buf = bytearray_at(addressof(self.glyph), len(self.glyph))
-        fbc = framebuf.FrameBuffer(buf, self.char_width, self.char_height, self.map)
-        fgcolor = self.bgcolor if invert else self.fgcolor
-        bgcolor = self.fgcolor if invert else self.bgcolor
-        # render clips a glyph if outside bounds of destination
-        render(self.device, fbc, s.text_col, s.text_row, fgcolor, bgcolor)
+        fbc = framebuf.FrameBuffer(buf, self.clip_width, self.char_height, self.map)
+        palette = self.device.palette
+        palette.bg(self.fgcolor if invert else self.bgcolor)
+        palette.fg(self.bgcolor if invert else self.fgcolor)
+
+        self.device.blit(fbc, s.text_col, s.text_row, -1, palette)
         s.text_col += self.char_width
         self.cpos += 1
 

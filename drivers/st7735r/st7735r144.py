@@ -20,6 +20,7 @@ from time import sleep_ms
 import framebuf
 import gc
 import micropython
+from drivers.boolpalette import BoolPalette
 
 # Datasheet para 8.4 scl write cycle 66ns == 15MHz
 
@@ -58,6 +59,7 @@ class ST7735R(framebuf.FrameBuffer):
         self.width = width
         self._spi_init = init_spi
         mode = framebuf.GS8  # Use 8bit greyscale for 8 bit color.
+        self.palette = BoolPalette(mode)
         gc.collect()
         buf = bytearray(self.height * self.width)
         self._mvb = memoryview(buf)

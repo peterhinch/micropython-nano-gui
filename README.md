@@ -49,6 +49,7 @@ wiring details, pin names and hardware issues.
   1.1 [Change log](./README.md#11-change-log)  
   1.2 [Description](./README.md#12-description)  
   1.3 [Quick start](./README.md#13-quick-start)  
+  1.4 [A performance boost](./README.md#14-a-performance-boost)  
  2. [Files and Dependencies](./README.md#2-files-and-dependencies)  
   2.1 [Files](./README.md#21-files)  
   &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;2.1.1 [Core files](./README.md#211-core-files)  
@@ -93,8 +94,7 @@ on ESP8266 is possible but frozen bytecode must be used owing to its restricted
 RAM.
 
 As of 14th March 2021 it runs on the Raspberry Pi Pico; on that target firmware
-must be of that date or later. The `color15` demo fails because the firmware
-lacks `uos.urandom()` but hopefully it will be fixed soon.
+must be of that date or later.
 
 It uses synchronous code but is compatible with `uasyncio`. Some demo programs
 illustrate this. Code is standard MicroPython, but some device drivers use the
@@ -108,10 +108,12 @@ displays:
  * [SSD1963 large displays](https://github.com/peterhinch/micropython-tft-gui)
 
 For historical reasons and to ensure consistency, code and documentation for
-my GUI's employ the American spelling of `color`. 
+my GUI's employ the American spelling of `color`.
 
 ## 1.1 Change log
 
+26 Aug 2021 Support [PR7682](https://github.com/micropython/micropython/pull/7682)
+for fast text rendering.
 25 Apr 2021 Support TTGO T-Display.  
 26 Mar 2021 Add ST7789. Alter uasyncio support on ili9341.  
 14 Mar 2021 Tested on Pi Pico.  
@@ -204,12 +206,19 @@ OLED as per `color_setup.py`, move to the root directory of the repo and run
 Note also that the `gui.demos.aclock.py` demo comprises 38 lines of actual
 code. This stuff is easier than you might think.
 
+## 1.4 A performance boost
+
+As of Aug 2021 color displays can benefit from a substantial performance boost
+in rendering text. To take advantage of this, firmware should be dated after
+26 Aug 21. The display driver and GUI core files should be updated. Ensure that
+the new file `drivers/boolpalette.py` exists on the target hardware.
+
 ###### [Contents](./README.md#contents)
 
 # 2. Files and Dependencies
 
 Firmware should be V1.13 or later. On the Pi Pico firmware should be V1.15 or
-later.
+later. For fast text rendering use a daily build or V1.17 or later.
 
 Installation comprises copying the `gui` and `drivers` directories, with their
 contents, plus a hardware configuration file, to the target. The directory
@@ -248,10 +257,6 @@ The `gui/core` directory contains the GUI core and its principal dependencies:
  * `writer.py` Module for rendering Python fonts.
  * `fplot.py` The graph plotting module.
  * `colors.py` Color constants.
- * `framebuf_utils.mpy` Accelerator for the `CWriter` class. This optional file
- is compiled for STM hardware. It is specific to Pyboards (1.x and D) and will
- be ignored on other ports. Details may be found
- [here](https://github.com/peterhinch/micropython-font-to-py/blob/master/writer/WRITER.md#224-a-performance-boost).
 
 ###### [Contents](./README.md#contents)
 
@@ -347,10 +352,6 @@ to check for newer versions:
 
  * [writer.py](https://github.com/peterhinch/micropython-font-to-py/blob/master/writer/writer.py)
  Provides text rendering of Python font files.
-
-Optional feature:
- * An STM32 implementation of
- [this optimisation](https://github.com/peterhinch/micropython-font-to-py/blob/master/writer/WRITER.md#224-a-performance-boost).
 
 A copy of the official driver for OLED displays using the SSD1306 chip is
 provided. The official file is here:  

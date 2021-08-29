@@ -21,6 +21,7 @@ import framebuf
 import gc
 import micropython
 import uasyncio as asyncio
+from drivers.boolpalette import BoolPalette
 
 # User orientation constants
 LANDSCAPE = 0  # Default
@@ -73,6 +74,7 @@ class ST7789(framebuf.FrameBuffer):
         self._spi_init = init_spi  # Possible user callback
         self._lock = asyncio.Lock()
         mode = framebuf.GS4_HMSB  # Use 4bit greyscale.
+        self.palette = BoolPalette(mode)
         gc.collect()
         buf = bytearray(height * -(-width // 2))  # Ceiling division for odd widths
         self._mvb = memoryview(buf)

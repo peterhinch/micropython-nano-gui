@@ -1085,6 +1085,22 @@ long as `.rgb()` and the "on the fly" converter match, this is arbitrary.
 The `Writer` (monochrome) or `CWriter` (color) classes and the `nanogui` module
 should then work automatically.
 
+For color displays the following provides a substantial performance boost when
+rendering text.
+```python
+from drivers.boolpalette import BoolPalette
+```
+and, in `__init__.py`:
+```python
+        mode = framebuf.GS4_HMSB  # The format to be used by the driver
+        self.palette = BoolPalette(mode)
+        gc.collect()
+        buf = bytearray(self.height * self.width // 2)  # Computation must match the format
+        super().__init__(buf, self.width, self.height, mode)
+```
+Assuming firmware dated after 26th Aug 2021, a fast C blit will be used to
+render glyphs instead of Python code.
+
 The following script is useful for testing color display drivers after
 configuring `color_setup.py`. It draws squares at the extreme corners of the
 display and a corner to corner diagonal.

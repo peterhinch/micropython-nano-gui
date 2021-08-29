@@ -16,6 +16,7 @@ import utime
 import gc
 import micropython
 from uctypes import addressof
+from drivers.boolpalette import BoolPalette
 
 # Timings with standard emitter
 # 1.86ms * 128 lines = 240ms. copy dominates: show() took 272ms
@@ -90,6 +91,7 @@ class SSD1351(framebuf.FrameBuffer):
         self.height = height  # Required by Writer class
         self.width = width
         mode = framebuf.GS8  # Use 8bit greyscale for 8 bit color.
+        self.palette = BoolPalette(mode)
         gc.collect()
         self.buffer = bytearray(self.height * self.width)
         super().__init__(self.buffer, self.width, self.height, mode)
