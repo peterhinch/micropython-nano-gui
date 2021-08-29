@@ -48,7 +48,8 @@ wiring details, pin names and hardware issues.
  1. [Introduction](./README.md#1-introduction)  
   1.1 [Change log](./README.md#11-change-log)  
   1.2 [Description](./README.md#12-description)  
-  1.3 [Quick start](./README.md#13-quick-start)  
+  1.3 [Quick start](./README.md#13-quick-start) Run without actually installing it.  
+  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;1.3.1 [Quick install](./README.md#131-quick-install)  
   1.4 [A performance boost](./README.md#14-a-performance-boost)  
  2. [Files and Dependencies](./README.md#2-files-and-dependencies)  
   2.1 [Files](./README.md#21-files)  
@@ -188,23 +189,50 @@ importing other modules. The example `color_setup` files illustrate this.
 
 ## 1.3 Quick start
 
-A GUI description can seem daunting because of the number of class config
-options. Defaults can usually be accepted and meaningful applications can be
-minimal. Installation can seem difficult. To counter this, this session using
-[rshell](https://github.com/dhylands/rshell) installed and ran a demo showing
-analog and digital clocks.
+An easy way to start is to use `mpremote` which allows a directory on your PC
+to be mounted on the host. In this way the filesystem on the host is left
+unchanged. This is at some cost in loading speed, especially on ESP32. If
+adopting this approach, you will need to edit the `color_setup.py` file on
+your PC to match your hardware. Install `mpremote` with:
+```bash
+$ pip3 install mpremote
+```
+Clone the repo to your PC with:
+```bash
+$ git clone https://github.com/peterhinch/micropython-nano-gui
+$ cd micropython-nano-gui
+```
+As supplied, `color_setup.py` assumes a Pyboard (1.x or D) connected to an
+Adafruit 1.27" OLED as specified in that file. If that doesn't correspond to
+your hardware, it should be edited to suit.
+```bash
+$ mpremote mount .
+```
+This should provide a REPL. Run a demo:
+```python
+>>> import gui.demos.aclock
+```
+Note that the `gui.demos.aclock.py` demo comprises 38 lines of actual code.
+This stuff is easier than you might think.
 
-Clone the repo to your PC, wire up a Pyboard (1.x or D) to an Adafruit 1.27"
-OLED as per `color_setup.py`, move to the root directory of the repo and run
-`rshell`.
+### 1.3.1 Quick install
+
+The easy approach is to copy everything to your hardware using
+[rshell](https://github.com/dhylands/rshell). This consumes about 508KiB of
+space on your filesystem. Substantial pruning can be done to eliminate unused
+drivers, fonts, widgets and demos.
+
+Edit `color_setup.py` as discussed above. Move to the root directory of the
+repo, run `rshell` and issue the following commands (note the `/sd` destination
+may need to be adapted for non-pyboard targets):
 ```bash
 > cp -r drivers /sd
 > cp -r gui /sd
 > cp color_setup.py /sd
 > repl ~ import gui.demos.aclock
 ```
-Note also that the `gui.demos.aclock.py` demo comprises 38 lines of actual
-code. This stuff is easier than you might think.
+This demo reports to the REPL whether the performance boost described below is
+active.
 
 ## 1.4 A performance boost
 
