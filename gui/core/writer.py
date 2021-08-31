@@ -13,8 +13,11 @@
 # Multiple Writer instances may be created, each rendering a font to the
 # same Display object.
 
-# Timings based on a 20 pixel high proportional font, run on a pyboard V1.0.
-# Using CWriter's slow rendering: _printchar 9.5ms typ, 13.5ms max.
+# Timings were run on a pyboard D SF6W comparing slow and fast rendering
+# and averaging over multiple characters. Proportional fonts were used.
+# 20 pixel high font, timings were 5.44ms/467μs, gain 11.7 (freesans20).
+# 10 pixel high font, timings were 1.76ms/396μs, gain 4.36 (arial10).
+
 
 import framebuf
 from uctypes import bytearray_at, addressof
