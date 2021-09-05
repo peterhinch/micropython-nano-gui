@@ -22,8 +22,6 @@ import gui.fonts.arial10 as arial10
 from gui.core.writer import Writer, CWriter
 import utime
 import uos
-import random
-urandom=lambda l: bytes([random.randint(0,255) for i in range(l)])
 from gui.core.colors import *
 
 CWriter.set_textpos(ssd, 0, 0)  # In case previous tests have altered it
@@ -38,7 +36,7 @@ def meter():
     l = LED(wri, 5, 40, bdcolor=YELLOW, label ='over')
     steps = 10
     for _ in range(steps):
-        v = int.from_bytes(urandom(3),'little')/16777216
+        v = int.from_bytes(uos.urandom(3),'little')/16777216
         m.value(v)
         l.color(GREEN if v < 0.5 else RED)
         refresh(ssd)
@@ -62,7 +60,7 @@ def multi_fields(t):
     end = utime.ticks_add(utime.ticks_ms(), t * 1000)
     while utime.ticks_diff(end, utime.ticks_ms()) > 0:
         for field in nfields:
-            value = int.from_bytes(urandom(3),'little')/167772
+            value = int.from_bytes(uos.urandom(3),'little')/167772
             overrange =  None if value < 70 else YELLOW if value < 90 else RED
             field.value('{:5.2f}'.format(value), fgcolor = overrange, bdcolor = overrange)
         refresh(ssd)
