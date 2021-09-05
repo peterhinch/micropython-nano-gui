@@ -38,6 +38,10 @@ class Terminal(framebuf.FrameBuffer):
         else:
             sys.stdout.write(frame+'\n')
             sys.stdout.flush()
+    def __del__(self):
+        if self.curse:
+            import ucurses
+            ucurses.endwin()
 
 
 
