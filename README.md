@@ -72,6 +72,7 @@ wiring details, pin names and hardware issues.
   3.7 [Class Textbox](./README.md#37-class-textbox) Scrolling text display.  
  4. [ESP8266](./README.md#4-esp8266) This can work. Contains information on
  minimising the RAM and flash footprints of the GUI.  
+ 5. [Old firmware](./README.md#5-old-firmware) For users of color displays who can't run current firmware.
 
 #### [Graph plotting module.](./FPLOT.md)
 
@@ -113,6 +114,8 @@ my GUI's employ the American spelling of `color`.
 
 ## 1.1 Change log
 
+7 Sep 2021 Code reduction and faster color text display. Color use now requires
+firmware V1.17 or later.
 26 Aug 2021 Support [PR7682](https://github.com/micropython/micropython/pull/7682)
 for fast text rendering.  
 25 Apr 2021 Support TTGO T-Display.  
@@ -236,19 +239,19 @@ active.
 
 ## 1.4 A performance boost
 
-As of Aug 2021 color displays can benefit from a substantial performance boost
-in rendering text. To take advantage of this, firmware should be dated after
-26 Aug 21. The display driver and GUI core files should be updated. Ensure that
-the new file `drivers/boolpalette.py` exists on the target hardware. Usge of
-this mode is automatic but can be checked by running the `aclock.py` demo which
-reports the status at the REPL.
+A firmware change in V1.17 has enabled the code size to be reduced. It has also
+accelerated text rendering on color displays. Use of color displays now
+requires firmware V1.17 or later. Existing users should update the display
+driver and GUI core files and should ensure that the new file
+`drivers/boolpalette.py` exists.
 
 ###### [Contents](./README.md#contents)
 
 # 2. Files and Dependencies
 
-Firmware should be V1.13 or later. On the Pi Pico firmware should be V1.15 or
-later. For fast text rendering use a daily build or V1.17 or later.
+On monochrome displays firmware should be V1.13 or later. On the Pi Pico
+firmware should be V1.15 or later. For color displays it should be V1.17 or
+later.
 
 Installation comprises copying the `gui` and `drivers` directories, with their
 contents, plus a hardware configuration file, to the target. The directory
@@ -938,5 +941,15 @@ I modified the demos to regularly report free RAM. `scale.py` reported 10480
 bytes, `tbox.py` reported 10512 bytes, sometimes more, as the demo progressed.
 With the 4 bit driver `scale.py` reported 18112 bytes. In conclusion I think
 that applications of moderate complexity should be feasible.
+
+# 5. Old firmware
+
+Current firmware is highly recommended. For users of color displays who cannot
+meet the requirements of
+[Files and Dependencies](./README.md#2-files-and-dependencies) it is possible
+to run. This involves copying
+[this file](https://github.com/peterhinch/micropython-font-to-py/blob/master/writer/old_versions/writer_fw_compatible.py)
+to `gui/core/writer.py`. This uses Python code to render text if the firmware
+or driver are unable to support fast rendering/
 
 ###### [Contents](./README.md#contents)

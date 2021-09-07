@@ -1,6 +1,7 @@
 # writer.py Implements the Writer class.
 # Handles colour, word wrap and tab stops
 
+# V0.5.0 Sep 2021 Color now requires firmware >= 1.17.
 # V0.4.3 Aug 2021 Support for fast blit to color displays (PR7682).
 # V0.4.0 Jan 2021 Improved handling of word wrap and line clip. Upside-down
 # rendering no longer supported: delegate to device driver.
@@ -24,27 +25,9 @@ from uctypes import bytearray_at, addressof
 from sys import implementation
 import os
 
-__version__ = (0, 4, 3)
+__version__ = (0, 5, 0)
 
-def buildcheck(device):
-    if not hasattr(device, 'palette'):
-        return False
-    i0, i1, _ = implementation[1]
-    if i0 > 1 or i1 > 16:
-        return True
-    # After release of V1.17 require that build. Until then check for date.
-    # TODO simplify this once V1.17 is released.
-    try:
-        datestring = os.uname()[3]
-        date = datestring.split(' on')[1]
-        date = date.lstrip()[:10]
-        idate = tuple([int(x) for x in date.split('-')])
-        return idate >= (2021, 8, 25)
-    except AttributeError:
-        return False
-
-
-fast_mode = False  # False for mono displays although actually these render fast
+fast_mode = True  # Does nothing. Kept to avoid breaking code.
 
 class DisplayState():
     def __init__(self):
@@ -202,7 +185,7 @@ class Writer():
                     break
             if mc + 1 == wd:
                 break  # All done: no trailing space
-        print('Truelen', char, wd, mc + 1)  # TEST 
+        # print('Truelen', char, wd, mc + 1)  # TEST 
         return mc + 1
 
     def _get_char(self, char, recurse):
@@ -272,19 +255,20 @@ class CWriter(Writer):
 
 
     def __init__(self, device, font, fgcolor=None, bgcolor=None, verbose=True):
+        if not hasattr(device, 'palette'):
+            raise OSError('Incompatible device driver.')
+        if implementation[1] < (1, 17, 0):
+            raise OSError('Firmware must be >= 1.17.')
+
         super().__init__(device, font, verbose)
-        global fast_mode
-        fast_mode = buildcheck(device)
         if bgcolor is not None:  # Assume monochrome.
             self.bgcolor = bgcolor
         if fgcolor is not None:
             self.fgcolor = fgcolor
         self.def_bgcolor = self.bgcolor
         self.def_fgcolor = self.fgcolor
-        self._printchar = self._pchfast if fast_mode else self._pchslow
-        verbose and print('Render {} using fast mode'.format('is' if fast_mode else 'not'))
 
-    def _pchfast(self, char, invert=False, recurse=False):
+    def _printchar(self, char, invert=False, recurse=False):
         s = self._getstate()
         self._get_char(char, recurse)
         if self.glyph is None:
@@ -294,40 +278,8 @@ class CWriter(Writer):
         palette = self.device.palette
         palette.bg(self.fgcolor if invert else self.bgcolor)
         palette.fg(self.bgcolor if invert else self.fgcolor)
-
         self.device.blit(fbc, s.text_col, s.text_row, -1, palette)
         s.text_col += self.char_width
-        self.cpos += 1
-
-    def _pchslow(self, char, invert=False, recurse=False):
-        s = self._getstate()
-        self._get_char(char, recurse)
-        if self.glyph is None:
-            return  # All done
-        char_height = self.char_height
-        char_width = self.char_width
-        clip_width = self.clip_width
-
-        div, mod = divmod(char_width, 8)
-        gbytes = div + 1 if mod else div  # No. of bytes per row of glyph
-        device = self.device
-        fgcolor = self.bgcolor if invert else self.fgcolor
-        bgcolor = self.fgcolor if invert else self.bgcolor
-        drow = s.text_row  # Destination row
-        wcol = s.text_col  # Destination column of character start
-        for srow in range(char_height):  # Source row
-            for scol in range(clip_width):  # Source column
-                # Destination column: add writer column
-                dcol = wcol + scol
-                gbyte, gbit = divmod(scol, 8)
-                if gbit == 0:  # Next glyph byte
-                    data = self.glyph[srow * gbytes + gbyte]
-                pixel = fgcolor if data & (1 << (7 - gbit)) else bgcolor
-                device.pixel(dcol, drow, pixel)
-            drow += 1
-            if drow >= self.screenheight or drow < 0:
-                break
-        s.text_col += char_width
         self.cpos += 1
 
     def setcolor(self, fgcolor=None, bgcolor=None):
