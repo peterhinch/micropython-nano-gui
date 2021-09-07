@@ -947,9 +947,9 @@ that applications of moderate complexity should be feasible.
 Current firmware is highly recommended. For users of color displays who cannot
 meet the requirements of
 [Files and Dependencies](./README.md#2-files-and-dependencies) it is possible
-to run. This involves copying
+to run under V1.15+. This involves copying
 [this file](https://github.com/peterhinch/micropython-font-to-py/blob/master/writer/old_versions/writer_fw_compatible.py)
 to `gui/core/writer.py`. This uses Python code to render text if the firmware
-or driver are unable to support fast rendering/
+or driver are unable to support fast rendering.
 
 ###### [Contents](./README.md#contents)
