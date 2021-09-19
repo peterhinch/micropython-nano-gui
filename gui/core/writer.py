@@ -150,6 +150,8 @@ class Writer():
             self._printline(rstr, invert)  # Recurse
 
     def stringlen(self, string, oh=False):
+        if not len(string):
+            return 0
         sc = self._getstate().text_col  # Start column
         wd = self.screenwidth
         l = 0
