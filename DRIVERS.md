@@ -392,6 +392,11 @@ The driver also supports the
 [TTGO T-Display](http://www.lilygo.cn/claprod_view.aspx?TypeId=62&Id=1274).
 This is an inexpensive ESP32 with a 135x240 color TFT display.
 
+Also, in landscape mode only, the
+[Waveshare Pico LCD 1.14 inch](https://www.waveshare.com/pico-lcd-1.14.htm).
+This has a hardware quirk, copy `setup_examples/st7789_pico_lcd_114.py` to
+your setup file.
+
 The `color_setup.py` file should initialise the SPI bus with a baudrate of
 30_000_000. Args `polarity`, `phase`, `bits`, `firstbit` are defaults. Hard or
 soft SPI may be used but hard may be faster. 30MHz is a conservative value: see
@@ -1042,6 +1047,15 @@ method:
 This ensures compatibility with code written for color displays by converting
 RGB values to a single bit.
 
+For color display drivers some boilerplate code is required for rendering
+monochrome objects such as glyphs:
+```python
+from drivers.boolpalette import BoolPalette
+# In the constructor:
+        mode = framebuf.GS8  # Whatever mode the driver uses
+        self.palette = BoolPalette(mode)
+        super().__init__(buf, self.width, self.height, mode)
+```
 Refresh must be handled by a `show` method taking no arguments; when called,
 the contents of the buffer underlying the `FrameBuffer` must be copied to the
 hardware.
