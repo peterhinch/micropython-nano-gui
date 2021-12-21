@@ -390,7 +390,8 @@ resolution and uses the same CircuitPython driver so can be expected to work.
 
 The driver also supports the
 [TTGO T-Display](http://www.lilygo.cn/claprod_view.aspx?TypeId=62&Id=1274).
-This is an inexpensive ESP32 with a 135x240 color TFT display.
+This is an inexpensive ESP32 with a 135x240 color TFT display. See
+`setup_examples/st7789_ttgo.py`.
 
 Also, in landscape mode only, the
 [Waveshare Pico LCD 1.14 inch](https://www.waveshare.com/pico-lcd-1.14.htm).
@@ -436,7 +437,7 @@ Orientation (values for `disp_mode`):
 
 Display types (values for `display`):  
 `GENERIC` For Adafruit displays.  
-`TDISPLAY` For the TTGO T-Display.  
+`TDISPLAY` For the TTGO T-Display and Waveshare Pico LCD.  
 
 ### init_spi
 
