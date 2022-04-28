@@ -16,7 +16,6 @@ import framebuf
 import utime
 import gc
 import micropython
-from uctypes import addressof
 from drivers.boolpalette import BoolPalette
 
 import sys
