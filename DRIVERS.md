@@ -35,7 +35,8 @@ access via the `Writer` and `CWriter` classes is documented
   3.2 [Drivers for ILI9341](./DRIVERS.md#32-drivers-for-ili9341) Large TFTs  
   3.3 [Drivers for ST7789](./DRIVERS.md#33-drivers-for-st7789) Small high density TFTs  
   &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;3.3.1 [TTGO T Display](./DRIVERS.md#331-ttgo-t-display) Low cost ESP32 with integrated display  
-  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;3.3.2 [Troubleshooting](./DRIVERS.md#332-troubleshooting)  
+  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;3.3.2 [Waveshare Pico ResTouch LCD 2.8](./DRIVERS.md#332-waveshare-Pico-restouch-lcd) 2.8" display for Pico  
+  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;3.3.3 [Troubleshooting](./DRIVERS.md#332-troubleshooting)  
  4. [Drivers for sharp displays](./DRIVERS.md#4-drivers-for-sharp-displays) Large low power monochrome displays  
   4.1 [Display characteristics](./DRIVERS.md#41-display-characteristics)  
   &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;4.1.1 [The VCOM bit](./DRIVERS.md#411-the-vcom-bit)  
@@ -518,7 +519,34 @@ URL's. More in `st7789_ttgo.py`
 [Another MicroPython driver](https://github.com/jikegong/TTGO-Esp32-ST7789-Display-MicroPython/blob/2ed1816c41f25c8993038c35ef40b2efeb225dcc/st7789.py)  
 [Factory test (C)](https://github.com/Xinyuan-LilyGO/TTGO-T-Display/blob/master/TFT_eSPI/examples/FactoryTest/FactoryTest.ino)  
 
-### 3.3.2 Troubleshooting
+### 3.3.2 Waveshare Pico ResTouch LCD
+
+This 2.8" display for the Raspberry RP2 Pico has been tested by user
+[TimWermer](https://github.com/TimWermer), see this
+[GitHub thread](https://github.com/peterhinch/micropython-nano-gui/discussions/31).
+The display may be found [here](https://www.waveshare.com/Pico-ResTouch-LCD-2.8.htm).
+Neither `nanogui` or `microgui` support touch functionality.
+
+Tim Werner used a modified device driver. For the standard driver
+`color_setup.py` for `nanogui` should read as follows:
+```python
+from machine import Pin, SPI
+import gc
+from drivers.st7789.st7789_4bit import *
+SSD = ST7789
+
+pdc = Pin(8, Pin.OUT, value=0)
+pcs = Pin(9, Pin.OUT, value=1)
+prst = Pin(15, Pin.OUT, value=1)
+pbl = Pin(13, Pin.OUT, value=1)  # Backlight
+
+gc.collect()  # Precaution before instantiating framebuf
+# Conservative low baudrate. Can go to 62.5MHz. Depending on wiring.
+spi = SPI(1, 30_000_000, sck=Pin(10), mosi=Pin(11), miso=Pin(12))
+ssd = SSD(spi, dc=pdc, cs=pcs, rst=prst, height=320, width=240, display=GENERIC)
+```
+
+### 3.3.3 Troubleshooting
 
 If your display shows garbage, check the following (I have seen both):
  * SPI baudrate too high for your physical layout.
