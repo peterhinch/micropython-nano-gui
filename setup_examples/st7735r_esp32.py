@@ -25,11 +25,11 @@
 from machine import SPI, Pin
 import gc
 #from drivers.ssd1351.ssd1351_generic import SSD1351 as SSD
-#from drivers.st7735r.st7735r import ST7735R as SSD
+from drivers.st7735r.st7735r import ST7735R as SSD
 #from drivers.st7735r.st7735r144 import ST7735R as SSD
-from drivers.st7735r.st7735r_4bit import ST7735R as SSD
+#from drivers.st7735r.st7735r_4bit import ST7735R as SSD
 
-height = 96   # SSD1351: ensure height is correct (96/128)
+height = 128   # Ensure height is correct
 
 pdc = Pin(27, Pin.OUT, value=0)  # Arbitrary pins
 pcs = Pin(25, Pin.OUT, value=1)

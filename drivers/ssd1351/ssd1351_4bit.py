@@ -15,7 +15,6 @@ import framebuf
 import utime
 import gc
 import micropython
-from uctypes import addressof
 from drivers.boolpalette import BoolPalette
 
 # https://github.com/peterhinch/micropython-nano-gui/issues/2
