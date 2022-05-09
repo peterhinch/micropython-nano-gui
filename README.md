@@ -165,7 +165,7 @@ Compatible and tested display drivers include:
  * Drivers for Adafruit ST7789 TFT's and TTGO T-Display ESP32 with TFT display:
  [1.3 inch](https://www.adafruit.com/product/4313) and
 [1.54 inch](https://www.adafruit.com/product/3787).
-[TTGO Product page](http://www.lilygo.cn/claprod_view.aspx?TypeId=62&Id=1274)  
+[TTGO Product page](http://www.lilygo.cn/prod_view.aspx?TypeId=50033&Id=1126&FId=t3%3a50033%3a3&msclkid=b46a3d0ecf7d11ec88e6ae013d02d194)  
  * Drivers for ILI9341 such as [Adafruit 3.2 inch](https://www.adafruit.com/product/1743)
  documented [here](./DRIVERS.md#5-drivers-for-ili9341).
  * [Adafruit 2.9 inch ePaper display](https://www.adafruit.com/product/4262)
