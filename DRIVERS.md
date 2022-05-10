@@ -35,7 +35,8 @@ access via the `Writer` and `CWriter` classes is documented
   3.2 [Drivers for ILI9341](./DRIVERS.md#32-drivers-for-ili9341) Large TFTs  
   3.3 [Drivers for ST7789](./DRIVERS.md#33-drivers-for-st7789) Small high density TFTs  
   &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;3.3.1 [TTGO T Display](./DRIVERS.md#331-ttgo-t-display) Low cost ESP32 with integrated display  
-  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;3.3.2 [Troubleshooting](./DRIVERS.md#332-troubleshooting)  
+  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;3.3.2 [Waveshare Pico Res Touch](./DRIVERS.md#332-waveshare-pico-res-touch)  
+  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;3.3.3 [Troubleshooting](./DRIVERS.md#333-troubleshooting)  
  4. [Drivers for sharp displays](./DRIVERS.md#4-drivers-for-sharp-displays) Large low power monochrome displays  
   4.1 [Display characteristics](./DRIVERS.md#41-display-characteristics)  
   &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;4.1.1 [The VCOM bit](./DRIVERS.md#411-the-vcom-bit)  
@@ -518,7 +519,48 @@ URL's. More in `st7789_ttgo.py`
 [Another MicroPython driver](https://github.com/jikegong/TTGO-Esp32-ST7789-Display-MicroPython/blob/2ed1816c41f25c8993038c35ef40b2efeb225dcc/st7789.py)  
 [Factory test (C)](https://github.com/Xinyuan-LilyGO/TTGO-T-Display/blob/master/TFT_eSPI/examples/FactoryTest/FactoryTest.ino)  
 
-### 3.3.2 Troubleshooting
+### 3.3.2 Waveshare Pico Res Touch
+
+This is a "plug and play" 2.8" color TFT for nano-gui and the Pi Pico. Users of
+micro-gui will need to find a way to connect pushbuttons, either using stacking
+headers on the Pico or soldering wires to its pads. The `color_setup.py` file
+is as follows. Note the commented-out options and the Lewis Caroll nature of
+the landscape/portrait constructor args. See `setup_examples/ws_pico_res_touch.py`.
+```python
+import gc
+from machine import Pin, SPI
+from drivers.st7789.st7789_4bit import *
+SSD = ST7789
+
+pdc = Pin(8, Pin.OUT, value=0)
+pcs = Pin(9, Pin.OUT, value=1)
+prst = Pin(15, Pin.OUT, value=1)
+pbl = Pin(13, Pin.OUT, value=1)
+
+gc.collect()  # Precaution before instantiating framebuf
+spi = SPI(1, 33_000_000, sck=Pin(10), mosi=Pin(11), miso=Pin(12))
+
+# Define the display
+# For portrait mode:
+# ssd = SSD(spi, height=320, width=240, dc=pdc, cs=pcs, rst=prst)
+# For landscape mode:
+ssd = SSD(spi, height=240, width=320, disp_mode=PORTRAIT, dc=pdc, cs=pcs, rst=prst)
+
+# Optional use of SD card.
+from sdcard import SDCard
+import os
+sd = SDCard(spi, Pin(22, Pin.OUT), 33_000_000)
+vfs = os.VfsFat(sd)
+os.mount(vfs, "/fc")
+```
+The ST7789 is specified for baudrates upto 62.5MHz, however the maximum the
+Pico can produce is 31.25MHz. The display uses a nonstandard pin for MISO. This
+was proven to work by testing the SD card. This requires the official SD card
+driver which may be found in the MicroPython source tree in
+`drivers/sdcard/sdcard.py`. I am not an expert on SD cards. Mine worked fine at
+31.25MHz but this may or may not be universally true.
+
+### 3.3.3 Troubleshooting
 
 If your display shows garbage, check the following (I have seen both):
  * SPI baudrate too high for your physical layout.

@@ -82,21 +82,19 @@ wiring details, pin names and hardware issues.
 
 This library provides a limited set of GUI objects (widgets) for displays whose
 display driver is subclassed from the `FrameBuffer` class. Such drivers can be
-tiny as the graphics primitives are supplied by the `FrameBuffer` class. A
-range of device drivers is provided: [the device driver doc](./DRIVERS.md)
-provides guidance on selecting the right driver for your display, platform and
-application.
+tiny as the graphics primitives are supplied by the `FrameBuffer` class.
+
+Compatible and tested displays are detailed [here](./DISPLAYS.md). The
+[device driver doc](./DRIVERS.md) provides guidance on selecting the right
+driver for your display, platform and application.
 
 The GUI is cross-platform. The device driver doc explains how to configure it
 for a given display and MicroPython host by adapting a single small file. The
 GUI supports multiple displays attached to a single target, but bear in mind
 the RAM requirements for multiple frame buffers. The GUI has been tested on
-Pyboard 1.1, Pyboard D and on the ESP32 reference board without SPIRAM. Running
-on ESP8266 is possible but frozen bytecode must be used owing to its restricted
-RAM.
-
-As of 14th March 2021 it runs on the Raspberry Pi Pico; on that target firmware
-must be of that date or later.
+Pyboard 1.1, Pyboard D, Raspberry Pi Pico and on the ESP32 reference board
+without SPIRAM. Running on ESP8266 is possible but frozen bytecode must be used
+owing to its restricted RAM.
 
 It uses synchronous code but is compatible with `uasyncio`. Some demo programs
 illustrate this. Code is standard MicroPython, but some device drivers use the
@@ -109,70 +107,24 @@ displays:
  * [RA8875 large displays](https://github.com/peterhinch/micropython_ra8875)
  * [SSD1963 large displays](https://github.com/peterhinch/micropython-tft-gui)
 
+Input via pushbuttons or an encoder is offered by
+[micro-gui](https://github.com/peterhinch/micropython-micro-gui). This supports
+all displays supported by nano-gui.
+
 For historical reasons and to ensure consistency, code and documentation for
 my GUI's employ the American spelling of `color`.
 
 ## 1.1 Change log
 
+10 May 2022 Support Waveshare Pi Pico displays.
 7 Sep 2021 Code reduction and faster color text display. Color use now requires
 firmware V1.17 or later.
 26 Aug 2021 Support [PR7682](https://github.com/micropython/micropython/pull/7682)
 for fast text rendering.  
 25 Apr 2021 Support TTGO T-Display.  
 26 Mar 2021 Add ST7789. Alter uasyncio support on ili9341.  
-14 Mar 2021 Tested on Pi Pico.  
-17 Jan 2021  
-Add ePaper drivers. Ensure monochrome and color setup requirements are
-identical. Substantial update to docs.  
-16 Dec 2020  
-Add ILI9341 driver, 4-bit drivers and SPI bus sharing improvements. These mean
-that `color_setup.py` should now set SPI baudrate.  
-29 Nov 2020  
-Add ST7735R TFT drivers.  
-17 Nov 2020  
-Add `Textbox` widget. `Scale` constructor arg `border` replaced by `bdcolor` as
-per other widgets.
-5 Nov 2020 - breaking change  
-This library has been refactored as a Python package. This reduces RAM usage:
-widgets are imported on demand rather than unconditionally. This has enabled
-the addition of new widgets with zero impact on existsing applications. Another
-aim was to simplify installation with dependencies such as `writer` included in
-the tree. Finally hardware configuration is contained in a single script: only
-this file needs to be customised to run all demo scripts or to port an
-application to different hardware.
-
-Users of versions prior to this refactor should re-install from scratch. In
-existing applications, import statements will need to be adapted as per the
-demos. The GUI API is otherwise unchanged.
 
 ## 1.2 Description
-
-Compatible and tested display drivers include:
-
- * The official [SSD1306 driver](https://github.com/micropython/micropython/blob/master/drivers/display/ssd1306.py).
- * The [PCD8544/Nokia 5110](https://github.com/mcauser/micropython-pcd8544.git).
- * The [Adafruit 0.96 inch color OLED](https://www.adafruit.com/product/684)
- with [this driver](./DRIVERS.md#3-drivers-for-ssd1331).
- * A driver for [Adafruit 1.5 inch OLED](https://www.adafruit.com/product/1431)
- and [Adafruit 1.27 inch OLED](https://www.adafruit.com/product/1673) is
- documented [here](./DRIVERS.md#2-drivers-for-ssd1351).
- * A driver for Sharp ultra low power consumption monochrome displays such as
- [2.7 inch 400x240 pixels](https://www.adafruit.com/product/4694)
- is documented [here](./DRIVERS.md#6-drivers-for-sharp-displays).
- * Drivers for Adafruit ST7735R based TFT's: 
- [1.8 inch](https://www.adafruit.com/product/358) and
- [1.44 inch](https://www.adafruit.com/product/2088) documented [here](./DRIVERS.md#4-drivers-for-st7735r).
- * Drivers for Adafruit ST7789 TFT's and TTGO T-Display ESP32 with TFT display:
- [1.3 inch](https://www.adafruit.com/product/4313) and
-[1.54 inch](https://www.adafruit.com/product/3787).
-[TTGO Product page](http://www.lilygo.cn/prod_view.aspx?TypeId=50033&Id=1126&FId=t3%3a50033%3a3&msclkid=b46a3d0ecf7d11ec88e6ae013d02d194)  
- * Drivers for ILI9341 such as [Adafruit 3.2 inch](https://www.adafruit.com/product/1743)
- documented [here](./DRIVERS.md#5-drivers-for-ili9341).
- * [Adafruit 2.9 inch ePaper display](https://www.adafruit.com/product/4262)
- documented [here](./DRIVERS.md#71-adafruit-flexible-eink-display).
- * [Waveshare 2.7 inch ePaper HAT](https://www.waveshare.com/wiki/2.7inch_e-Paper_HAT)
- documented [here](./DRIVERS.md#72-waveshare-eink-display-hat). Please note the
- warning regarding poor quality suspected clone units.
 
 Widgets are intended for the display of data from physical devices such as
 sensors. They are drawn using graphics primitives rather than icons to minimise

@@ -1,30 +1,45 @@
 # Displays tested with nano-gui and micro-gui
 
-Drivers used in nano-gui and micro-gui are dentical.
+Drivers used in [nano-gui](https://github.com/peterhinch/micropython-nano-gui)
+and [micro-gui](https://github.com/peterhinch/micropython-micro-gui) are
+identical. These displays and drivers are also compatible with the 
+[Writer class](https://github.com/peterhinch/micropython-font-to-py/blob/master/writer/WRITER.md).
+
+Note that the supported ePaper/eInk displays are unsuitable for interactive use
+owing to their long update time.
+
+## Displays using drivers in this repo
 
 Size is diagonal in inches. C/M color/monochrome.  
 Width and height are pixels.  
 
-| Size  | width | height | tech | driver        | manufacturer               | Notes |
-|:-----:|:-----:|:------:|:----:|:-------------:|:--------------------------:|:-----:|
-| 0.96C |  94   |   64   | OLED | [ssd1331][1d] | [Adafruit 684][1m]         |       |
-| 1.27C | 128   |   96   | OLED | [ssd1351][2d] | [Adafruit 1673][2m]        |       |
-| 1.5C  | 128   |  128   | OLED | [ssd1351][2d] | [Adafruit 1431][3m]        |       |
-| 1.44C | 128   |  128   | TFT  | [ST7735R][4d] | [Adafruit 2088][5m]        |       |
-| 1.5C  | 160   |  128   | TFT  | [ST7735R][4d] | [Adafruit 358][6m]         |       |
-| 1.3C  | 240   |  240   | TFT  | [ST7789][5d]  | [Adafruit 4313][7m]        |       |
-| 1.54C | 240   |  240   | TFT  | [ST7789][5d]  | [Adafruit 3787][8m]        |       |
-| 1.14C | 240   |  135   | TFT  | [ST7789][5d]  | [T-Display][9m]            | ESP32, attached display |
-| 2.8C  | 320   |  240   | TFT  | [ST7789][5d]  | [Waveshare pico 2.8][10m]  | Display for Pi Pico |
-| 1.14C | 240   |  135   | TFT  | [ST7789][5d]  | [Waveshare pico 1.14][11m] | For Pi Pico w. joystick for micro-gui |
-| 3.2C  | 320   |  240   | TFT  | [ILI9341][6d] | [Adafruit 1743][12m]       | Big display, cheap ones on eBay |
-| 2.9m  | 296   |  128   | eInk | [UC8151D][7d] | [Adafruit 4262][13m]       | Flexible ePaper display |
-| 2.9m  | 296   |  128   | eInk | [UC8151D][7d] | [Adafruit 4777][15m]       | FeatherWing ePaper display |
-| 2.7m  | 274   |  176   | eInk | [HAT][8d]     | [Waveshare HAT][14m]       | HAT designed for Raspberry Pi, repurposed. |
+| Size  | Width | Height | Tech  | Driver        | Description                | Notes |
+|:-----:|:-----:|:------:|:------|:--------------|:---------------------------|:------|
+| 0.96C |  94   |   64   | OLED  | [SSD1331][1d] | [Adafruit 684][1m]         |       |
+| 1.27C | 128   |   96   | OLED  | [SSD1351][2d] | [Adafruit 1673][2m]        |       |
+| 1.5C  | 128   |  128   | OLED  | [SSD1351][2d] | [Adafruit 1431][3m]        |       |
+| 1.44C | 128   |  128   | TFT   | [ST7735R][4d] | [Adafruit 2088][5m]        |       |
+| 1.5C  | 160   |  128   | TFT   | [ST7735R][4d] | [Adafruit 358][6m]         |       |
+| 1.3C  | 240   |  240   | TFT   | [ST7789][5d]  | [Adafruit 4313][7m]        |       |
+| 1.54C | 240   |  240   | TFT   | [ST7789][5d]  | [Adafruit 3787][8m]        |       |
+| 1.14C | 240   |  135   | TFT   | [ST7789][5d]  | [T-Display][9m]            | ESP32 with attached display |
+| 2.8C  | 320   |  240   | TFT   | [ST7789][5d]  | [Waveshare pico 2.8][10m]  | Display for Pi Pico |
+| 1.14C | 240   |  135   | TFT   | [ST7789][5d]  | [Waveshare pico 1.14][11m] | For Pi Pico. Buttons good for micro-gui |
+| 3.2C  | 320   |  240   | TFT   | [ILI9341][6d] | [Adafruit 1743][12m]       | Big display. eBay equivalents work here. |
+| 2.9M  | 296   |  128   | eInk  | [UC8151D][7d] | [Adafruit 4262][13m]       | Flexible ePaper display |
+| 2.9M  | 296   |  128   | eInk  | [UC8151D][7d] | [Adafruit 4777][15m]       | FeatherWing ePaper display |
+| 2.7M  | 274   |  176   | eInk  | [HAT][8d]     | [Waveshare HAT][14m]       | HAT designed for Raspberry Pi, repurposed. |
+| 2.7M  | 400   |  240   | Sharp | [Sharp][9d]   | [Adafruit 4694][16m]       | Micropower monochrome display. |
+| 1.3M  | 168   |  144   | Sharp | [Sharp][9d]   | [Adafruit 3502][17m]       | Ditto |
 
-Monochrome OLED displays based on the SSD1306 chip are also supported. Use the
+## Displays using compatible drivers
+
+Monochrome OLED displays based on the SSD1306 chip are supported via the
 [official driver][3d]. Displays are available from various sources and can use
-I2C or SPI interfaces. An example is [Adafruit 938][4m]
+I2C or SPI interfaces. An example is [Adafruit 938][4m].
+
+Nokia 5110 (PCD8544) displays. [This driver](https://github.com/mcauser/micropython-pcd8544.git)
+is compatible.
 
 # Untested displays
 
@@ -39,9 +54,10 @@ to be adapted.
 [3d]: https://github.com/micropython/micropython/blob/master/drivers/display/ssd1306.py
 [4d]: https://github.com/peterhinch/micropython-nano-gui/blob/master/DRIVERS.md#31-drivers-for-st7735r
 [5d]: https://github.com/peterhinch/micropython-nano-gui/blob/master/DRIVERS.md#33-drivers-for-st7789
-[6d]: https://github.com/peterhinch/micropython-nano-gui/blob/master/DRIVERS.md#5-drivers-for-ili9341
-[7d]: https://github.com/peterhinch/micropython-nano-gui/blob/master/DRIVERS.md#71-adafruit-flexible-eink-displayUC8151D
+[6d]: https://github.com/peterhinch/micropython-nano-gui/blob/master/DRIVERS.md#32-drivers-for-ili9341
+[7d]: https://github.com/peterhinch/micropython-nano-gui/blob/master/DRIVERS.md#51-adafruit-monochrome-eink-displays
 [8d]: https://github.com/peterhinch/micropython-nano-gui/blob/master/DRIVERS.md#52-waveshare-eink-display-hat
+[9d]: https://github.com/peterhinch/micropython-nano-gui/blob/master/DRIVERS.md#4-drivers-for-sharp-displays
 
 [1m]: https://www.adafruit.com/product/684
 [2m]: https://www.adafruit.com/product/1673
@@ -58,3 +74,6 @@ to be adapted.
 [13m]: https://www.adafruit.com/product/4262
 [14m]: https://www.waveshare.com/wiki/2.7inch_e-Paper_HAT
 [15m]: https://www.adafruit.com/product/4777
+[16m]: https://www.adafruit.com/product/4694
+[17m]: https://www.adafruit.com/product/3502
+
