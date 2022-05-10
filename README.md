@@ -7,7 +7,8 @@ small color and monochrome OLED's, color TFT's, ePaper and Sharp units.
 
 The `nano-gui` library is display-only. A library supporting user input is
 [micro-gui](https://github.com/peterhinch/micropython-micro-gui); this comes at
-a cost of a substantially greater RAM requirement.
+a cost of a substantially greater RAM requirement. It supports all displays
+available to nano-gui.
 
 These images, most from OLED displays, fail to reproduce the quality of these
 displays. OLEDs are visually impressive displays with bright colors, wide
@@ -40,9 +41,6 @@ wrap or clipping.
 ![Image](images/seismo.JPG) A mockup of a seismograph screen on an ePaper
 display.
 
-Notes on [Adafruit and other OLED displays](./ADAFRUIT.md) including
-wiring details, pin names and hardware issues.
-
 # Contents
 
  1. [Introduction](./README.md#1-introduction)  
@@ -74,15 +72,17 @@ wiring details, pin names and hardware issues.
  minimising the RAM and flash footprints of the GUI.  
  5. [Old firmware](./README.md#5-old-firmware) For users of color displays who can't run current firmware.
 
-#### [Graph plotting module.](./FPLOT.md)
+#### [Supported displays](./DISPLAYS.md)
 
 #### [Device driver document.](./DRIVERS.md)
+
+#### [Graph plotting module.](./FPLOT.md)
 
 # 1. Introduction
 
 This library provides a limited set of GUI objects (widgets) for displays whose
-display driver is subclassed from the `FrameBuffer` class. Such drivers can be
-tiny as the graphics primitives are supplied by the `FrameBuffer` class.
+display driver is subclassed from the `FrameBuffer` class. The drivers can have
+minimal code as graphics primitives are supplied by the `FrameBuffer` class.
 
 Compatible and tested displays are detailed [here](./DISPLAYS.md). The
 [device driver doc](./DRIVERS.md) provides guidance on selecting the right
@@ -106,10 +106,6 @@ displays:
  * [Official lcd160cr](https://github.com/peterhinch/micropython-lcd160cr-gui)
  * [RA8875 large displays](https://github.com/peterhinch/micropython_ra8875)
  * [SSD1963 large displays](https://github.com/peterhinch/micropython-tft-gui)
-
-Input via pushbuttons or an encoder is offered by
-[micro-gui](https://github.com/peterhinch/micropython-micro-gui). This supports
-all displays supported by nano-gui.
 
 For historical reasons and to ensure consistency, code and documentation for
 my GUI's employ the American spelling of `color`.

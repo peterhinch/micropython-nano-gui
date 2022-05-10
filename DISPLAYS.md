@@ -41,13 +41,28 @@ I2C or SPI interfaces. An example is [Adafruit 938][4m].
 Nokia 5110 (PCD8544) displays. [This driver](https://github.com/mcauser/micropython-pcd8544.git)
 is compatible.
 
-# Untested displays
+## Adafruit displays
+
+See [these notes](./ADAFRUIT.md) for wiring details, pin names and hardware
+issues.
+
+# Unlisted displays
+
+## Displays whose controller is listed above
 
 An untested display that uses a supported controller is not guaranteed to work.
 This is because a controller can be connected to the display in a variety of
 ways. In some cases the existing driver can be persuaded to work, sometimes by
 using nonstandard constructor arguments. In other cases the driver itself needs
 to be adapted.
+
+## Other controllers
+
+For an unlisted controller the first step is to see if there is an existing
+driver that can be ported. Adafruit publish CircuitPython drivers for their
+hardware: these are easy to port to MicroPython. Only a minimal subset is
+needed to support these GUI's, with the result that the drivers can be very
+simple. See [this doc](./DRIVERS.md#7-writing-device-drivers) for details.
 
 [1d]: https://github.com/peterhinch/micropython-nano-gui/blob/master/DRIVERS.md#22-drivers-for-ssd1331
 [2d]: https://github.com/peterhinch/micropython-nano-gui/blob/master/DRIVERS.md#21-drivers-for-ssd1351

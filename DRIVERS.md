@@ -791,7 +791,7 @@ SPI 2 and an arbitrary choice of GPIO. All may be changed and soft SPI may be
 used.
 
 | Pyb |  Breakout |
-|:---:|:---------:|
+|:----|:----------|
 | Vin | Vin (1)   |
 | Gnd | Gnd (3)   |
 | Y8  | MOSI (6)  |
@@ -853,23 +853,23 @@ on the underside of the board with the SD card at the top. Each connector has
 pairs of pins which are linked together.
 
 | Pin   | Pyb  | Pin   | Pyb  | Notes                             |
-|:-----:|:----:|:-----:|:----:|:---------------------------------:|
-| RST   |  Y3  |       |      | Should be open drain (see below). |
+|:------|:-----|:----- |:-----|:----------------------------------|
+| RST   | Y3   |       |      | Should be open drain (see below). |
 | 3V    | 3.3V |       |      |                                   |
 |  .    |      |       |      |                                   |
 | Gnd   | Gnd  |       |      |                                   |
-|  .    |      |   .   |      |                                   |
-|  .    |      |   .   |      |                                   |
-|  .    |      |   .   |      |                                   |
-|  .    |      |   .   |      |                                   |
-|  .    |      |   .   |      |                                   |
-|  .    |      |   .   |      |                                   |
-| SCK   |  Y6  |  DC   |  Y1  |                                   |
-| MOSI  |  Y8  |  ECS  |  Y2  |                                   |
-|  .    |      |   .   |      |                                   |
-|  .    |      |   .   |      |                                   |
-|  .    |      |   .   |      |                                   |
-| BUSY  |  Y4  |   .   |      | Linked with wire to BUSY pad.     |
+|  .    |      | .     |      |                                   |
+|  .    |      | .     |      |                                   |
+|  .    |      | .     |      |                                   |
+|  .    |      | .     |      |                                   |
+|  .    |      | .     |      |                                   |
+|  .    |      | .     |      |                                   |
+| SCK   | Y6   | DC    | Y1   |                                   |
+| MOSI  | Y8   | ECS   | Y2   |                                   |
+|  .    |      | .     |      |                                   |
+|  .    |      | .     |      |                                   |
+|  .    |      | .     |      |                                   |
+| BUSY  | Y4   | .     |      | Linked with wire to BUSY pad.     |
 
 The FeatherWing has a reset button which shorts the RST line to Gnd. To avoid
 risk of damage to the microcontroller pin if the button is pressed, the pin
@@ -965,7 +965,7 @@ Connections may be adapted for other MicroPython targets. The board may be
 powered from 5V or 3.3V: there is a regulator on board.
 
 | Pyb |      |  L |  R |      | Pyb |
-|:---:|:----:|:--:|:--:|:----:|:---:|
+|:----|:-----|:--:|:--:|:-----|:----|
 | Vin | VIN  |  2 |  1 |      |     |
 |     |      |  4 |  3 |      |     |
 |     |      |  6 |  5 |      |     |
@@ -1160,7 +1160,8 @@ render glyphs instead of Python code.
 
 The following script is useful for testing color display drivers after
 configuring `color_setup.py`. It draws squares at the extreme corners of the
-display and a corner to corner diagonal.
+display and a corner to corner diagonal. The nature of this image makes
+faultfinding much simpler than viewing a garbled GUI screen.
 ```python
 from color_setup import ssd  # Create a display instance
 from gui.core.colors import RED, BLUE, GREEN
@@ -1174,5 +1175,9 @@ ssd.rect(0, 0, 15, 15, RED)  # Red square at top left
 ssd.rect(ssd.width -15, ssd.height -15, 15, 15, BLUE)  # Blue square at bottom right
 ssd.show()
 ```
+If this produces correct output the GUI's can be expected to work.
+
+Authors of device drivers are encouraged to raise an issue or PR so that the
+library can be extended.
 
 ###### [Contents](./DRIVERS.md#contents)
