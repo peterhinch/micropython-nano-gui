@@ -1,7 +1,9 @@
-# Display drivers for nano-gui
+# Display drivers
 
-The nano-gui project currently supports four display technologies: OLED (color
-and monochrome), color TFT, monochrome Sharp displays and EPD (ePaper/eInk).
+These drivers support [nano-gui](./README.md), [micro-gui](https://github.com/peterhinch/micropython-micro-gui),
+and [Writer and CWriter](https://github.com/peterhinch/micropython-font-to-py/blob/master/writer/WRITER.md).
+They currently support four display technologies: OLED (color and monochrome),
+color TFT, monochrome Sharp displays and EPD (ePaper/eInk).
 All drivers provide a display class subclassed from the built-in
 `framebuf.FrameBuffer` class. This provides three increasing levels of support:
  * Graphics via the `FrameBuffer` graphics primitives.
@@ -10,13 +12,12 @@ All drivers provide a display class subclassed from the built-in
  * Use with nano-gui and [micro-gui](https://github.com/peterhinch/micropython-micro-gui/).
 
 It should be noted that in the interests of conserving RAM these drivers offer
-a bare minimum of functionality required to support the above. They assume sole
-access to the SPI or I2C bus. Applications which share the bus must do their
-own arbitration.
+a bare minimum of functionality required to support the above. Most drivers
+provide some support for bus sharing.
 
-This document is written to support users of `nano-gui`, who only need to
-instantiate a display to use the GUI. Hence only device constructors are
-documented. Required methods and bound variables are detailed in
+Users of the GUI and Writer classes only need to instantiate a display. Hence
+only device constructors are documented. Other attributes are transparent to
+the user. Required methods and bound variables are detailed in
 [Writing device drivers](./DRIVERS.md#7-writing-device-drivers). Low level
 access via the `Writer` and `CWriter` classes is documented
 [here](https://github.com/peterhinch/micropython-font-to-py/blob/master/writer/WRITER.md).
@@ -70,8 +71,11 @@ EPD's in general but makes specific reference to the 2.9" micropower demo.
 
 # 1. Introduction
 
-An application specifies a driver by means of `color_setup.py` located in the
-root directory of the target. This typically contains code along these lines:
+A nano-gui application specifies a driver by means of `color_setup.py` located
+in the root directory of the target. In micro-gui `hardware_setup.py` does a
+similar job, also specifying pins for the user controls.
+
+A typical `color_setup.py` looks like this:
 ```python
 import machine
 import gc
@@ -84,7 +88,7 @@ gc.collect()
 # Precaution before instantiating framebuf. The next line creates the buffer.
 ssd = SSD(spi, pcs, pdc, prst, 96)  # Create a display instance
 ```
-The directory `color_setup` contains example files for various displays. These
+The directory `setup_examples` contains examples for various displays. These
 are named by graphics chip ID followed by host, thus `ssd1306_pyb.py` is for an
 SSD1306 based display connected to a Pyboard. Files may be adapted and copied
 to `color_setup.py` on the target's root. The section in this doc for the
@@ -1185,7 +1189,7 @@ library can be extended.
 
 #### [Device driver document.](./DRIVERS.md)
 
-#### [nano-gui](https://github.com/peterhinch/micropython-nano-gui)
+#### [nano-gui](./README.md)
 
 #### [micro-gui](https://github.com/peterhinch/micropython-micro-gui)
 

@@ -1,8 +1,8 @@
 # nanogui: Use in asynchronous code
 
-###### [Main README](../README.md)
+###### [Main README](./README.md)
 
-###### [Driver doc](../DRIVERS.md)
+###### [Driver doc](./DRIVERS.md)
 
 ## Blocking
 
@@ -60,8 +60,7 @@ between devices having a `do_refresh` method and those that do not:
 
 ## Demo scripts
 
-These require uasyncio V3. This is incorporated in daily builds and became
-available in release builds starting with MicroPython V1.13. The `asnano` and
+These require MicroPython firmware V1.13 or later. The `asnano` and
 `asnano_sync` demos assume a Pyboard. `scale.py` is portable between hosts and
 sufficiently large displays.
 
@@ -74,6 +73,6 @@ sufficiently large displays.
  pyboard usr button is pressed.
  * `scale.py` Illustrates the use of `do_refresh()` where available.
 
-###### [Main README](../README.md)
+###### [Main README](./README.md)
 
-###### [Driver doc](../DRIVERS.md)
+###### [Driver doc](./DRIVERS.md)
