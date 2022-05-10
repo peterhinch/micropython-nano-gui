@@ -61,6 +61,7 @@ access via the `Writer` and `CWriter` classes is documented
   &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;5.2.3 [EPD public bound variables](./DRIVERS.md#523-epd-public-bound-variables)  
   6. [EPD Asynchronous support](./DRIVERS.md#6-epd-asynchronous-support)  
   7. [Writing device drivers](./DRIVERS.md#7-writing-device-drivers)  
+  8. [Links](./DRIVERS.md#8-links)  
 
 The [Micropower use](./DRIVERS.md#515-micropower-use) section is applicable to
 EPD's in general but makes specific reference to the 2.9" micropower demo.
@@ -1179,5 +1180,15 @@ If this produces correct output the GUI's can be expected to work.
 
 Authors of device drivers are encouraged to raise an issue or PR so that the
 library can be extended.
+
+# 8. Links
+
+#### [Device driver document.](./DRIVERS.md)
+
+#### [nano-gui](https://github.com/peterhinch/micropython-nano-gui)
+
+#### [micro-gui](https://github.com/peterhinch/micropython-micro-gui)
+
+#### [Writer and CWriter](https://github.com/peterhinch/micropython-font-to-py/blob/master/writer/WRITER.md)
 
 ###### [Contents](./DRIVERS.md#contents)

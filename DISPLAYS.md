@@ -64,6 +64,16 @@ hardware: these are easy to port to MicroPython. Only a minimal subset is
 needed to support these GUI's, with the result that the drivers can be very
 simple. See [this doc](./DRIVERS.md#7-writing-device-drivers) for details.
 
+# Links
+
+#### [Device driver document.](./DRIVERS.md)
+
+#### [nano-gui](https://github.com/peterhinch/micropython-nano-gui)
+
+#### [micro-gui](https://github.com/peterhinch/micropython-micro-gui)
+
+#### [Writer and CWriter](https://github.com/peterhinch/micropython-font-to-py/blob/master/writer/WRITER.md)
+
 [1d]: https://github.com/peterhinch/micropython-nano-gui/blob/master/DRIVERS.md#22-drivers-for-ssd1331
 [2d]: https://github.com/peterhinch/micropython-nano-gui/blob/master/DRIVERS.md#21-drivers-for-ssd1351
 [3d]: https://github.com/micropython/micropython/blob/master/drivers/display/ssd1306.py
