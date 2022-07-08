@@ -407,6 +407,7 @@ from gui.core.colors import *  # Standard color constants
 CWriter.set_textpos(ssd, 0, 0)  # In case previous tests have altered it
  # Instantiate any CWriters to be used (one for each font)
 wri = CWriter(ssd, arial10, GREEN, BLACK, verbose=False)  # Colors are defaults
+# wri = Writer(ssd, arial10, verbose=False)  # Monochrome display uses Writer
 wri.set_clip(True, True, False)
 ```
 Calling `nanogui.refresh` on startup sets up and clears the display. The method
