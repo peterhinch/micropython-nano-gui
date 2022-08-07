@@ -27,7 +27,7 @@ vertically: the length and angle of the vector arrow varies as the
 Pyboard is moved.
 
 There is an optional [graph plotting module](./FPLOT.md) for basic
-Cartesian and polar plots, also realtime plotting including time series.
+Cartesian and polar plots, also real time plotting including time series.
 
 ![Image](images/sine.png) A sample image from the plot module.
 
@@ -69,7 +69,7 @@ display.
   3.6 [Scale class](./README.md#36-scale-class) Linear display with wide dynamic range.  
   3.7 [Class Textbox](./README.md#37-class-textbox) Scrolling text display.  
  4. [ESP8266](./README.md#4-esp8266) This can work. Contains information on
- minimising the RAM and flash footprints of the GUI.  
+ minimizing the RAM and flash footprints of the GUI.  
  5. [Old firmware](./README.md#5-old-firmware) For users of color displays who can't run current firmware.
 
 #### [Supported displays](./DISPLAYS.md)
@@ -110,7 +110,7 @@ displays:
 For historical reasons and to ensure consistency, code and documentation for
 my GUI's employ the American spelling of `color`.
 
-## 1.1 Change log
+## 1.1 Changelog
 
 10 May 2022 Support Waveshare Pi Pico displays.
 7 Sep 2021 Code reduction and faster color text display. Color use now requires
@@ -123,10 +123,10 @@ for fast text rendering.
 ## 1.2 Description
 
 Widgets are intended for the display of data from physical devices such as
-sensors. They are drawn using graphics primitives rather than icons to minimise
-RAM usage. It also enables them to be effciently rendered at arbitrary scale by
+sensors. They are drawn using graphics primitives rather than icons to minimize
+RAM usage. It also enables them to be efficiently rendered at arbitrary scale by
 hosts with restricted processing power. The approach also enables widgets to
-maximise information in ways that are difficult with icons, in particular using
+maximize information in ways that are difficult with icons, in particular using
 dynamic color changes in conjunction with moving elements.
 
 Copying the contents of the frame buffer to the display is relatively slow. The
@@ -353,7 +353,7 @@ that pixels up to the edges of the display can be accessed.
 from color_setup import ssd  # Create a display instance
 from gui.core.colors import RED, BLUE, GREEN
 from gui.core.nanogui import refresh
-refresh(ssd, True)  # Initialise and clear display.
+refresh(ssd, True)  # Initialize and clear display.
 # Uncomment for ePaper displays
 # ssd.wait_until_ready()
 ssd.fill(0)
@@ -384,7 +384,7 @@ Text components of widgets are rendered using the `Writer` (monochrome) or
 
 ## 3.1 Application Initialisation
 
-The GUI is initialised by issuing:
+The GUI is initialized by issuing:
 ```python
 from color_setup import ssd
 ```
@@ -395,7 +395,7 @@ A typical application then imports `nanogui` modules and clears the display:
 from gui.core.nanogui import refresh
 from gui.widgets.label import Label  # Import any widgets you plan to use
 from gui.widgets.dial import Dial, Pointer
-refresh(ssd, True)  # Initialise and clear display.
+refresh(ssd, True)  # Initialize and clear display.
 ```
 Initialisation of text display follows. For each font a `CWriter` instance
 is created (for monochrome displays a `Writer` is used):
@@ -428,7 +428,7 @@ In such cases colors may be created and assigned to variables as follows:
 from color_setup import SSD
 PALE_YELLOW = SSD.rgb(150, 150, 0)
 ```
-The GUI also provides drivers with 4-bit color to minimise RAM use. Colors are
+The GUI also provides drivers with 4-bit color to minimize RAM use. Colors are
 assigned to a lookup table having 16 entries. The frame buffer stores 4-bit
 color values, which are converted to the correct color depth for the hardware
 when the display is refreshed.
@@ -444,7 +444,7 @@ then sets `PALE_YELLOW` to 12. Any color number in range `0 <= n <= 15` may be
 used (implying that predefined colors may be reassigned). It is recommended
 that `BLACK` (0) and `WHITE` (15) are not changed. If code is to be ported
 between 4-bit and other drivers, use `create_color()` for all custom colors:
-it will produce appropriate behaviour. See the `vari_fields` function in the
+it will produce appropriate behavior. See the `vari_fields` function in the
 demo `color15.py` for an example.
 
 ### 3.1.2 Monochrome displays
@@ -458,7 +458,7 @@ ePaper units where the foreground is white.
 At the bit level `1` represents the foreground. This is white on an emitting
 display such as an OLED. On a Sharp display it indicates reflection. On an
 ePaper display it represents black. Given that `1` is the foreground color,
-explicitly specifying `BLACK` on an ePaper will produce `0` as black has (very)
+explicitly specifying `BLACK` on a ePaper will produce `0` as black has (very)
 low saturation. In this context the resultant physically white background
 color may come as a surprise.
 
@@ -478,7 +478,7 @@ Labels can be displayed with an optional single pixel border.
 
 Colors are handled flexibly. By default the colors used are those of the
 `Writer` instance, however they can be changed dynamically; this might be used
-to warn of overrange or underrange values. The `color15.py` demo illustrates
+to warn of over range or underrange values. The `color15.py` demo illustrates
 this.
 
 Constructor args:  
@@ -488,19 +488,19 @@ Constructor args:
  4. `text` If a string is passed it is displayed: typically used for static
  text. If an integer is passed it is interpreted as the maximum text length
  in pixels; typically obtained from `writer.stringlen('-99.99')`. Nothing is
- dsplayed until `.value()` is called. Intended for dynamic text fields.
+ displayed until `.value()` is called. Intended for dynamic text fields.
  5. `invert=False` Display in inverted or normal style.
- 6. `fgcolor=None` Optionally override the `Writer` colors.
+ 6. `fgcolor=None` Optionally overrides the `Writer` colors.
  7. `bgcolor=None`
  8. `bdcolor=False` If `False` no border is displayed. If `None` a border is
- shown in the `Writer` forgeround color. If a color is passed, it is used.
+ shown in the `Writer` foreground color. If a color is passed, it is used.
 
 The constructor displays the string at the required location.
 
 Methods:  
  1. `value` Redraws the label. This takes the following args:
-    * `text=None` The text to display. If `None` displays last value.
-    * ` invert=False` If true, show inverse text.
+    * `text=None` The text to display. If `None` displays the last value.
+    * ` invert=False` If true, show the inverse text.
     * `fgcolor=None` Foreground color: if `None` the `Writer` default is used.
     * `bgcolor=None` Background color, as per foreground.
     * `bdcolor=None` Border color. As per above except that if `False` is
@@ -520,7 +520,7 @@ from gui.core.colors import *
 from gui.widgets.label import Label
 import gui.fonts.freesans20 as freesans20
 
-refresh(ssd)  # Initialise and clear display.
+refresh(ssd)  # Initialize and clear display.
 CWriter.set_textpos(ssd, 0, 0)  # In case previous tests have altered it
 wri = CWriter(ssd, freesans20, GREEN, BLACK, verbose=False)
 wri.set_clip(True, True, False)
@@ -549,9 +549,9 @@ Keyword only args:
  5. `width=10` Width.
  6. `fgcolor=None` Foreground color: if `None` the `Writer` default is used.
  7. `bgcolor=None` Background color, as per foreground.
- 8. `ptcolor=None` Color of meter pointer or bar. Default is foreground color.
+ 8. `ptcolor=None` Color of meter pointer or bar. Default is the foreground color.
  9. `bdcolor=False` If `False` no border is displayed. If `None` a border is
- shown in the `Writer` forgeround color. If a color is passed, it is used.
+ shown in the `Writer` foreground color. If a color is passed, it is used.
  10. `divisions=5` No. of graduations to show.
  11. `label=None` A text string will cause a `Label` to be drawn below the
  meter. An integer will create a `Label` of that width for later use.
@@ -572,8 +572,8 @@ Methods:
     `None` causes no change.  
  Returns the current value.  
  2. `text` Updates the label if present (otherwise throws a `ValueError`). Args:
-    * `text=None` The text to display. If `None` displays last value.
-    * ` invert=False` If true, show inverse text.
+    * `text=None` The text to display. If `None` displays the last value.
+    * ` invert=False` If true, show the inverse text.
     * `fgcolor=None` Foreground color: if `None` the `Writer` default is used.
     * `bgcolor=None` Background color, as per foreground.
     * `bdcolor=None` Border color. As per above except that if `False` is
@@ -597,7 +597,7 @@ Keyword only args:
  5. `fgcolor=None` Foreground color: if `None` the `Writer` default is used.
  6. `bgcolor=None` Background color, as per foreground.
  7. `bdcolor=False` If `False` no border is displayed. If `None` a border is
- shown in the `Writer` forgeround color. If a color is passed, it is used.
+ shown in the `Writer` foreground color. If a color is passed, it is used.
  8. `label=None`  A text string will cause a `Label` to be drawn below the
  LED. An integer will create a `Label` of that width for later use.
 
@@ -605,8 +605,8 @@ Methods:
  1. `color` arg `c=None` Change the LED color to `c`. If `c` is `None` the LED
  is turned off (rendered in the background color).
  2. `text` Updates the label if present (otherwise throws a `ValueError`). Args:
-    * `text=None` The text to display. If `None` displays last value.
-    * ` invert=False` If true, show inverse text.
+    * `text=None` The text to display. If `None` displays the last value.
+    * ` invert=False` If true, show the inverse text.
     * `fgcolor=None` Foreground color: if `None` the `Writer` default is used.
     * `bgcolor=None` Background color, as per foreground.
     * `bdcolor=None` Border color. As per above except that if `False` is
@@ -646,13 +646,13 @@ Keyword only args:
  5. `fgcolor=None` Foreground color: if `None` the `Writer` default is used.
  6. `bgcolor=None` Background color, as per foreground.
  7. `bdcolor=False` If `False` no border is displayed. If `None` a border is
- shown in the `Writer` forgeround color. If a color is passed, it is used.
+ shown in the `Writer` foreground color. If a color is passed, it is used.
  8. `ticks=4` No. of gradutions to show.
  9. `label=None` A text string will cause a `Label` to be drawn below the
  meter. An integer will create a `Label` of that width for later use.
- 10. `style=Dial.CLOCK` Pointers are drawn from the centre of the circle as per
+ 10. `style=Dial.CLOCK` Pointers are drawn from the center of the circle as per
  the hands of a clock. `Dial.COMPASS` causes pointers to be drawn as arrows
- centred on the control's centre. Arrow tail chevrons are suppressed for very
+ centered on the control's center. Arrow tail chevrons are suppressed for very
  short pointers.
  11. `pip=None` Draws a central dot. A color may be passed, otherwise the
  foreground color will be used. If `False` is passed, no pip will be drawn. The
@@ -664,7 +664,7 @@ constructor.
 ### Pointer class
 
 Constructor arg:
- 1. `dial` The `Dial` instance on which it is to be dsplayed.
+ 1. `dial` The `Dial` instance on which it is to be displayed.
 
 Methods:
  1. `value` Args:  
@@ -675,8 +675,8 @@ Methods:
     of the parent `Dial`. Otherwise the passed color is used.  
     Returns the current value.
  2. `text` Updates the label if present (otherwise throws a `ValueError`). Args:
-    * `text=None` The text to display. If `None` displays last value.
-    * ` invert=False` If true, show inverse text.
+    * `text=None` The text to display. If `None` displays the last value.
+    * ` invert=False` If true, show the inverse text.
     * `fgcolor=None` Foreground color: if `None` the `Writer` default is used.
     * `bgcolor=None` Background color, as per foreground.
     * `bdcolor=None` Border color. As per above except that if `False` is
@@ -706,7 +706,7 @@ def clock(ssd, wri):
 
 ## 3.6 Scale class
 
-This displays floating point data having a wide dynamic range. It is modelled
+This displays floating point data having a wide dynamic range. It is modeled
 on old radios where a large scale scrolls past a small window having a fixed
 pointer. This enables a scale with (say) 200 graduations (ticks) to readily be
 visible on a small display, with sufficient resolution to enable the user to
@@ -726,7 +726,7 @@ Constructor positional args:
  2. `row` Location on screen.
  3. `col`  
 
-Keyword only arguments (all optional): 
+Keyword only arguments (all optional):
  * `ticks=200` Number of "tick" divisions on scale. Must be divisible by 2.
  * `legendcb=None` Callback for populating scale legends (see below).
  * `tickcb=None` Callback for setting tick colors (see below).
@@ -764,7 +764,7 @@ The above arithmetic aims to show the logic. It can (obviously) be simplified.
 
 This callback enables the tick color to be changed dynamically. For example a
 scale might change from green to orange, then to red as it nears the extremes.
-The callback takes two args, being the value of the tick (in range 
+The callback takes two args, being the value of the tick (in range
 -1.0 <= v <= 1.0) and the default color. It must return a color. This example
 is taken from the `scale.py` demo:
 ```python
@@ -798,7 +798,7 @@ precision. Each visible division on the control represents 10 integer units.
 
 Displays multiple lines of text in a field of fixed dimensions. Text may be
 clipped to the width of the control or may be word-wrapped. If the number of
-lines of text exceeds the height available, scrolling will occur. Access to
+lines of text exceed the height available, scrolling will occur. Access to
 text that has scrolled out of view may be achieved by calling a method. The
 widget supports fixed and variable pitch fonts.
 ```python
@@ -859,7 +859,7 @@ Some personal observations on successful use with an ESP8266.
 I chose an [Adafruit 128x128 OLED display](https://www.adafruit.com/product/1431)
 to represent the biggest display I thought the ESP8266 might support. I
 reasoned that, if this can be made to work, smaller or monochrome displays
-would present no problem. 
+would present no problem.
 
 The ESP8266 is a minimal platform with typically 36.6KiB of free RAM. The
 framebuffer for a 128*128 OLED requires 16KiB of contiguous RAM (the display
@@ -878,9 +878,9 @@ the size of the firmware build and eliminates modules which won't compile due
 to the complex number issue. The directory structure in my frozen modules
 directory matched that of the source. This was the structure of my frozen
 directory before I added the 4 bit driver:  
-![Image](images/esp8266_tree.JPG) 
+![Image](images/esp8266_tree.JPG)
 
-I erased flash, built and installed the new firmware. Finally I copied
+I erased the flash, built and installed the new firmware. Finally I copied
 `setup_examples/esp8266_setup.py` to `/pyboard/color_setup.py`. This could have
 been frozen but I wanted to be able to change pins if required.
 
@@ -902,3 +902,4 @@ to `gui/core/writer.py`. This uses Python code to render text if the firmware
 or driver are unable to support fast rendering.
 
 ###### [Contents](./README.md#contents)
+
