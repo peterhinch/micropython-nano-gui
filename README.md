@@ -112,11 +112,11 @@ my GUI's employ the American spelling of `color`.
 
 ## 1.1 Change log
 
-8 Aug 2022 Typo and grammar fixes from @bfiics.
-10 May 2022 Support Waveshare Pi Pico displays.
+8 Aug 2022 Typo and grammar fixes from @bfiics.  
+10 May 2022 Support Waveshare Pi Pico displays.  
 7 Sep 2021 Code reduction and faster color text display. Color use now requires
-firmware V1.17 or later.
-26 Aug 2021 Support [PR7682](https://github.com/micropython/micropython/pull/7682)
+firmware V1.17 or later.  
+26 Aug 2021 Support [PR7682](https://github.com/micropython/micropython/pull/7682)  
 for fast text rendering.  
 25 Apr 2021 Support TTGO T-Display.  
 26 Mar 2021 Add ST7789. Alter uasyncio support on ili9341.  
