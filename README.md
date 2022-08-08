@@ -27,7 +27,7 @@ vertically: the length and angle of the vector arrow varies as the
 Pyboard is moved.
 
 There is an optional [graph plotting module](./FPLOT.md) for basic
-Cartesian and polar plots, also realtime plotting including time series.
+Cartesian and polar plots, also real time plotting including time series.
 
 ![Image](images/sine.png) A sample image from the plot module.
 
@@ -124,7 +124,7 @@ for fast text rendering.
 
 Widgets are intended for the display of data from physical devices such as
 sensors. They are drawn using graphics primitives rather than icons to minimise
-RAM usage. It also enables them to be effciently rendered at arbitrary scale by
+RAM usage. It also enables them to be efficiently rendered at arbitrary scale by
 hosts with restricted processing power. The approach also enables widgets to
 maximise information in ways that are difficult with icons, in particular using
 dynamic color changes in conjunction with moving elements.
@@ -488,18 +488,18 @@ Constructor args:
  4. `text` If a string is passed it is displayed: typically used for static
  text. If an integer is passed it is interpreted as the maximum text length
  in pixels; typically obtained from `writer.stringlen('-99.99')`. Nothing is
- dsplayed until `.value()` is called. Intended for dynamic text fields.
+ displayed until `.value()` is called. Intended for dynamic text fields.
  5. `invert=False` Display in inverted or normal style.
- 6. `fgcolor=None` Optionally override the `Writer` colors.
+ 6. `fgcolor=None` Optionally overrides the `Writer` colors.
  7. `bgcolor=None`
  8. `bdcolor=False` If `False` no border is displayed. If `None` a border is
- shown in the `Writer` forgeround color. If a color is passed, it is used.
+ shown in the `Writer` foreground color. If a color is passed, it is used.
 
 The constructor displays the string at the required location.
 
 Methods:  
  1. `value` Redraws the label. This takes the following args:
-    * `text=None` The text to display. If `None` displays last value.
+    * `text=None` The text to display. If `None` displays the last value.
     * ` invert=False` If true, show inverse text.
     * `fgcolor=None` Foreground color: if `None` the `Writer` default is used.
     * `bgcolor=None` Background color, as per foreground.
@@ -551,7 +551,7 @@ Keyword only args:
  7. `bgcolor=None` Background color, as per foreground.
  8. `ptcolor=None` Color of meter pointer or bar. Default is foreground color.
  9. `bdcolor=False` If `False` no border is displayed. If `None` a border is
- shown in the `Writer` forgeround color. If a color is passed, it is used.
+ shown in the `Writer` foreground color. If a color is passed, it is used.
  10. `divisions=5` No. of graduations to show.
  11. `label=None` A text string will cause a `Label` to be drawn below the
  meter. An integer will create a `Label` of that width for later use.
@@ -572,7 +572,7 @@ Methods:
     `None` causes no change.  
  Returns the current value.  
  2. `text` Updates the label if present (otherwise throws a `ValueError`). Args:
-    * `text=None` The text to display. If `None` displays last value.
+    * `text=None` The text to display. If `None` displays the last value.
     * ` invert=False` If true, show inverse text.
     * `fgcolor=None` Foreground color: if `None` the `Writer` default is used.
     * `bgcolor=None` Background color, as per foreground.
@@ -597,7 +597,7 @@ Keyword only args:
  5. `fgcolor=None` Foreground color: if `None` the `Writer` default is used.
  6. `bgcolor=None` Background color, as per foreground.
  7. `bdcolor=False` If `False` no border is displayed. If `None` a border is
- shown in the `Writer` forgeround color. If a color is passed, it is used.
+ shown in the `Writer` foreground color. If a color is passed, it is used.
  8. `label=None`  A text string will cause a `Label` to be drawn below the
  LED. An integer will create a `Label` of that width for later use.
 
@@ -605,7 +605,7 @@ Methods:
  1. `color` arg `c=None` Change the LED color to `c`. If `c` is `None` the LED
  is turned off (rendered in the background color).
  2. `text` Updates the label if present (otherwise throws a `ValueError`). Args:
-    * `text=None` The text to display. If `None` displays last value.
+    * `text=None` The text to display. If `None` displays the last value.
     * ` invert=False` If true, show inverse text.
     * `fgcolor=None` Foreground color: if `None` the `Writer` default is used.
     * `bgcolor=None` Background color, as per foreground.
@@ -646,7 +646,7 @@ Keyword only args:
  5. `fgcolor=None` Foreground color: if `None` the `Writer` default is used.
  6. `bgcolor=None` Background color, as per foreground.
  7. `bdcolor=False` If `False` no border is displayed. If `None` a border is
- shown in the `Writer` forgeround color. If a color is passed, it is used.
+ shown in the `Writer` foreground color. If a color is passed, it is used.
  8. `ticks=4` No. of gradutions to show.
  9. `label=None` A text string will cause a `Label` to be drawn below the
  meter. An integer will create a `Label` of that width for later use.
@@ -664,7 +664,7 @@ constructor.
 ### Pointer class
 
 Constructor arg:
- 1. `dial` The `Dial` instance on which it is to be dsplayed.
+ 1. `dial` The `Dial` instance on which it is to be displayed.
 
 Methods:
  1. `value` Args:  
@@ -675,7 +675,7 @@ Methods:
     of the parent `Dial`. Otherwise the passed color is used.  
     Returns the current value.
  2. `text` Updates the label if present (otherwise throws a `ValueError`). Args:
-    * `text=None` The text to display. If `None` displays last value.
+    * `text=None` The text to display. If `None` displays the last value.
     * ` invert=False` If true, show inverse text.
     * `fgcolor=None` Foreground color: if `None` the `Writer` default is used.
     * `bgcolor=None` Background color, as per foreground.
@@ -726,7 +726,7 @@ Constructor positional args:
  2. `row` Location on screen.
  3. `col`  
 
-Keyword only arguments (all optional): 
+Keyword only arguments (all optional):
  * `ticks=200` Number of "tick" divisions on scale. Must be divisible by 2.
  * `legendcb=None` Callback for populating scale legends (see below).
  * `tickcb=None` Callback for setting tick colors (see below).
@@ -764,7 +764,7 @@ The above arithmetic aims to show the logic. It can (obviously) be simplified.
 
 This callback enables the tick color to be changed dynamically. For example a
 scale might change from green to orange, then to red as it nears the extremes.
-The callback takes two args, being the value of the tick (in range 
+The callback takes two args, being the value of the tick (in range
 -1.0 <= v <= 1.0) and the default color. It must return a color. This example
 is taken from the `scale.py` demo:
 ```python
@@ -859,7 +859,7 @@ Some personal observations on successful use with an ESP8266.
 I chose an [Adafruit 128x128 OLED display](https://www.adafruit.com/product/1431)
 to represent the biggest display I thought the ESP8266 might support. I
 reasoned that, if this can be made to work, smaller or monochrome displays
-would present no problem. 
+would present no problem.
 
 The ESP8266 is a minimal platform with typically 36.6KiB of free RAM. The
 framebuffer for a 128*128 OLED requires 16KiB of contiguous RAM (the display
@@ -878,9 +878,9 @@ the size of the firmware build and eliminates modules which won't compile due
 to the complex number issue. The directory structure in my frozen modules
 directory matched that of the source. This was the structure of my frozen
 directory before I added the 4 bit driver:  
-![Image](images/esp8266_tree.JPG) 
+![Image](images/esp8266_tree.JPG)
 
-I erased flash, built and installed the new firmware. Finally I copied
+I erased the flash, built and installed the new firmware. Finally I copied
 `setup_examples/esp8266_setup.py` to `/pyboard/color_setup.py`. This could have
 been frozen but I wanted to be able to change pins if required.
 
