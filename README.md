@@ -675,14 +675,7 @@ Methods:
     * `color=None` By default the pointer is rendered in the foreground color
     of the parent `Dial`. Otherwise the passed color is used.  
     Returns the current value.
- 2. `text` Updates the label if present (otherwise throws a `ValueError`). Args:
-    * `text=None` The text to display. If `None` displays the last value.
-    * ` invert=False` If true, show inverse text.
-    * `fgcolor=None` Foreground color: if `None` the `Writer` default is used.
-    * `bgcolor=None` Background color, as per foreground.
-    * `bdcolor=None` Border color. As per above except that if `False` is
-    passed, no border is displayed. This clears a previously drawn border.  
- 3. `show` No args. (Re)draws the control. Primarily for internal use by GUI.
+ 2. `show` No args. (Re)draws the control. Primarily for internal use by GUI.
 
 Typical usage (`ssd` is the device and `wri` is the current `Writer`):
 ```python
