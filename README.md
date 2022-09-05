@@ -112,7 +112,7 @@ my GUI's employ the American spelling of `color`.
 
 ## 1.1 Change log
 
-5 Sep 2022 Add support for additional Pico displays.
+5 Sep 2022 Add support for additional Pico displays.  
 8 Aug 2022 Typo and grammar fixes from @bfiics.  
 10 May 2022 Support Waveshare Pi Pico displays.  
 7 Sep 2021 Code reduction and faster color text display. Color use now requires
