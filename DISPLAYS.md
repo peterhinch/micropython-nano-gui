@@ -21,6 +21,7 @@ Width and height are pixels.
 | 1.44C | 128   |  128   | TFT   | [ST7735R][4d] | [Adafruit 2088][5m]        |       |
 | 1.5C  | 160   |  128   | TFT   | [ST7735R][4d] | [Adafruit 358][6m]         |       |
 | 1.3C  | 240   |  240   | TFT   | [ST7789][5d]  | [Adafruit 4313][7m]        |       |
+| 2.0C  | 320   |  240   | TFT   | [ST7789][5d]  | [Waveshare Pico LCD 2][18m]| For Pi Pico |
 | 1.54C | 240   |  240   | TFT   | [ST7789][5d]  | [Adafruit 3787][8m]        |       |
 | 1.14C | 240   |  135   | TFT   | [ST7789][5d]  | [T-Display][9m]            | ESP32 with attached display |
 | 2.8C  | 320   |  240   | TFT   | [ST7789][5d]  | [Waveshare pico 2.8][10m]  | Display for Pi Pico |
@@ -28,6 +29,7 @@ Width and height are pixels.
 | 3.2C  | 320   |  240   | TFT   | [ILI9341][6d] | [Adafruit 1743][12m]       | Big display. eBay equivalents work here. |
 | 2.9M  | 296   |  128   | eInk  | [UC8151D][7d] | [Adafruit 4262][13m]       | Flexible ePaper display |
 | 2.9M  | 296   |  128   | eInk  | [UC8151D][7d] | [Adafruit 4777][15m]       | FeatherWing ePaper display |
+| 4.2M  | 400   |  300   | eInk  | [WS][10d]     | [Waveshare pico 4.2][19m]  | Pico, Pico W plug in. Other hosts via cable |
 | 2.7M  | 274   |  176   | eInk  | [HAT][8d]     | [Waveshare HAT][14m]       | HAT designed for Raspberry Pi, repurposed. |
 | 2.7M  | 400   |  240   | Sharp | [Sharp][9d]   | [Adafruit 4694][16m]       | Micropower monochrome display. |
 | 1.3M  | 168   |  144   | Sharp | [Sharp][9d]   | [Adafruit 3502][17m]       | Ditto |
@@ -83,6 +85,7 @@ simple. See [this doc](./DRIVERS.md#7-writing-device-drivers) for details.
 [7d]: https://github.com/peterhinch/micropython-nano-gui/blob/master/DRIVERS.md#51-adafruit-monochrome-eink-displays
 [8d]: https://github.com/peterhinch/micropython-nano-gui/blob/master/DRIVERS.md#52-waveshare-eink-display-hat
 [9d]: https://github.com/peterhinch/micropython-nano-gui/blob/master/DRIVERS.md#4-drivers-for-sharp-displays
+[10d]: https://github.com/peterhinch/micropython-nano-gui/blob/master/DRIVERS.md#53-waveshare-400x300-pi-pico-display
 
 [1m]: https://www.adafruit.com/product/684
 [2m]: https://www.adafruit.com/product/1673
@@ -101,4 +104,5 @@ simple. See [this doc](./DRIVERS.md#7-writing-device-drivers) for details.
 [15m]: https://www.adafruit.com/product/4777
 [16m]: https://www.adafruit.com/product/4694
 [17m]: https://www.adafruit.com/product/3502
-
+[18m]: https://www.waveshare.com/wiki/Pico-LCD-2
+[19m]: https://thepihut.com/collections/epaper-displays-for-raspberry-pi/products/4-2-e-paper-display-module-for-raspberry-pi-pico-black-white-400x300

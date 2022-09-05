@@ -37,7 +37,8 @@ access via the `Writer` and `CWriter` classes is documented
   3.3 [Drivers for ST7789](./DRIVERS.md#33-drivers-for-st7789) Small high density TFTs  
   &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;3.3.1 [TTGO T Display](./DRIVERS.md#331-ttgo-t-display) Low cost ESP32 with integrated display  
   &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;3.3.2 [Waveshare Pico Res Touch](./DRIVERS.md#332-waveshare-pico-res-touch)  
-  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;3.3.3 [Troubleshooting](./DRIVERS.md#333-troubleshooting)  
+  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;3.3.3 [Waveshare Pico LCD 2](./DRIVERS.md#333-waveshare-pico-lcd-2)  
+  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;3.3.4 [Troubleshooting](./DRIVERS.md#334-troubleshooting)  
  4. [Drivers for sharp displays](./DRIVERS.md#4-drivers-for-sharp-displays) Large low power monochrome displays  
   4.1 [Display characteristics](./DRIVERS.md#41-display-characteristics)  
   &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;4.1.1 [The VCOM bit](./DRIVERS.md#411-the-vcom-bit)  
@@ -60,9 +61,9 @@ access via the `Writer` and `CWriter` classes is documented
   &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;5.2.1 [EPD constructor args](./DRIVERS.md#521-epd-constructor-args)  
   &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;5.2.2 [EPD public methods](./DRIVERS.md#522-epd-public-methods)  
   &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;5.2.3 [EPD public bound variables](./DRIVERS.md#523-epd-public-bound-variables)  
-  6. [EPD Asynchronous support](./DRIVERS.md#6-epd-asynchronous-support)  
-  7. [Writing device drivers](./DRIVERS.md#7-writing-device-drivers)  
-  8. [Links](./DRIVERS.md#8-links)  
+ 6. [EPD Asynchronous support](./DRIVERS.md#6-epd-asynchronous-support)  
+ 7. [Writing device drivers](./DRIVERS.md#7-writing-device-drivers)  
+ 8. [Links](./DRIVERS.md#8-links)  
 
 The [Micropower use](./DRIVERS.md#515-micropower-use) section is applicable to
 EPD's in general but makes specific reference to the 2.9" micropower demo.
@@ -565,7 +566,34 @@ driver which may be found in the MicroPython source tree in
 `drivers/sdcard/sdcard.py`. I am not an expert on SD cards. Mine worked fine at
 31.25MHz but this may or may not be universally true.
 
-### 3.3.3 Troubleshooting
+### 3.3.3 Waveshare Pico LCD 2
+
+Support for this display resulted from a collaboration with Mike Wilson
+(@MikeTheGent).
+
+This is a "plug and play" 2" color TFT for `nano-gui` and the Pi Pico. Users of
+`micro-gui` will need to find a way to connect pushbuttons, using stacking
+headers on the Pico or soldering wires to its pads. The `color_setup.py` file
+is as follows.
+```python
+from machine import Pin, SPI
+import gc
+
+from drivers.st7789.st7789_4bit import *
+SSD = ST7789
+
+gc.collect()  # Precaution before instantiating framebuf
+# Conservative low baudrate. Can go to 62.5MHz.
+spi = SPI(1, 30_000_000, sck=Pin(10), mosi=Pin(11), miso=None)
+pcs = Pin(9, Pin.OUT, value=1)
+prst = Pin(12, Pin.OUT, value=1)
+pbl = Pin(13, Pin.OUT, value=1)
+pdc = Pin(8, Pin.OUT, value=0)
+
+ssd = SSD(spi, height=240, width=320, dc=pdc, cs=pcs, rst=prst, disp_mode=LANDSCAPE, display=PI_PICO_LCD_2)
+```
+
+### 3.3.4 Troubleshooting
 
 If your display shows garbage, check the following (I have seen both):
  * SPI baudrate too high for your physical layout.
@@ -1023,6 +1051,30 @@ Pins 26-40 unused and omitted.
  seconds to enable viewing. This enables generic nanogui demos to be run on an
  EPD.
 
+## 5.3 Waveshare 400x300 Pi Pico display
+
+This 4.2" display supports a Pi Pico or Pico W plugged into the rear of the
+unit. Alternatively it can be connected to any other host using the supplied
+cable. With a Pico variant the `color_setup` file is very simple:
+```python
+import machine
+import gc
+from drivers.epaper.pico_epaper_42 import EPD as SSD
+
+gc.collect()  # Precaution before instantiating framebuf.
+ssd = SSD()  # Create a display instance. For normal applications.
+# ssd = SSD(asyn=True)  # Alternative for asynchronous applications.
+```
+For other hosts the pins need to be specified in `color_setup.py` via the
+following constructor args:
+
+ * `spi=None` An SPI bus instance defined with default args.
+ * `cs=None` A `Pin` instance defined as `Pin.OUT`.
+ * `dc=None` A `Pin` instance defined as `Pin.OUT`.
+ * `rst=None` A `Pin` instance defined as `Pin.OUT`.
+ * `busy=None` A `Pin` instance defined as `Pin.IN, Pin.PULL_UP`.
+ * `asyn=False` Set `True` for asynchronous applications.
+
 ###### [Contents](./DRIVERS.md#contents)
 
 # 6. EPD Asynchronous support
@@ -1054,6 +1106,7 @@ The following illustrates the kind of approach which may be used:
 ```python
     while True:
         # Before refresh, ensure that a previous refresh is complete
+        # Not strictly necessary if .updated() used after refresh.
         await ssd.wait()
         refresh(ssd)  # Immediate return. Creates a task to copy content to EPD.
         # Wait until the framebuf content has been passed to EPD.
@@ -1062,7 +1115,6 @@ The following illustrates the kind of approach which may be used:
         # framebuffer in background
         evt.set()
         evt.clear()
-        # The 2.9 inch display should not be updated too frequently
         await asyncio.sleep(180)
 ```
 
@@ -1082,21 +1134,19 @@ driver chips support graphics primitives in hardware; drivers using these
 capabilities will be faster than those provided here and may often be found
 using a forum search.
 
+## 7.1 The basics
+
 For a driver to support `nanogui` it must be subclassed from
 `framebuf.FrameBuffer` and provide `height` and `width` bound variables being
 the display size in pixels. This, and a `show` method, are all that is required
-for monochrome drivers. Generality can be extended by providing this static
-method:
-```python
-    @staticmethod
-    def rgb(r, g, b):
-        return int(((r | g | b) & 0x80) > 0)
-```
-This ensures compatibility with code written for color displays by converting
-RGB values to a single bit.
+for monochrome drivers.
 
-For color display drivers some boilerplate code is required for rendering
-monochrome objects such as glyphs:
+## 7.2 Color and color compatible drivers
+
+Some additional boilerplate code is required for color drivers to enable them
+to render monochrome object such as glyphs. To enable a monochrome driver to
+run code written for color displays it too should incorporate this code.
+Otherise color code will fail with an "Incompatible device driver" exception.
 ```python
 from drivers.boolpalette import BoolPalette
 # In the constructor:
@@ -1104,16 +1154,45 @@ from drivers.boolpalette import BoolPalette
         self.palette = BoolPalette(mode)
         super().__init__(buf, self.width, self.height, mode)
 ```
+The GUI achieves hardware independence by using 24 bit color. The driver must
+convert this, typically to a format used by the hardware. This is done by a
+static `rgb` method. In the case of a monochrome display, any color with high
+brightness is mapped to white with:
+```python
+    @staticmethod
+    def rgb(r, g, b):
+        return int(((r | g | b) & 0x80) > 0)
+```
+A typical color display with 8-bit `rrrgggbb` hardware will use:
+```python
+    @staticmethod
+    def rgb(r, g, b):
+        return (r & 0xe0) | ((g >> 3) & 0x1c) | (b >> 6)
+```
+See the discussion below for other color mappings including 16-bit and 4-bit
+variants.
+
+## 7.3 Show
+
 Refresh must be handled by a `show` method taking no arguments; when called,
 the contents of the buffer underlying the `FrameBuffer` must be copied to the
 hardware.
 
-For color drivers, to conserve RAM it is suggested that 8-bit color is used
-for the `FrameBuffer`. If the hardware does not support this, conversion to the
-supported color space needs to be done "on the fly" as per the SSD1351 driver.
-This uses `framebuf.GS8` to stand in for 8 bit color in `rrrgggbb` format. To
-maximise update speed consider using native, viper or assembler for the
-conversion, typically to RGB565 format.
+## 7.4 Minimising RAM usage
+
+In the simplest case the `FrameBuffer` mode is chosen to match a mode used by
+the hardware. The `rgb` static method converts colors to that format and 
+`.show` writes it out.
+
+In some cases this can result in a need for a large `FrameBuffer`, either
+because the hardware can only accept 16 bit color values or because the
+display has a large number of pixels. In these cases the `FrameBuffer` uses
+a mode for 8 bit or 4 bit color with mapping taking place on the fly in the
+`.show` method. To maximise update speed consider using native, viper or
+assembler for this mapping.
+
+An example of hardware that does not support 8 bit color is the SSD1351 driver.
+This uses `framebuf.GS8` to stand in for 8 bit color in `rrrgggbb` format.
 
 An alternative is to design for 4-bit color which halves the size of the
 framebuffer. This means using `GS4_HMSB` mode. The class must include the class
@@ -1127,41 +1206,21 @@ acceptable to the hardware. The "on the fly" converter unpacks the values in
 the frame buffer and uses them as indices into the `lut` bytearray. See the
 various supplied 4-bit drivers.
 
-Color drivers should have a static method converting rgb(255, 255, 255) to a
-form acceptable to the driver. For 8-bit rrrgggbb this can be:
-```python
-    @staticmethod
-    def rgb(r, g, b):
-        return (r & 0xe0) | ((g >> 3) & 0x1c) | (b >> 6)
-```
-This should be amended if the hardware uses a different 8-bit format. If the
-hardware expects a 16 bit value, the "on the fly" converter will map the 8-bit
-value to 16 bits. In the case of 4-bit drivers the LUT is 16 bits in size, and
-`.rgb` is called only when populating the LUT. In this case `.rgb` returns a 16
-bit value in a format compatible with the hardware and the byte order of the
-"on the fly" conversion code.
+The color driver static method should be amended if the hardware uses a
+different 8-bit format. If the hardware expects a 16 bit value, the "on the
+fly" converter will map the 8-bit value to 16 bits. In a 4-bit driver the LUT
+is 16 bits in size, and `.rgb` is called only when populating the LUT. In this
+case `.rgb` returns a 16 bit value in a format compatible with the hardware and
+the byte order of the "on the fly" conversion code.
 
 The convention I use is that the LS byte from `.rgb()` is transmitted first. So
 long as `.rgb()` and the "on the fly" converter match, this is arbitrary.
 
-The `Writer` (monochrome) or `CWriter` (color) classes and the `nanogui` module
-should then work automatically.
+## 7.5 Debugging
 
-For color displays the following provides a substantial performance boost when
-rendering text.
-```python
-from drivers.boolpalette import BoolPalette
-```
-and, in `__init__.py`:
-```python
-        mode = framebuf.GS4_HMSB  # The format to be used by the driver
-        self.palette = BoolPalette(mode)
-        gc.collect()
-        buf = bytearray(self.height * self.width // 2)  # Computation must match the format
-        super().__init__(buf, self.width, self.height, mode)
-```
-Assuming firmware dated after 26th Aug 2021, a fast C blit will be used to
-render glyphs instead of Python code.
+If the above guidelines are followed the `Writer` (monochrome) or `CWriter`
+(color) classes, `nanogui` and `micro-gui`modules should then work
+automatically.
 
 The following script is useful for testing color display drivers after
 configuring `color_setup.py`. It draws squares at the extreme corners of the
@@ -1184,6 +1243,42 @@ If this produces correct output the GUI's can be expected to work.
 
 Authors of device drivers are encouraged to raise an issue or PR so that the
 library can be extended.
+
+## 7.6 Reducing blocking time in show
+
+This is available for `micro-gui` only. The blocking time of the `.show` method
+is reduced by splitting it into segments and yielding to the scheduler after
+each segment. It is handled transparently by the GUI. It consists of providing
+an asynchronous `do_refresh` method taking an integer `split` arg. See
+[the ili9341 driver](https://github.com/peterhinch/micropython-nano-gui/blob/master/drivers/ili93xx/ili9341.py)
+for an example. The GUI will pass a `split` value which is a divisor of the
+number of lines in the display. The `do_refresh` method calculates the number
+of lines in each segment. For each segment it outputs those lines and yields
+to the scheduler.
+
+## 7.7 ePaper drivers
+
+These are not supported by `micro-gui` owing to their very slow refresh time.
+They are supported by `Witer`, `CWriter` and `nano-gui`.
+
+Owing to the long refresh periods some synchronisation is necessary. This
+comprises `ready` and `wait_until_ready` methods. The `ready` method
+immediately returns a `bool` indicating if the hardware can accept data. The
+`wait_until_ready` method blocks until the device is ready to accept data. This
+is all that is required for synchronous applications. The `.show.` method calls
+`wait_until_ready` at the end, removing the need for explicit synchronisation
+in the application. The cost is that display refresh blocks for a long period.
+
+For applications using asynchronous code this blocking is usually unacceptable.
+It can be restricted to a single task, with others, able to continue running by
+adding two asynchronous methods, `.wait` and `.updated`. The `.wait` method is
+an asynchronous version of `.wait_until_ready`. The `.updated` method is issued
+after a `refresh` has been issued and pauses until the physical refresh is
+complete. After a `refresh` applications should avoid changing the frame buffer
+contents until `.updated` has returned. They should wait on `.wait` before
+issuing `.refresh`.
+
+###### [Contents](./DRIVERS.md#contents)
 
 # 8. Links
 

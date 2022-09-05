@@ -31,7 +31,7 @@ PORTRAIT = 4
 # Display types
 GENERIC = (0, 0, 0)
 TDISPLAY = (52, 40, 1)
-
+PI_PICO_LCD_2 = (0, 0, 1)  # Waveshare Pico LCD 2 determined by Mike Wilson.
 
 @micropython.viper
 def _lcopy(dest:ptr16, source:ptr8, lut:ptr16, length:int):
@@ -61,8 +61,8 @@ class ST7789(framebuf.FrameBuffer):
                  disp_mode=LANDSCAPE, init_spi=False, display=GENERIC):
         if not 0 <= disp_mode <= 7:
             raise ValueError('Invalid display mode:', disp_mode)
-        if not display in (GENERIC, TDISPLAY):
-            raise ValueError('Invalid display type.')
+        if not display in (GENERIC, TDISPLAY, PI_PICO_LCD_2):
+            print("WARNING: unsupported display parameter value.")
         self._spi = spi  # Clock cycle time for write 16ns 62.5MHz max (read is 150ns)
         self._rst = rst  # Pins
         self._dc = dc
