@@ -112,6 +112,7 @@ my GUI's employ the American spelling of `color`.
 
 ## 1.1 Change log
 
+5 Sep 2022 Add support for additional Pico displays.
 8 Aug 2022 Typo and grammar fixes from @bfiics.  
 10 May 2022 Support Waveshare Pi Pico displays.  
 7 Sep 2021 Code reduction and faster color text display. Color use now requires
@@ -262,7 +263,7 @@ Demos for larger displays.
  * `tbox.py` Demo `Textbox` class. Cross-platform.
 
 Demos for ePaper displays:  
- * `waveshare_test.py` For the Waveshare eInk Display HAT 2.7" 176*274 display.
+ * `epd_async.py` Demo of asynchronous code on an eInk display. Needs a large display.
  * `epd29_sync.py` Demo for Adafruit 2.9" eInk display: emulates a seismograph.
  * `epd29_async.py` Asynchronous demo for Adafruit 2.9" eInk display.
  * `epd29_lowpower.py` Micropower demo for Adafruit 2.9" eInk display. This doc
