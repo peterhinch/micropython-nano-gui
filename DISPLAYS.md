@@ -21,6 +21,7 @@ Width and height are pixels.
 | 1.44C | 128   |  128   | TFT   | [ST7735R][4d] | [Adafruit 2088][5m]        |       |
 | 1.5C  | 160   |  128   | TFT   | [ST7735R][4d] | [Adafruit 358][6m]         |       |
 | 1.3C  | 240   |  240   | TFT   | [ST7789][5d]  | [Adafruit 4313][7m]        |       |
+| 1.5GS | 128   |  128   | OLED  | [SSD1327][11d]| [Waveshare 13992][20m]     | User contributed |
 | 2.0C  | 320   |  240   | TFT   | [ST7789][5d]  | [Waveshare Pico LCD 2][18m]| For Pi Pico |
 | 1.54C | 240   |  240   | TFT   | [ST7789][5d]  | [Adafruit 3787][8m]        |       |
 | 1.14C | 240   |  135   | TFT   | [ST7789][5d]  | [T-Display][9m]            | ESP32 with attached display |
@@ -86,6 +87,7 @@ simple. See [this doc](./DRIVERS.md#7-writing-device-drivers) for details.
 [8d]: https://github.com/peterhinch/micropython-nano-gui/blob/master/DRIVERS.md#52-waveshare-eink-display-hat
 [9d]: https://github.com/peterhinch/micropython-nano-gui/blob/master/DRIVERS.md#4-drivers-for-sharp-displays
 [10d]: https://github.com/peterhinch/micropython-nano-gui/blob/master/DRIVERS.md#53-waveshare-400x300-pi-pico-display
+[11d]: 
 
 [1m]: https://www.adafruit.com/product/684
 [2m]: https://www.adafruit.com/product/1673
@@ -106,3 +108,4 @@ simple. See [this doc](./DRIVERS.md#7-writing-device-drivers) for details.
 [17m]: https://www.adafruit.com/product/3502
 [18m]: https://www.waveshare.com/wiki/Pico-LCD-2
 [19m]: https://thepihut.com/collections/epaper-displays-for-raspberry-pi/products/4-2-e-paper-display-module-for-raspberry-pi-pico-black-white-400x300
+[20m]: https://www.waveshare.com/product/ai/displays/oled/1.5inch-oled-module.htm?___SID=U
