@@ -3,7 +3,7 @@ MicroPython SSD1327 OLED I2C driver
 
 Adapted for CWriter, nano-gui and micro-gui from
 https://github.com/mcauser/micropython-ssd1327
-by @mcauser (Mike Causer) and @Treadbrook (Philip Adamson).
+by @mcauser (Mike Causer), @Treadbrook (Philip Adamson), @peterhinch (Peter Hinch).
 
 MIT License
 Copyright (c) 2022 Mike Causer
@@ -60,7 +60,12 @@ REG_CMD  = const(0x80)
 REG_DATA = const(0x40)
 
 class SSD1327(FrameBuffer):
-    lut = bytearray(32)   
+    # Convert r, g, b in range 0-255 to a 4 bit greyscale value
+    #  acceptable to hardware
+    @staticmethod
+    def rgb(r, g, b):
+        return max(r, g, b) >> 4
+
     def __init__(self, width=128, height=128):
         self.width = width
         self.height = height

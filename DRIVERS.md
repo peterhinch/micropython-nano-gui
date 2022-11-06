@@ -31,6 +31,7 @@ access via the `Writer` and `CWriter` classes is documented
  2. [OLED displays](./DRIVERS.md#2-oled-displays)  
   2.1 [Drivers for SSD1351](./DRIVERS.md#21-drivers-for-ssd1351) Color OLEDs  
   2.2 [Drivers for SSD1331](./DRIVERS.md#22-drivers-for-ssd1331) Small color OLEDs  
+  2.3 [Drivers for SSD1327](./DRIVERS.md#23-drivers-for-ssd1327) Greyscale OLEDs  
  3. [Color TFT displays](./DRIVERS.md#3-color-tft-displays)  
   3.1 [Drivers for ST7735R](./DRIVERS.md#31-drivers-for-st7735r) Small TFTs  
   3.2 [Drivers for ILI9341](./DRIVERS.md#32-drivers-for-ili9341) Large TFTs  
@@ -243,6 +244,38 @@ def spi_init(spi):
 ```
 
 ###### [Contents](./DRIVERS.md#contents)
+
+## 2.3 Drivers for SSD1327
+
+This driver was contributed by Mike Causer (@mcauser) and Philip Adamson
+(@Treadbrook). The displays are 4-bit greyscale. The driver converts 24-bit RGB
+colors to 4-bit greyscale based on the maximum brightness of the R, G, and B
+values. The driver should support any display using SSD1327 on I2C. Specific
+support is for:
+
+ 1. [Seed OLED 96x96](https://www.seeedstudio.com/Grove-OLED-Display-1-12.html?queryID=080778ddd8f54df96ca0e016af616327&objectID=1763&indexName=bazaar_retailer_products)
+ 2. [Waveshare 128x128](https://www.waveshare.com/product/ai/displays/oled/1.5inch-oled-module.htm?___SID=U)
+
+The driver provides the following classes:
+ 1. `SSD1327_I2C` Generic driver for SSD1327 using I2C interface.
+ 2. `SEEED_OLED_96X96` Subclass for the Seeed display.
+ 3. `WS_OLED_128X128` Subclass for Waveshare display.
+
+`SSD1327_I2C` constructor args:
+ 1. `width` In pixels.
+ 2. `height` In pixels.
+ 3. `i2c` Initialised I2C interface.
+ 4. `addr=0x3C` I2C address.
+
+The subclasses populate the width and height arguments appropriately for the
+supported displays.
+
+`SEEED_OLED_96X96` constructor arg:
+ 1. `i2c` Initialised I2C interface.
+
+`WS_OLED_128X128` constructor args:
+ 1.  `i2c` Initialised I2C interface.
+ 2. `addr=0x3C` I2C address.
 
 # 3. Color TFT displays
 
@@ -1169,8 +1202,16 @@ A typical color display with 8-bit `rrrgggbb` hardware will use:
     def rgb(r, g, b):
         return (r & 0xe0) | ((g >> 3) & 0x1c) | (b >> 6)
 ```
-See the discussion below for other color mappings including 16-bit and 4-bit
-variants.
+A greyscale display typically maps RGB values onto a 4-bit greyscale color
+space:
+```python
+    @staticmethod
+    def rgb(r, g, b):
+        return max(r, g, b) >> 4
+```
+See the discussion below for other color mappings. These include 16-bit and
+also 4-bit variants where, to conserve RAM, colors are stored in a 4-bit format
+and dynamically expanded to values acceptable to the hardware.
 
 ## 7.3 Show
 

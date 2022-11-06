@@ -10,30 +10,31 @@ owing to their long update time.
 
 ## Displays using drivers in this repo
 
-Size is diagonal in inches. C/M color/monochrome.  
+Size is diagonal in inches. C/M/GS color/monochrome/greyscale.  
 Width and height are pixels.  
 
-| Size  | Width | Height | Tech  | Driver        | Description                | Notes |
-|:-----:|:-----:|:------:|:------|:--------------|:---------------------------|:------|
-| 0.96C |  94   |   64   | OLED  | [SSD1331][1d] | [Adafruit 684][1m]         |       |
-| 1.27C | 128   |   96   | OLED  | [SSD1351][2d] | [Adafruit 1673][2m]        |       |
-| 1.5C  | 128   |  128   | OLED  | [SSD1351][2d] | [Adafruit 1431][3m]        |       |
-| 1.44C | 128   |  128   | TFT   | [ST7735R][4d] | [Adafruit 2088][5m]        |       |
-| 1.5C  | 160   |  128   | TFT   | [ST7735R][4d] | [Adafruit 358][6m]         |       |
-| 1.3C  | 240   |  240   | TFT   | [ST7789][5d]  | [Adafruit 4313][7m]        |       |
-| 1.5GS | 128   |  128   | OLED  | [SSD1327][11d]| [Waveshare 13992][20m]     | User contributed |
-| 2.0C  | 320   |  240   | TFT   | [ST7789][5d]  | [Waveshare Pico LCD 2][18m]| For Pi Pico |
-| 1.54C | 240   |  240   | TFT   | [ST7789][5d]  | [Adafruit 3787][8m]        |       |
-| 1.14C | 240   |  135   | TFT   | [ST7789][5d]  | [T-Display][9m]            | ESP32 with attached display |
-| 2.8C  | 320   |  240   | TFT   | [ST7789][5d]  | [Waveshare pico 2.8][10m]  | Display for Pi Pico |
-| 1.14C | 240   |  135   | TFT   | [ST7789][5d]  | [Waveshare pico 1.14][11m] | For Pi Pico. Buttons good for micro-gui |
-| 3.2C  | 320   |  240   | TFT   | [ILI9341][6d] | [Adafruit 1743][12m]       | Big display. eBay equivalents work here. |
-| 2.9M  | 296   |  128   | eInk  | [UC8151D][7d] | [Adafruit 4262][13m]       | Flexible ePaper display |
-| 2.9M  | 296   |  128   | eInk  | [UC8151D][7d] | [Adafruit 4777][15m]       | FeatherWing ePaper display |
-| 4.2M  | 400   |  300   | eInk  | [WS][10d]     | [Waveshare pico 4.2][19m]  | Pico, Pico W plug in. Other hosts via cable |
-| 2.7M  | 274   |  176   | eInk  | [HAT][8d]     | [Waveshare HAT][14m]       | HAT designed for Raspberry Pi, repurposed. |
-| 2.7M  | 400   |  240   | Sharp | [Sharp][9d]   | [Adafruit 4694][16m]       | Micropower monochrome display. |
-| 1.3M  | 168   |  144   | Sharp | [Sharp][9d]   | [Adafruit 3502][17m]       | Ditto |
+| Size   | Width | Height | Tech  | Driver        | Description                | Notes |
+|:------:|:-----:|:------:|:------|:--------------|:---------------------------|:------|
+| 0.96C  |  94   |   64   | OLED  | [SSD1331][1d] | [Adafruit 684][1m]         |       |
+| 1.12GS |  96   |   96   | OLED  ] [SSD1327][11d]| [Seeed 104030011[21m]      | Obsolescent |
+| 1.27C  | 128   |   96   | OLED  | [SSD1351][2d] | [Adafruit 1673][2m]        |       |
+| 1.5C   | 128   |  128   | OLED  | [SSD1351][2d] | [Adafruit 1431][3m]        |       |
+| 1.44C  | 128   |  128   | TFT   | [ST7735R][4d] | [Adafruit 2088][5m]        |       |
+| 1.5C   | 160   |  128   | TFT   | [ST7735R][4d] | [Adafruit 358][6m]         |       |
+| 1.3C   | 240   |  240   | TFT   | [ST7789][5d]  | [Adafruit 4313][7m]        |       |
+| 1.5GS  | 128   |  128   | OLED  | [SSD1327][11d]| [Waveshare 13992][20m]     |       |
+| 2.0C   | 320   |  240   | TFT   | [ST7789][5d]  | [Waveshare Pico LCD 2][18m]| For Pi Pico |
+| 1.54C  | 240   |  240   | TFT   | [ST7789][5d]  | [Adafruit 3787][8m]        |       |
+| 1.14C  | 240   |  135   | TFT   | [ST7789][5d]  | [T-Display][9m]            | ESP32 with attached display |
+| 2.8C   | 320   |  240   | TFT   | [ST7789][5d]  | [Waveshare pico 2.8][10m]  | Display for Pi Pico |
+| 1.14C  | 240   |  135   | TFT   | [ST7789][5d]  | [Waveshare pico 1.14][11m] | For Pi Pico. Buttons good for micro-gui |
+| 3.2C   | 320   |  240   | TFT   | [ILI9341][6d] | [Adafruit 1743][12m]       | Big display. eBay equivalents work here. |
+| 2.9M   | 296   |  128   | eInk  | [UC8151D][7d] | [Adafruit 4262][13m]       | Flexible ePaper display |
+| 2.9M   | 296   |  128   | eInk  | [UC8151D][7d] | [Adafruit 4777][15m]       | FeatherWing ePaper display |
+| 4.2M   | 400   |  300   | eInk  | [WS][10d]     | [Waveshare pico 4.2][19m]  | Pico, Pico W plug in. Other hosts via cable |
+| 2.7M   | 274   |  176   | eInk  | [HAT][8d]     | [Waveshare HAT][14m]       | HAT designed for Raspberry Pi, repurposed. |
+| 2.7M   | 400   |  240   | Sharp | [Sharp][9d]   | [Adafruit 4694][16m]       | Micropower monochrome display. |
+| 1.3M   | 168   |  144   | Sharp | [Sharp][9d]   | [Adafruit 3502][17m]       | Ditto |
 
 ## Displays using compatible drivers
 
@@ -87,7 +88,7 @@ simple. See [this doc](./DRIVERS.md#7-writing-device-drivers) for details.
 [8d]: https://github.com/peterhinch/micropython-nano-gui/blob/master/DRIVERS.md#52-waveshare-eink-display-hat
 [9d]: https://github.com/peterhinch/micropython-nano-gui/blob/master/DRIVERS.md#4-drivers-for-sharp-displays
 [10d]: https://github.com/peterhinch/micropython-nano-gui/blob/master/DRIVERS.md#53-waveshare-400x300-pi-pico-display
-[11d]: 
+[11d]: https://github.com/peterhinch/micropython-nano-gui/blob/master/DRIVERS.md#23-drivers-for-ssd1327
 
 [1m]: https://www.adafruit.com/product/684
 [2m]: https://www.adafruit.com/product/1673
@@ -109,3 +110,4 @@ simple. See [this doc](./DRIVERS.md#7-writing-device-drivers) for details.
 [18m]: https://www.waveshare.com/wiki/Pico-LCD-2
 [19m]: https://thepihut.com/collections/epaper-displays-for-raspberry-pi/products/4-2-e-paper-display-module-for-raspberry-pi-pico-black-white-400x300
 [20m]: https://www.waveshare.com/product/ai/displays/oled/1.5inch-oled-module.htm?___SID=U
+[21m]: https://www.seeedstudio.com/Grove-OLED-Display-1-12.html?queryID=080778ddd8f54df96ca0e016af616327&objectID=1763&indexName=bazaar_retailer_products
