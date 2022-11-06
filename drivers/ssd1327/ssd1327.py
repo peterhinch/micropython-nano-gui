@@ -64,7 +64,7 @@ class SSD1327(FrameBuffer):
     #  acceptable to hardware
     @staticmethod
     def rgb(r, g, b):
-        return max(r, g, b) >> 4
+        return (r + g + b) // 48  # Mean bightness scaled to fit 4 bits
 
     def __init__(self, width=128, height=128):
         self.width = width

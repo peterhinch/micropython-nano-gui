@@ -1174,14 +1174,19 @@ using a forum search.
 For a driver to support `nanogui` it must be subclassed from
 `framebuf.FrameBuffer` and provide `height` and `width` bound variables being
 the display size in pixels. This, and a `show` method, are all that is required
-for monochrome drivers.
+for monochrome drivers. If a monochrome display driver must be "color
+compatible" - i.e. to run code written for color displays (such as the demo
+scripts) please read on.
 
 ## 7.2 Color and color compatible drivers
 
-Some additional boilerplate code is required for color drivers to enable them
+These include color drivers, monochrome drivers that must run color code and
+greyscale drivers where a color value maps onto a monochrome pixel brightness.
+
+Some additional boilerplate code is required for such drivers to enable them
 to render monochrome object such as glyphs. To enable a monochrome driver to
 run code written for color displays it too should incorporate this code.
-Otherise color code will fail with an "Incompatible device driver" exception.
+Otherise the script will fail with an "Incompatible device driver" exception.
 ```python
 from drivers.boolpalette import BoolPalette
 # In the constructor:
@@ -1189,9 +1194,11 @@ from drivers.boolpalette import BoolPalette
         self.palette = BoolPalette(mode)
         super().__init__(buf, self.width, self.height, mode)
 ```
-The GUI achieves hardware independence by using 24 bit color. The driver must
-convert this, typically to a format used by the hardware. This is done by a
-static `rgb` method. In the case of a monochrome display, any color with high
+The GUI achieves hardware independence by using 24 bit color (RGB888). The
+driver must convert this to a format used by the hardware. In normal drivers
+the `FrameBuffer` stores values in a form compatible with the hardware.
+Conversion from RGB888 to the format in the `FrameBuffer` is done by a static
+`rgb` method. In the case of a monochrome display, any color with high
 brightness is mapped to white with:
 ```python
     @staticmethod
@@ -1209,19 +1216,23 @@ space:
 ```python
     @staticmethod
     def rgb(r, g, b):
-        return max(r, g, b) >> 4
+        return (r + g + b) // 48  # Mean bightness scaled to fit 4 bits
 ```
-See the discussion below for other color mappings. These include 16-bit and
-also 4-bit variants where, to conserve RAM, colors are stored in a 4-bit format
-and dynamically expanded to values acceptable to the hardware.
+The above, plus a `show` method, describes a driver where the values stored in
+the frame buffer match the color values expected by the hardware. This is
+normally preferred on grounds of simplicity. However it can lead to a need for
+a large buffer if the hardware requires 16 bit pixels and/or the display has a
+large number of pixels. In such cases the display driver can use a smaller
+pixel size using modes designed for 8 or 4 bit greyscales to store colors, with
+expansion occurring at runtime. Such drivers are described as mapped drivers.
 
 ## 7.3 Show
 
 Refresh must be handled by a `show` method taking no arguments; when called,
-the contents of the buffer underlying the `FrameBuffer` must be copied to the
+the contents of the buffer underlying the `FrameBuffer` must be output to the
 hardware.
 
-## 7.4 Minimising RAM usage
+## 7.4 Mapped drivers
 
 In the simplest case the `FrameBuffer` mode is chosen to match a mode used by
 the hardware. The `rgb` static method converts colors to that format and 
@@ -1234,30 +1245,41 @@ a mode for 8 bit or 4 bit color with mapping taking place on the fly in the
 `.show` method. To maximise update speed consider using native, viper or
 assembler for this mapping.
 
-An example of hardware that does not support 8 bit color is the SSD1351 driver.
-This uses `framebuf.GS8` to stand in for 8 bit color in `rrrgggbb` format.
+### 7.4.1 8 to 16 bit mapping
 
-An alternative is to design for 4-bit color which halves the size of the
-framebuffer. This means using `GS4_HMSB` mode. The class must include the class
-variable `lut`:
+An example of hardware that does not support 8 bit color is the SSD1351. See
+[this driver1](https://github.com/peterhinch/micropython-nano-gui/blob/master/drivers/ssd1351/ssd1351_generic.py).
+This uses `framebuf.GS8` to store 8 bit color in `rrrgggbb` format. The `.show`
+method converts these to 16-bit values at run time.
+
+In this case the `FrameBuffer` uses `framebuf.GS8` to store colors in RGB332
+format. The `rgb` static method converts 24 bit `r, g, b` colors to RGB332. The
+`.show` method converts from RGB332 to RGB565 and outputs the data.
+
+### 7.4.2 4 to N bit mapping
+
+The minimum RAM use arises if the `FrameBuffer` stores 4-bit values which are
+indices into a color lookup table (LUT). The LUT holds a set of upto 16 colors
+stored in the display's native format. Such a driver configures the
+`FrameBuffer` in `GS4_HMSB` mode. The class must include the class variable
+`lut` - this example is for a 16-bit color display:
+
 ```python
 class MY_DRIVER(framebuf.FrameBuffer):
-    lut = bytearray(32)
+    lut = bytearray(32)  # Holds 16x16-bit color values
 ```
-This is a lookup table (LUT) mapping a 4-bit index onto a 16-bit color value
+This is a lookup table (LUT) mapping a 4-bit index onto an N-bit color value
 acceptable to the hardware. The "on the fly" converter unpacks the values in
 the frame buffer and uses them as indices into the `lut` bytearray. See the
-various supplied 4-bit drivers.
+various 4-bit drivers such as
+[ILI9341](https://github.com/peterhinch/micropython-nano-gui/blob/master/drivers/ili93xx/ili9341.py).
 
-The color driver static method should be amended if the hardware uses a
-different 8-bit format. If the hardware expects a 16 bit value, the "on the
-fly" converter will map the 8-bit value to 16 bits. In a 4-bit driver the LUT
-is 16 bits in size, and `.rgb` is called only when populating the LUT. In this
-case `.rgb` returns a 16 bit value in a format compatible with the hardware and
-the byte order of the "on the fly" conversion code.
-
-The convention I use is that the LS byte from `.rgb()` is transmitted first. So
-long as `.rgb()` and the "on the fly" converter match, this is arbitrary.
+In this case the `rgb` static method converts 24 bit `r, g, b` colors to the
+format expected by the hardware. It is used to populate the LUT. There is an
+endian-ness issue here if the colors required by the hardware are bigger than 8
+bits. The convention I use is that the LS byte from `.rgb()` is transmitted
+first. So long as `.rgb()` and the "on the fly" converter match, this choice is
+arbitrary.
 
 ## 7.5 Debugging
 
