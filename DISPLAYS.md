@@ -16,7 +16,7 @@ Width and height are pixels.
 | Size   | Width | Height | Tech  | Driver        | Description                | Notes |
 |:------:|:-----:|:------:|:------|:--------------|:---------------------------|:------|
 | 0.96C  |  94   |   64   | OLED  | [SSD1331][1d] | [Adafruit 684][1m]         |       |
-| 1.12GS |  96   |   96   | OLED  ] [SSD1327][11d]| [Seeed 104030011[21m]      | Obsolescent |
+| 1.12GS |  96   |   96   | OLED  ] [SSD1327][11d]| [Seeed 104030011][21m]     | Obsolescent |
 | 1.27C  | 128   |   96   | OLED  | [SSD1351][2d] | [Adafruit 1673][2m]        |       |
 | 1.5C   | 128   |  128   | OLED  | [SSD1351][2d] | [Adafruit 1431][3m]        |       |
 | 1.44C  | 128   |  128   | TFT   | [ST7735R][4d] | [Adafruit 2088][5m]        |       |

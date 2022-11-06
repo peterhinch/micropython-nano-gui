@@ -277,6 +277,8 @@ supported displays.
  1.  `i2c` Initialised I2C interface.
  2. `addr=0x3C` I2C address.
 
+###### [Contents](./DRIVERS.md#contents)
+
 # 3. Color TFT displays
 
 ## 3.1 Drivers for ST7735R
