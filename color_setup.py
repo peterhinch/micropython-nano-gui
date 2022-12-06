@@ -4,40 +4,37 @@
 # Copyright (c) 2020 Peter Hinch
 
 # As written, supports:
-# Adafruit 1.5" 128*128 OLED display: https://www.adafruit.com/product/1431
-# Adafruit 1.27" 128*96 display https://www.adafruit.com/product/1673
+# ili9341 240x320 displays on Pi Pico
 # Edit the driver import for other displays.
 
 # Demo of initialisation procedure designed to minimise risk of memory fail
 # when instantiating the frame buffer. The aim is to do this as early as
 # possible before importing other modules.
 
-# WIRING (Adafruit pin nos and names).
-# Pyb   SSD
-# 3v3   Vin (10)
-# Gnd   Gnd (11)
-# Y1    DC (3 DC)
-# Y2    CS (5 OC OLEDCS)
-# Y3    Rst (4 R RESET)
-# Y6    CLK (2 CL SCK)
-# Y8    DATA (1 SI MOSI)
+# WIRING
+# Pico      Display
+# GPIO Pin
+# 3v3  36   Vin
+# IO6   9   CLK  Hardware SPI0
+# IO7  10   DATA (AKA SI MOSI)
+# IO8  11   DC
+# IO9  12   Rst
+# Gnd  13   Gnd
+# IO10 14   CS
 
-import machine
+from machine import Pin, SPI
 import gc
 
 # *** Choose your color display driver here ***
-# Driver supporting non-STM platforms
-# from drivers.ssd1351.ssd1351_generic import SSD1351 as SSD
+# ili9341 specific driver
+from drivers.ili93xx.ili9341 import ILI9341 as SSD
 
-# STM specific driver
-from drivers.ssd1351.ssd1351 import SSD1351 as SSD
+pdc = Pin(8, Pin.OUT, value=0)  # Arbitrary pins
+prst = Pin(9, Pin.OUT, value=1)
+pcs = Pin(10, Pin.OUT, value=1)
 
-height = 96  # 1.27 inch 96*128 (rows*cols) display
-# height = 128 # 1.5 inch 128*128 display
-
-pdc = machine.Pin('Y1', machine.Pin.OUT_PP, value=0)
-pcs = machine.Pin('Y2', machine.Pin.OUT_PP, value=1)
-prst = machine.Pin('Y3', machine.Pin.OUT_PP, value=1)
-spi = machine.SPI(2)
+# Kept as ssd to maintain compatability
 gc.collect()  # Precaution before instantiating framebuf
-ssd = SSD(spi, pcs, pdc, prst, height)  # Create a display instance
+# See DRIVERS.md re overclocking the SPI bus
+spi = SPI(0, sck=Pin(6), mosi=Pin(7), miso=Pin(4), baudrate=30_000_000)
+ssd = SSD(spi, dc=pdc, cs=pcs, rst=prst)

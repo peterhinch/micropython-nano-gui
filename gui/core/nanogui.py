@@ -14,48 +14,16 @@ from gui.core.writer import Writer
 import framebuf
 import gc
 
-def _circle(dev, x0, y0, r, color): # Single pixel circle
-    x = -r
-    y = 0
-    err = 2 -2*r
-    while x <= 0:
-        dev.pixel(x0 -x, y0 +y, color)
-        dev.pixel(x0 +x, y0 +y, color)
-        dev.pixel(x0 +x, y0 -y, color)
-        dev.pixel(x0 -x, y0 -y, color)
-        e2 = err
-        if (e2 <= y):
-            y += 1
-            err += y*2 +1
-            if (-x == y and e2 <= x):
-                e2 = 0
-        if (e2 > x):
-            x += 1
-            err += x*2 +1
 
-def circle(dev, x0, y0, r, color, width =1): # Draw circle
-    x0, y0, r = int(x0), int(y0), int(r)
-    for r in range(r, r -width, -1):
-        _circle(dev, x0, y0, r, color)
+def circle(dev, x0, y0, r, color, _=1): # Draw circle
+    x, y, r = int(x0), int(y0), int(r)
+    dev.ellipse(x, y, r, r, color)
+
 
 def fillcircle(dev, x0, y0, r, color): # Draw filled circle
-    x0, y0, r = int(x0), int(y0), int(r)
-    x = -r
-    y = 0
-    err = 2 -2*r
-    while x <= 0:
-        dev.line(x0 -x, y0 -y, x0 -x, y0 +y, color)
-        dev.line(x0 +x, y0 -y, x0 +x, y0 +y, color)
-        e2 = err
-        if (e2 <= y):
-            y +=1
-            err += y*2 +1
-            if (-x == y and e2 <= x):
-                e2 = 0
-        if (e2 > x):
-            x += 1
-            err += x*2 +1
-
+    x, y, r = int(x0), int(y0), int(r)
+    dev.ellipse(x, y, r, r, color, True)
+    
 # If a (framebuf based) device is passed to refresh, the screen is cleared.
 # None causes pending widgets to be drawn and the result to be copied to hardware.
 # The pend mechanism enables a displayable object to postpone its renedering

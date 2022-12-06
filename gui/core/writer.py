@@ -1,6 +1,7 @@
 # writer.py Implements the Writer class.
 # Handles colour, word wrap and tab stops
 
+# V0.5.1 Dec 2022 Support 4-bit color display drivers.
 # V0.5.0 Sep 2021 Color now requires firmware >= 1.17.
 # V0.4.3 Aug 2021 Support for fast blit to color displays (PR7682).
 # V0.4.0 Jan 2021 Improved handling of word wrap and line clip. Upside-down
@@ -25,7 +26,7 @@ from uctypes import bytearray_at, addressof
 from sys import implementation
 import os
 
-__version__ = (0, 5, 0)
+__version__ = (0, 5, 1)
 
 fast_mode = True  # Does nothing. Kept to avoid breaking code.
 
@@ -255,6 +256,17 @@ class Writer():
 # Writer for colour displays.
 class CWriter(Writer):
 
+    @staticmethod
+    def create_color(ssd, idx, r, g, b):
+        c = ssd.rgb(r, g, b)
+        if not hasattr(ssd, 'lut'):
+            return c
+        if not 0 <= idx <= 15:
+            raise ValueError('Color nos must be 0..15')
+        x = idx << 1
+        ssd.lut[x] = c & 0xff
+        ssd.lut[x + 1] = c >> 8
+        return idx
 
     def __init__(self, device, font, fgcolor=None, bgcolor=None, verbose=True):
         if not hasattr(device, 'palette'):
