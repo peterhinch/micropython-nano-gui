@@ -36,5 +36,5 @@ pcs = Pin(10, Pin.OUT, value=1)
 # Kept as ssd to maintain compatability
 gc.collect()  # Precaution before instantiating framebuf
 # See DRIVERS.md re overclocking the SPI bus
-spi = SPI(0, 10_000_000)
+spi = SPI(0, sck=Pin(6), mosi=Pin(7), miso=Pin(4), baudrate=30_000_000)
 ssd = SSD(spi, dc=pdc, cs=pcs, rst=prst)
