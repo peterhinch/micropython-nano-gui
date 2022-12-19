@@ -3,12 +3,13 @@
 # Released under the MIT License (MIT). See LICENSE.
 # Copyright (c) 2018-2020 Peter Hinch
 
+from micropython import const
 from gui.core.nanogui import DObject
 from gui.core.writer import Writer
 
-ALIGN_LEFT = 0
-ALIGN_RIGHT = 1
-ALIGN_CENTER = 2
+ALIGN_LEFT = const(0)
+ALIGN_RIGHT = const(1)
+ALIGN_CENTER = const(2)
 
 # text: str display string int save width
 class Label(DObject):
@@ -45,16 +46,16 @@ class Label(DObject):
         wri = self.writer
         dev = self.device
         if self.align == ALIGN_LEFT:
-          Writer.set_textpos(dev, self.row, self.col)
-        else:
-          txt_width = wri.stringlen(txt)
-          if self.width <= txt_width:
             Writer.set_textpos(dev, self.row, self.col)
-          else:
-            if self.align == ALIGN_RIGHT:
-              Writer.set_textpos(dev, self.row, self.col + self.width - txt_width)
+        else:
+            txt_width = wri.stringlen(txt)
+            if self.width <= txt_width:
+                Writer.set_textpos(dev, self.row, self.col)
             else:
-              Writer.set_textpos(dev, self.row, self.col + self.width // 2 - txt_width // 2)
+                if self.align == ALIGN_RIGHT:
+                    Writer.set_textpos(dev, self.row, self.col + self.width - txt_width)
+                else:
+                    Writer.set_textpos(dev, self.row, self.col + self.width // 2 - txt_width // 2)
         wri.setcolor(self.fgcolor, self.bgcolor)
         wri.printstring(txt, self.invert)
         wri.setcolor()  # Restore defaults
