@@ -496,6 +496,9 @@ Constructor args:
  7. `bgcolor=None`
  8. `bdcolor=False` If `False` no border is displayed. If `None` a border is
  shown in the `Writer` foreground color. If a color is passed, it is used.
+ 9. `align=ALIGN_LEFT` By default text in labels is left aligned. Options are
+ `ALIGN_RIGHT` and `ALIGN_CENTER`. These options can only take effect if a
+ large enough field width is passed to `text`.
 
 The constructor displays the string at the required location.
 
@@ -506,9 +509,16 @@ Methods:
     * `fgcolor=None` Foreground color: if `None` the `Writer` default is used.
     * `bgcolor=None` Background color, as per foreground.
     * `bdcolor=None` Border color. As per above except that if `False` is
-    passed, no border is displayed. This clears a previously drawn border.  
+    passed, no border is displayed. This clears a previously drawn border.
+    * `align=None` Use alignment specified in constructor unless one of the
+    module constants is passed.  
  Returns the current text string.  
  2. `show` No args. (Re)draws the label. Primarily for internal use by GUI.
+
+Module Constants:  
+ * `ALIGN_LEFT=0`
+ * `ALIGN_RIGHT=1`
+ * `ALIGN_CENTER=2`
 
 If populating a label would cause it to extend beyond the screen boundary a
 warning is printed at the console. The label may appear at an unexpected place.

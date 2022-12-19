@@ -1,7 +1,7 @@
 # label.py Label class for nano-gui
 
 # Released under the MIT License (MIT). See LICENSE.
-# Copyright (c) 2018-2020 Peter Hinch
+# Copyright (c) 2018-2022 Peter Hinch
 
 from micropython import const
 from gui.core.nanogui import DObject
@@ -26,7 +26,7 @@ class Label(DObject):
         if text is not None:
             self.value(text, invert)
 
-    def value(self, text=None, invert=False, fgcolor=None, bgcolor=None, bdcolor=None):
+    def value(self, text=None, invert=False, fgcolor=None, bgcolor=None, bdcolor=None, align=None):
         txt = super().value(text)
         # Redraw even if no text supplied: colors may have changed.
         self.invert = invert
@@ -35,6 +35,8 @@ class Label(DObject):
         if bdcolor is False:
             self.def_bdcolor = False
         self.bdcolor = self.def_bdcolor if bdcolor is None else bdcolor
+        if align is not None:
+            self.align = align
         self.show()
         return txt
 
@@ -45,17 +47,12 @@ class Label(DObject):
         super().show()  # Draw or erase border
         wri = self.writer
         dev = self.device
-        if self.align == ALIGN_LEFT:
-            Writer.set_textpos(dev, self.row, self.col)
-        else:
+        rcol = 0  # Relative column of LHS of text
+        if self.align:
             txt_width = wri.stringlen(txt)
-            if self.width <= txt_width:
-                Writer.set_textpos(dev, self.row, self.col)
-            else:
-                if self.align == ALIGN_RIGHT:
-                    Writer.set_textpos(dev, self.row, self.col + self.width - txt_width)
-                else:
-                    Writer.set_textpos(dev, self.row, self.col + self.width // 2 - txt_width // 2)
+            if self.width > txt_width:
+                rcol = self.width - txt_width if self.align == ALIGN_RIGHT else self.width // 2 - txt_width // 2
+        Writer.set_textpos(dev, self.row, self.col + rcol)
         wri.setcolor(self.fgcolor, self.bgcolor)
         wri.printstring(txt, self.invert)
         wri.setcolor()  # Restore defaults
