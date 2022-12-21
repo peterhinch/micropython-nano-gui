@@ -165,6 +165,10 @@ This should provide a REPL. Run a demo:
 ```python
 >>> import gui.demos.aclock
 ```
+The directory `setup_examples` has examples of files to match various displays
+and targets. If one of these matches your hardware, it may be copied to the
+root as `color_setup.py`.
+
 Note that the `gui.demos.aclock.py` demo comprises 38 lines of actual code.
 This stuff is easier than you might think.
 
