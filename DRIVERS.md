@@ -443,7 +443,7 @@ your setup file.
 The `color_setup.py` file should initialise the SPI bus with a baudrate of
 30_000_000. Args `polarity`, `phase`, `bits`, `firstbit` are defaults. Hard or
 soft SPI may be used but hard may be faster. 30MHz is a conservative value: see
-below. An example file for the Pi Pico is in `color_setup/st7789_pico.py`.
+below. An example file for the Pi Pico is in `setup_examples/st7789_pico.py`.
 
 #### ST7789 Constructor args:
  * `spi` An initialised SPI bus instance. The chip supports clock rates of upto
@@ -548,7 +548,7 @@ the setup file for this device.
 This is an ESP32 based device with an integrated 1.14" 135x240 pixel display
 based on ST7789.
 
-It is supported by `color_setup/st7789_ttgo.py`. Copy to
+It is supported by `setup_examples/st7789_ttgo.py`. Copy to
 `/pyboard/color_setup.py` on the device. It produces a landscape mode display
 with the top left hand corner adjacent to pin 36.
 
