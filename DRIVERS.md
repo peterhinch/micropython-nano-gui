@@ -667,10 +667,10 @@ powered from 5V or 3.3V: there is a regulator on board.
 |      |      | 12 | 11 |      |      |
 |      |      | 14 | 13 |      |      |
 |      |      | 16 | 15 |      |      |
-| 17   | DC   | 18 | 17 |      |      |
-|      |      | 20 | 19 | MOSI |  3   |
-|  7   | RST  | 22 | 21 |      |      |
-| 14   | CS   | 24 | 23 | SCLK |  6   |
+|  8   | DC   | 18 | 17 |      |      |
+|      |      | 20 | 19 | MOSI |  7   |
+|  9   | RST  | 22 | 21 |      |      |
+| 10   | CS   | 24 | 23 | SCLK |  6   |
 |      |      | 25 | 26 |      |      |
 
 #### ILI9486 Constructor args:
