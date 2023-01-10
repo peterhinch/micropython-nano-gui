@@ -40,6 +40,7 @@ access via the `Writer` and `CWriter` classes is documented
   &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;3.3.2 [Waveshare Pico Res Touch](./DRIVERS.md#332-waveshare-pico-res-touch)  
   &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;3.3.3 [Waveshare Pico LCD 2](./DRIVERS.md#333-waveshare-pico-lcd-2)  
   &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;3.3.4 [Troubleshooting](./DRIVERS.md#334-troubleshooting)  
+  3.4 [3.4 Driver for ILI9486](./DRIVERS.md#34-driver-for-ili9486) Very large display needs plenty of RAM  
  4. [Drivers for sharp displays](./DRIVERS.md#4-drivers-for-sharp-displays) Large low power monochrome displays  
   4.1 [Display characteristics](./DRIVERS.md#41-display-characteristics)  
   &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;4.1.1 [The VCOM bit](./DRIVERS.md#411-the-vcom-bit)  
@@ -634,6 +635,71 @@ If your display shows garbage, check the following (I have seen both):
  * SPI baudrate too high for your physical layout.
  * `height` and `width` not matching the choice of `LANDSCAPE` or `PORTRAIT`
  display mode.
+
+## 3.4 Driver for ILI9486
+
+This was tested with
+[this display](https://www.waveshare.com/product/3.5inch-RPi-LCD-A.htm), a
+480x320 color LCD designed for the Raspberry Pi. Note that even with 4-bit
+color the display buffer is 76,800 bytes. On a Pico `nanogui` works fine, but
+`micro-gui` runs out of RAM.
+
+##### Wiring
+
+This shows the Raspberry Pi connector looking at the underside of the board
+with the bulk of the board to the right. This was tested with a Pi Pico.
+
+Connections may be adapted for other MicroPython targets. The board may be
+powered from 5V or 3.3V: there is a regulator on board.
+
+| Pico |      |  L |  R |      | Pico |
+|:-----|:-----|:--:|:--:|:-----|:-----|
+| Vin  | VIN  |  2 |  1 | 3V3  |      |
+|      |      |  4 |  3 |      |      |
+|      |      |  6 |  5 |      |      |
+|      |      |  8 |  7 |      |      |
+|      |      | 10 |  9 | GND  | Gnd  |
+|      |      | 12 | 11 |      |      |
+|      |      | 14 | 13 |      |      |
+|      |      | 16 | 15 |      |      |
+| 17   | DC   | 18 | 17 |      |      |
+|      |      | 20 | 19 | MOSI |  3   |
+|  7   | RST  | 22 | 21 |      |      |
+| 14   | CS   | 24 | 23 | SCLK |  6   |
+|      |      | 25 | 26 |      |      |
+
+#### ILI486 Constructor args:
+ * `spi` An initialised SPI bus instance. The device can support clock rates of
+ upto 10MHz.
+ * `cs` An initialised output pin. Initial value should be 1.
+ * `dc` An initialised output pin. Initial value should be 0.
+ * `rst` An initialised output pin. Initial value should be 1.
+ * `height=320` Display dimensions in pixels. For portrait mode exchange
+ `height` and `width` values.
+ * `width=480`
+ * `usd=False` Upside down: set `True` to invert display.
+ * `init_spi=False` This optional arg enables flexible options in configuring
+ the SPI bus. The default assumes exclusive access to the bus. In this normal
+ case, `color_setup.py` initialises it and the settings will be left in place.
+ If the bus is shared with devices which require different settings, a callback
+ function should be passed. It will be called prior to each SPI bus write. The
+ callback will receive a single arg being the SPI bus instance. It will
+ typically be a one-liner or lambda initialising the bus. A minimal example is
+ this function:
+```python
+def spi_init(spi):
+    spi.init(baudrate=10_000_000)
+```
+
+The ILI9486 class uses 4-bit color to conserve RAM. Even with this adaptation
+the buffer size is 76.85KiB. See [Color handling](./DRIVERS.md#11-color-handling)
+for details of the implications of 4-bit color. On the Pico with the display
+driver loaded there was 85KiB free RAM running `nano-gui` but `micro-gui` ran
+out of RAM..
+
+The driver uses the `micropython.viper` decorator. If your platform does not
+support this, comment it out and remove the type annotations. You may be able
+to use the `micropython.native` decorator.
 
 ###### [Contents](./DRIVERS.md#contents)
 
