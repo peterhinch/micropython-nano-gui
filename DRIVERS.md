@@ -389,8 +389,8 @@ demo ran with 34.5K free with no modules frozen, and with 47K free with `gui`
 and contents frozen.
 
 The driver uses the `micropython.viper` decorator. If your platform does not
-support this, comment it out and remove the type annotations. You may be able
-to use the `micropython.native` decorator.
+support this, the Viper code will need to be rewritten with a substantial hit
+to performance.
 
 #### Use with uasyncio
 
@@ -642,7 +642,12 @@ This was tested with
 [this display](https://www.waveshare.com/product/3.5inch-RPi-LCD-A.htm), a
 480x320 color LCD designed for the Raspberry Pi. Note that even with 4-bit
 color the display buffer is 76,800 bytes. On a Pico `nanogui` works fine, but
-`micro-gui` runs out of RAM.
+`micro-gui` fails to compile unless frozen bytecode is used, in which case it
+runs with about 75K free RAM.
+
+See [nanogui setup](https://github.com/peterhinch/micropython-nano-gui/blob/master/setup_examples/ili9486_pico.py)
+and [microgui setup](https://github.com/peterhinch/micropython-micro-gui/blob/main/setup_examples/ili9486_pico.py)
+for examples of initialisation files.
 
 ##### Wiring
 
@@ -668,9 +673,10 @@ powered from 5V or 3.3V: there is a regulator on board.
 | 14   | CS   | 24 | 23 | SCLK |  6   |
 |      |      | 25 | 26 |      |      |
 
-#### ILI486 Constructor args:
+#### ILI9486 Constructor args:
  * `spi` An initialised SPI bus instance. The device can support clock rates of
- upto 10MHz.
+ upto 15MHz according to the datasheet. In practice it can be overclocked to
+ 30MHz.
  * `cs` An initialised output pin. Initial value should be 1.
  * `dc` An initialised output pin. Initial value should be 0.
  * `rst` An initialised output pin. Initial value should be 1.
@@ -698,8 +704,17 @@ driver loaded there was 85KiB free RAM running `nano-gui` but `micro-gui` ran
 out of RAM..
 
 The driver uses the `micropython.viper` decorator. If your platform does not
-support this, comment it out and remove the type annotations. You may be able
-to use the `micropython.native` decorator.
+support this, the Viper code will need to be rewritten with a substantial hit
+to performance.
+
+#### Use with uasyncio
+
+A full refresh blocks for ~220ms. If this is acceptable, no special precautions
+are required. However this period may be unacceptable for some `uasyncio`
+applications. The driver provides an asynchronous `do_refresh(split=4)` method.
+If this is run the display will be refreshed, but will periodically yield to
+the scheduler enabling other tasks to run. This is documented
+[here](./ASYNC.md).
 
 ###### [Contents](./DRIVERS.md#contents)
 
