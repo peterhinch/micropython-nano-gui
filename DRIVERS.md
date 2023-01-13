@@ -638,18 +638,41 @@ If your display shows garbage, check the following (I have seen both):
 
 ## 3.4 Driver for ILI9486
 
-This was tested with
+The ILI9486 supports displays of up to 480x320 pixels which is large by
+microcontroller standards. Even with 4-bit color the frame buffer requires
+76,800 bytes. On a Pico `nanogui` works fine, but `micro-gui` fails to
+compile unless frozen bytecode is used, in which case it runs with about 75K of
+free RAM.
+
+The driver aims to work with any ILI9486, however
 [this display](https://www.waveshare.com/product/3.5inch-RPi-LCD-A.htm), a
-480x320 color LCD designed for the Raspberry Pi. Note that even with 4-bit
-color the display buffer is 76,800 bytes. On a Pico `nanogui` works fine, but
-`micro-gui` fails to compile unless frozen bytecode is used, in which case it
-runs with about 75K free RAM.
+480x320 color LCD designed for the Raspberry Pi, has special hardware. Rather
+than driving the ILI9486 via SPI, it uses SPI to fill a shift register, copying
+the data to the chip using a parallel interface. The driver is designed to work
+with both types of hardware.
 
-See [nanogui setup](https://github.com/peterhinch/micropython-nano-gui/blob/master/setup_examples/ili9486_pico.py)
-and [microgui setup](https://github.com/peterhinch/micropython-micro-gui/blob/main/setup_examples/ili9486_pico.py)
-for examples of initialisation files.
+##### Generic display wiring
 
-##### Wiring
+Testing was done with a Pico, using the following setup files:
+[nanogui setup](https://github.com/peterhinch/micropython-nano-gui/blob/master/setup_examples/ili9486_pico.py)
+and [microgui setup](https://github.com/peterhinch/micropython-micro-gui/blob/main/setup_examples/ili9486_pico.py).
+These use the following pinout:
+
+| Pico pin | GPIO | Display | Signal  |
+|:---------|:-----|:--------|:--------|
+| 40       | n/a  |         | Vbus 5V |
+| 36       | n/a  |         | 3.3V    |
+| 3,8,36.. | n/a  | Gnd     | Gnd     |
+| 9        | 6    | SCLK    |         |
+| 10       | 7    | MOSI    |         |
+| 11       | 8    | DC      |         |
+| 12       | 9    | RST     |         |
+| 14       | 10   | CS      |         |
+
+Please check the power requirements of the display board, which may require a
+5V or a 3.3V supply.
+
+##### Waveshare PI HAT wiring
 
 This shows the Raspberry Pi connector looking at the underside of the board
 with the bulk of the board to the right. This was tested with a Pi Pico.
@@ -697,11 +720,11 @@ def spi_init(spi):
     spi.init(baudrate=10_000_000)
 ```
 
-The ILI9486 class uses 4-bit color to conserve RAM. Even with this adaptation
-the buffer size is 76.85KiB. See [Color handling](./DRIVERS.md#11-color-handling)
-for details of the implications of 4-bit color. On the Pico with the display
-driver loaded there was 85KiB free RAM running `nano-gui` but `micro-gui` ran
-out of RAM..
+The ILI9486 class uses 4-bit color to conserve RAM. See
+[Color handling](./DRIVERS.md#11-color-handling) for the implications of 4-bit
+color. On the Pico with the display driver loaded there was 85KiB free RAM
+running `nano-gui`. To run `micro-gui` it was necessary to run the GUI as
+frozen bytecode, when it ran with 75K of free RAM.
 
 The driver uses the `micropython.viper` decorator. If your platform does not
 support this, the Viper code will need to be rewritten with a substantial hit
