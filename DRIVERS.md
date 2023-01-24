@@ -40,7 +40,7 @@ access via the `Writer` and `CWriter` classes is documented
   &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;3.3.2 [Waveshare Pico Res Touch](./DRIVERS.md#332-waveshare-pico-res-touch)  
   &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;3.3.3 [Waveshare Pico LCD 2](./DRIVERS.md#333-waveshare-pico-lcd-2)  
   &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;3.3.4 [Troubleshooting](./DRIVERS.md#334-troubleshooting)  
-  3.4 [3.4 Driver for ILI9486](./DRIVERS.md#34-driver-for-ili9486) Very large display needs plenty of RAM  
+  3.4 [3.4 Driver for ILI94xx](./DRIVERS.md#34-driver-for-ili94xx) Generic ILI94xx driver for large displays.  
  4. [Drivers for sharp displays](./DRIVERS.md#4-drivers-for-sharp-displays) Large low power monochrome displays  
   4.1 [Display characteristics](./DRIVERS.md#41-display-characteristics)  
   &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;4.1.1 [The VCOM bit](./DRIVERS.md#411-the-vcom-bit)  
@@ -636,7 +636,9 @@ If your display shows garbage, check the following (I have seen both):
  * `height` and `width` not matching the choice of `LANDSCAPE` or `PORTRAIT`
  display mode.
 
-## 3.4 Driver for ILI9486
+## 3.4 Driver for ILI94xx
+
+This was developed for the ILI9486 but its application is more wide ranging.
 
 The ILI9486 supports displays of up to 480x320 pixels which is large by
 microcontroller standards. Even with 4-bit color the frame buffer requires
@@ -644,12 +646,16 @@ microcontroller standards. Even with 4-bit color the frame buffer requires
 compile unless frozen bytecode is used, in which case it runs with about 75K of
 free RAM.
 
+##### Design note
+
 The driver aims to work with any ILI9486, however
 [this display](https://www.waveshare.com/product/3.5inch-RPi-LCD-A.htm), a
 480x320 color LCD designed for the Raspberry Pi, has special hardware. Rather
 than driving the ILI9486 via SPI, it uses SPI to fill a shift register, copying
 the data to the chip using a parallel interface. The driver is designed to work
-with both types of hardware.
+with both types of hardware; to achieve this it uses driver default values
+where possible. These defaults are common to a range of controllers. For example
+ILI9341 and HX8357D have been tested. It may work with ILI9488.
 
 ##### Generic display wiring
 

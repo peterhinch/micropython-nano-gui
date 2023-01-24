@@ -28,6 +28,7 @@ Width and height are pixels.
 | 1.14C  | 240   |  135   | TFT   | [ST7789][5d]  | [T-Display][9m]             | ESP32 with attached display |
 | 2.8C   | 320   |  240   | TFT   | [ST7789][5d]  | [Waveshare pico 2.8][10m]   | Display for Pi Pico |
 | 1.14C  | 240   |  135   | TFT   | [ST7789][5d]  | [Waveshare pico 1.14][11m]  | For Pi Pico. Buttons good for micro-gui |
+| 1.14C  | 240   |  135   | TFT   | [ST7789][5d]  | [Pimoroni pico 1.14][23m]   | For Pi Pico. Buttons good for micro-gui |
 | 3.2C   | 320   |  240   | TFT   | [ILI9341][6d] | [Adafruit 1743][12m]        | Big display. eBay equivalents work here. |
 | 3.5C   | 480   |  320   | TFT   | [ILI9486][12d]| [Waveshare Rpi 3.5 LCD][22m]| Pi HAT. Many pixels. Needs plenty of RAM. |
 | 2.9M   | 296   |  128   | eInk  | [UC8151D][7d] | [Adafruit 4262][13m]        | Flexible ePaper display |
@@ -114,3 +115,5 @@ simple. See [this doc](./DRIVERS.md#7-writing-device-drivers) for details.
 [20m]: https://www.waveshare.com/product/ai/displays/oled/1.5inch-oled-module.htm?___SID=U
 [21m]: https://www.seeedstudio.com/Grove-OLED-Display-1-12.html?queryID=080778ddd8f54df96ca0e016af616327&objectID=1763&indexName=bazaar_retailer_products
 [22m]: https://www.waveshare.com/product/3.5inch-rpi-lcd-a.htm
+[23m]: https://shop.pimoroni.com/products/pico-display-pack?variant=32368664215635
+
