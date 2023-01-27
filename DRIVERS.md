@@ -40,7 +40,7 @@ access via the `Writer` and `CWriter` classes is documented
   &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;3.3.2 [Waveshare Pico Res Touch](./DRIVERS.md#332-waveshare-pico-res-touch)  
   &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;3.3.3 [Waveshare Pico LCD 2](./DRIVERS.md#333-waveshare-pico-lcd-2)  
   &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;3.3.4 [Troubleshooting](./DRIVERS.md#334-troubleshooting)  
-  3.4 [3.4 Driver for ILI94xx](./DRIVERS.md#34-driver-for-ili94xx) Generic ILI94xx driver for large displays.  
+  3.4 [Driver for ILI94xx](./DRIVERS.md#34-driver-for-ili94xx) Generic ILI94xx and HX8357D driver for large displays.  
  4. [Drivers for sharp displays](./DRIVERS.md#4-drivers-for-sharp-displays) Large low power monochrome displays  
   4.1 [Display characteristics](./DRIVERS.md#41-display-characteristics)  
   &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;4.1.1 [The VCOM bit](./DRIVERS.md#411-the-vcom-bit)  
@@ -636,6 +636,8 @@ If your display shows garbage, check the following (I have seen both):
  * `height` and `width` not matching the choice of `LANDSCAPE` or `PORTRAIT`
  display mode.
 
+###### [Contents](./DRIVERS.md#contents)
+
 ## 3.4 Driver for ILI94xx
 
 This was developed for the ILI9486 but its application is more wide ranging.
@@ -659,7 +661,9 @@ ILI9341 and HX8357D have been tested. It may work with ILI9488.
 
 ##### Generic display wiring
 
-Testing was done with a Pico, using the following setup files:
+Testing was done with a Pico and an
+[Adafruit 3.5inch display]( https://www.adafruit.com/product/2050), using the
+following setup files:
 [nanogui setup](https://github.com/peterhinch/micropython-nano-gui/blob/master/setup_examples/ili9486_pico.py)
 and [microgui setup](https://github.com/peterhinch/micropython-micro-gui/blob/main/setup_examples/ili9486_pico.py).
 These use the following pinout:
@@ -676,12 +680,13 @@ These use the following pinout:
 | 14       | 10   | CS      |         |
 
 Please check the power requirements of the display board, which may require a
-5V or a 3.3V supply.
+5V or a 3.3V supply. The Adafruit board can accept either.
 
 ##### Waveshare PI HAT wiring
 
-This shows the Raspberry Pi connector looking at the underside of the board
-with the bulk of the board to the right. This was tested with a Pi Pico.
+Setup files are as per the generic display. The table shows the Raspberry Pi
+connector looking at the underside of the board with the bulk of the board to
+the right. It was tested with a Pi Pico.
 
 Connections may be adapted for other MicroPython targets. The board may be
 powered from 5V or 3.3V: there is a regulator on board.

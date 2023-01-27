@@ -31,6 +31,7 @@ Width and height are pixels.
 | 1.14C  | 240   |  135   | TFT   | [ST7789][5d]  | [Pimoroni pico 1.14][23m]   | For Pi Pico. Buttons good for micro-gui |
 | 3.2C   | 320   |  240   | TFT   | [ILI9341][6d] | [Adafruit 1743][12m]        | Big display. eBay equivalents work here. |
 | 3.5C   | 480   |  320   | TFT   | [ILI9486][12d]| [Waveshare Rpi 3.5 LCD][22m]| Pi HAT. Many pixels. Needs plenty of RAM. |
+| 3.5C   | 480   |  320   | TFT   | [ILI9486][12d]| [Adafruit 3.5 LCD][24m]     | 3.5" HX8357D display, notes as above. |
 | 2.9M   | 296   |  128   | eInk  | [UC8151D][7d] | [Adafruit 4262][13m]        | Flexible ePaper display |
 | 2.9M   | 296   |  128   | eInk  | [UC8151D][7d] | [Adafruit 4777][15m]        | FeatherWing ePaper display |
 | 4.2M   | 400   |  300   | eInk  | [WS][10d]     | [Waveshare pico 4.2][19m]   | Pico, Pico W plug in. Other hosts via cable |
@@ -116,4 +117,5 @@ simple. See [this doc](./DRIVERS.md#7-writing-device-drivers) for details.
 [21m]: https://www.seeedstudio.com/Grove-OLED-Display-1-12.html?queryID=080778ddd8f54df96ca0e016af616327&objectID=1763&indexName=bazaar_retailer_products
 [22m]: https://www.waveshare.com/product/3.5inch-rpi-lcd-a.htm
 [23m]: https://shop.pimoroni.com/products/pico-display-pack?variant=32368664215635
+[24m]: https://www.adafruit.com/product/2050
 
