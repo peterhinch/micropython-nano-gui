@@ -641,23 +641,13 @@ If your display shows garbage, check the following (I have seen both):
 ## 3.4 Driver for ILI94xx
 
 This was developed for the ILI9486 but its application is more wide ranging.
+These have been tested: ILI9341, ILI9488 and HX8357D.
 
 The ILI9486 supports displays of up to 480x320 pixels which is large by
 microcontroller standards. Even with 4-bit color the frame buffer requires
 76,800 bytes. On a Pico `nanogui` works fine, but `micro-gui` fails to
 compile unless frozen bytecode is used, in which case it runs with about 75K of
 free RAM.
-
-##### Design note
-
-The driver aims to work with any ILI9486, however
-[this display](https://www.waveshare.com/product/3.5inch-RPi-LCD-A.htm), a
-480x320 color LCD designed for the Raspberry Pi, has special hardware. Rather
-than driving the ILI9486 via SPI, it uses SPI to fill a shift register, copying
-the data to the chip using a parallel interface. The driver is designed to work
-with both types of hardware; to achieve this it uses driver default values
-where possible. These defaults are common to a range of controllers. For example
-ILI9341 and HX8357D have been tested. It may work with ILI9488.
 
 ##### Generic display wiring
 
@@ -749,6 +739,20 @@ applications. The driver provides an asynchronous `do_refresh(split=4)` method.
 If this is run the display will be refreshed, but will periodically yield to
 the scheduler enabling other tasks to run. This is documented
 [here](./ASYNC.md).
+
+##### Design note
+
+The driver aims to work with any ILI9486, however
+[this display](https://www.waveshare.com/product/3.5inch-RPi-LCD-A.htm), a
+480x320 color LCD designed for the Raspberry Pi, has special hardware. Rather
+than driving the ILI9486 via SPI, it uses SPI to fill a shift register, copying
+the data to the chip using a parallel interface. The driver is designed to work
+with both types of hardware; to achieve this it uses driver default values
+where possible. These defaults are common to a range of controllers.
+
+The driver is quite minimal. Drivers released by display manufacturers set up
+the controller to achieve precise color rendering. With a 4-bit palette these
+consume bytes with zero visual benefit.
 
 ###### [Contents](./DRIVERS.md#contents)
 

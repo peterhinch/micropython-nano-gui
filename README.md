@@ -70,7 +70,7 @@ display.
   3.7 [Class Textbox](./README.md#37-class-textbox) Scrolling text display.  
  4. [ESP8266](./README.md#4-esp8266) This can work. Contains information on
  minimising the RAM and flash footprints of the GUI.  
- 5. [Old firmware](./README.md#5-old-firmware) For users of color displays who can't run current firmware.
+[Appendix 1 Freezing bytecode](./README.md#appendix-1-freezing-bytecode) Optional way to save RAM.
 
 #### [Supported displays](./DISPLAYS.md)
 
@@ -94,7 +94,8 @@ GUI supports multiple displays attached to a single target, but bear in mind
 the RAM requirements for multiple frame buffers. The GUI has been tested on
 Pyboard 1.1, Pyboard D, Raspberry Pi Pico and on the ESP32 reference board
 without SPIRAM. Running on ESP8266 is possible but frozen bytecode must be used
-owing to its restricted RAM.
+owing to its restricted RAM - see
+[Appendix 1 Freezing bytecode](./README.md#appendix-1-freezing-bytecode).
 
 It uses synchronous code but is compatible with `uasyncio`. Some demo programs
 illustrate this. Code is standard MicroPython, but some device drivers use the
@@ -900,14 +901,46 @@ bytes, `tbox.py` reported 10512 bytes, sometimes more, as the demo progressed.
 With the 4 bit driver `scale.py` reported 18112 bytes. In conclusion I think
 that applications of moderate complexity should be feasible.
 
-# 5. Old firmware
+###### [Contents](./README.md#contents)
 
-Current firmware is highly recommended. For users of color displays who cannot
-meet the requirements of
-[Files and Dependencies](./README.md#2-files-and-dependencies) it is possible
-to run under V1.15+. This involves copying
-[this file](https://github.com/peterhinch/micropython-font-to-py/blob/master/writer/old_versions/writer_fw_compatible.py)
-to `gui/core/writer.py`. This uses Python code to render text if the firmware
-or driver are unable to support fast rendering.
+## Appendix 1 Freezing bytecode
+
+This achieves a major saving of RAM. The correct way to do this is via a
+[manifest file](http://docs.micropython.org/en/latest/reference/manifest.html).
+The first step is to clone MicroPython and prove that you can build and deploy
+firmware to the chosen platform. Build instructions vary between ports and can
+be found in the MicroPython source tree in `ports/<port>/README.md`.
+
+The following is an example of how the entire GUI with fonts, demos and all
+widgets can be frozen on RP2.
+
+Build script:
+```bash
+cd /mnt/qnap2/data/Projects/MicroPython/micropython/ports/rp2
+MANIFEST='/mnt/qnap2/Scripts/manifests/rp2_manifest.py'
+
+make submodules
+make clean
+if make -j 8 BOARD=PICO FROZEN_MANIFEST=$MANIFEST
+then
+    echo Firmware is in build-PICO/firmware.uf2
+else
+    echo Build failure
+fi
+cd -
+```
+Manifest file contents (first line ensures that the default files are frozen):
+```python
+include("$(MPY_DIR)/ports/rp2/boards/manifest.py")
+freeze('/mnt/qnap2/Scripts/modules/rp2_modules')
+```
+The directory `/mnt/qnap2/Scripts/modules/rp2_modules` contains only a symlink
+to the `gui` directory of the `micropython-micro-gui` source tree. The freezing
+process follows symlinks and respects directory structures.
+
+It is usually best to keep `hardware_setup.py` unfrozen for ease of making
+changes. I also keep the display driver and `boolpalette.py` in the filesystem
+as I have experienced problems freezing display drivers - but feel free to
+experiment.
 
 ###### [Contents](./README.md#contents)
