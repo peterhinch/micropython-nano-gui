@@ -55,14 +55,15 @@ def _lscopy(dest: ptr16, source: ptr8, lut: ptr16, ch: int):
 class ILI9486(framebuf.FrameBuffer):
 
     lut = bytearray(32)
+    COLOR_INVERT = 0
 
     # Convert r, g, b in range 0-255 to a 16 bit colour value
     # LS byte goes into LUT offset 0, MS byte into offset 1
     # Same mapping in linebuf so LS byte is shifted out 1st
     # ILI9486 expects RGB order. 8 bit register writes require padding
-    @staticmethod
-    def rgb(r, g, b):
-        return (r & 0xF8) | (g & 0xE0) >> 5 | (g & 0x1C) << 11 | (b & 0xF8) << 5
+    @classmethod
+    def rgb(cls, r, g, b):
+        return cls.COLOR_INVERT ^ ((r & 0xF8) | (g & 0xE0) >> 5 | (g & 0x1C) << 11 | (b & 0xF8) << 5)
 
     # Transpose width & height for landscape mode
     def __init__(self, spi, cs, dc, rst, height=320, width=480, usd=False, init_spi=False):
