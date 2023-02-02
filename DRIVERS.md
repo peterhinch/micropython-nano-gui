@@ -641,7 +641,7 @@ If your display shows garbage, check the following (I have seen both):
 ## 3.4 Driver for ILI94xx
 
 This was developed for the ILI9486 but its application is more wide ranging.
-These have been tested: ILI9341, ILI9488 and HX8357D.
+In addition to ILI9486 tThese have been tested: ILI9341, ILI9488 and HX8357D.
 
 The ILI9486 supports displays of up to 480x320 pixels which is large by
 microcontroller standards. Even with 4-bit color the frame buffer requires
@@ -720,7 +720,16 @@ powered from 5V or 3.3V: there is a regulator on board.
 def spi_init(spi):
     spi.init(baudrate=10_000_000)
 ```
-
+#### ILI9486 class variable
+ * COLOR_INVERT = 0
+@beetlegig [reported](https://github.com/micropython/micropython/discussions/10511#discussioncomment-4833729)
+inverted colors on an ILI9488 display. If black appears as white, and other
+colors are incorrect, adapt the `color_setup.py` or `hardware_setup.py` to set
+this to `0xFFFF`:
+```python
+from drivers.ili94xx.ili9486 import ILI9486 as SSD
+SSD.COLOR_INVERT = 0xFFFF  # Fix color inversion
+```
 The ILI9486 class uses 4-bit color to conserve RAM. See
 [Color handling](./DRIVERS.md#11-color-handling) for the implications of 4-bit
 color. On the Pico with the display driver loaded there was 85KiB free RAM
