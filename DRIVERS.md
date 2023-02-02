@@ -721,7 +721,8 @@ def spi_init(spi):
     spi.init(baudrate=10_000_000)
 ```
 #### ILI9486 class variable
- * COLOR_INVERT = 0  
+ * `COLOR_INVERT = 0`  
+
 @beetlegig [reported](https://github.com/micropython/micropython/discussions/10511#discussioncomment-4833729)
 inverted colors on an ILI9488 display. If black appears as white, and other
 colors are incorrect, adapt the `color_setup.py` or `hardware_setup.py` to set
