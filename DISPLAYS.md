@@ -48,6 +48,13 @@ I2C or SPI interfaces. An example is [Adafruit 938][4m]. The SSD1306 driver in
 this repo has a minor addition to enable it to support demos intended for color
 displays.
 
+Monochrome OLED displays based on the SH1106 chip are supported via the
+[unofficial driver](https://github.com/robert-hh/SH1106).
+Displays are available from various sources and can use I2C or SPI interfaces.
+An exmaple is the [Inland IIC SPI 1.3" 128x64 OLED V2.0](https://www.microcenter.com/product/643965/inland-iic-spi-13-128x64-oled-v20-graphic-display-module-for-arduino-uno-r3)
+AKA [KeyStudio](https://wiki.keyestudio.com/Ks0056_keyestudio_1.3%22_128x64_OLED_Graphic_Display).
+
+
 Nokia 5110 (PCD8544) displays. [This driver](https://github.com/mcauser/micropython-pcd8544.git)
 is compatible.
 
