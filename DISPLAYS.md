@@ -44,7 +44,9 @@ Width and height are pixels.
 
 Monochrome OLED displays based on the SSD1306 chip are supported via the
 [official driver][3d]. Displays are available from various sources and can use
-I2C or SPI interfaces. An example is [Adafruit 938][4m].
+I2C or SPI interfaces. An example is [Adafruit 938][4m]. The SSD1306 driver in
+this repo has a minor addition to enable it to support demos intende for color
+displays.
 
 Nokia 5110 (PCD8544) displays. [This driver](https://github.com/mcauser/micropython-pcd8544.git)
 is compatible.
