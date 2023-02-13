@@ -75,6 +75,7 @@
 from micropython import const
 import utime as time
 import framebuf
+from drivers.boolpalette import BoolPalette
 
 
 # a few register definitions
@@ -106,18 +107,19 @@ class SH1106(framebuf.FrameBuffer):
         self.pages_to_update = 0
 
         if self.rotate90:
+            # decouple renderbuf and displaybuf
             self.displaybuf = bytearray(self.bufsize)
             # HMSB is required to keep the bit order in the render buffer
             # compatible with byte-for-byte remapping to the display buffer,
             # which is in VLSB. Else we'd have to copy bit-by-bit!
-            super().__init__(
-                self.renderbuf, self.height, self.width, framebuf.MONO_HMSB
-            )
+            mode = framebuf.MONO_HMSB
+            self.palette = BoolPalette(mode)
+            super().__init__(self.renderbuf, self.height, self.width, mode)
         else:
             self.displaybuf = self.renderbuf
-            super().__init__(
-                self.renderbuf, self.width, self.height, framebuf.MONO_VLSB
-            )
+            mode = framebuf.MONO_VLSB
+            self.palette = BoolPalette(mode)
+            super().__init__(self.renderbuf, self.width, self.height, mode)
 
         # flip() was called rotate() once, provide backwards compatibility.
         self.rotate = self.flip
