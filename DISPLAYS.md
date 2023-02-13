@@ -44,12 +44,12 @@ Width and height are pixels.
 
 Monochrome OLED displays based on the SSD1306 chip are supported via the
 [official driver][3d]. Displays are available from various sources and can use
-I2C or SPI interfaces. An example is [Adafruit 938][4m]. The SSD1306 driver in
-this repo has a minor addition to enable it to support demos intended for color
-displays.
+I2C or SPI interfaces. An example is [Adafruit 938][4m]. The [SSD1306 driver][14d]
+in this repo has minor additions to support demos intended for color displays.
 
 Monochrome OLED displays based on the SH1106 chip are supported via the
-[unofficial driver](https://github.com/robert-hh/SH1106).
+[unofficial driver](https://github.com/robert-hh/SH1106). The [SH1106 driver][13d]
+in this repo has minor additions to support demos intended for color displays.
 Displays are available from various sources and can use I2C or SPI interfaces.
 An exmaple is the [Inland IIC SPI 1.3" 128x64 OLED V2.0](https://www.microcenter.com/product/643965/inland-iic-spi-13-128x64-oled-v20-graphic-display-module-for-arduino-uno-r3)
 AKA [KeyStudio](https://wiki.keyestudio.com/Ks0056_keyestudio_1.3%22_128x64_OLED_Graphic_Display).
@@ -103,6 +103,8 @@ simple. See [this doc](./DRIVERS.md#7-writing-device-drivers) for details.
 [10d]: https://github.com/peterhinch/micropython-nano-gui/blob/master/DRIVERS.md#53-waveshare-400x300-pi-pico-display
 [11d]: https://github.com/peterhinch/micropython-nano-gui/blob/master/DRIVERS.md#23-drivers-for-ssd1327
 [12d]: https://github.com/peterhinch/micropython-nano-gui/blob/master/DRIVERS.md#34-driver-for-ili9486
+[13d]: https://github.com/peterhinch/micropython-nano-gui/blob/master/drivers/sh1106/sh1106.py
+[14d]: https://github.com/peterhinch/micropython-nano-gui/blob/master/drivers/ssd1306/ssd1306.py
 
 [1m]: https://www.adafruit.com/product/684
 [2m]: https://www.adafruit.com/product/1673

@@ -113,7 +113,7 @@ my GUI's employ the American spelling of `color`.
 
 ## 1.1 Change log
 
-12 Feb 2023 Add support for sh1106 driver.  
+12 Feb 2023 Add support for sh1106 driver. Fix color compatibility of SSD1306.  
 5 Sep 2022 Add support for additional Pico displays.  
 8 Aug 2022 Typo and grammar fixes from @bfiics.  
 10 May 2022 Support Waveshare Pi Pico displays.  
