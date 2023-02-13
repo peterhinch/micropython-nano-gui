@@ -113,6 +113,7 @@ my GUI's employ the American spelling of `color`.
 
 ## 1.1 Change log
 
+12 Feb 2023 Add support for sh1106 driver.  
 5 Sep 2022 Add support for additional Pico displays.  
 8 Aug 2022 Typo and grammar fixes from @bfiics.  
 10 May 2022 Support Waveshare Pi Pico displays.  
@@ -252,12 +253,12 @@ The `gui/core` directory contains the GUI core and its principal dependencies:
 
 The `gui/demos` directory contains test/demo scripts.
 
-Demos for small displays:  
- * `mono_test.py` Tests/demos using the official SSD1306 driver for a
- monochrome 128*64 OLED display.
+Demos for small displays:
+ * `mono_test.py` Tests/demos using the official SSD1306 or SH1106 driver for
+ monochrome 128*64 OLED displays.
  * `color96.py` Tests/demos for the Adafruit 0.96 inch color OLED.
 
-Demos for larger displays.  
+Demos for larger displays.
  * `color15.py` Demonstrates a variety of widgets. Cross platform.
  * `aclock.py` Analog clock demo. Cross platform.
  * `alevel.py` Spirit level using Pyboard accelerometer.
@@ -267,7 +268,7 @@ Demos for larger displays.
  * `asnano.py` Could readily be adapted for other targets.
  * `tbox.py` Demo `Textbox` class. Cross-platform.
 
-Demos for ePaper displays:  
+Demos for ePaper displays:
  * `epd_async.py` Demo of asynchronous code on an eInk display. Needs a large display.
  * `epd29_sync.py` Demo for Adafruit 2.9" eInk display: emulates a seismograph.
  * `epd29_async.py` Asynchronous demo for Adafruit 2.9" eInk display.
@@ -275,7 +276,7 @@ Demos for ePaper displays:
  [Micropower use](./DRIVERS.md#715-micropower-use) should be read before
  attempting to run this.
 
-Demos for Sharp displays:  
+Demos for Sharp displays:
  * `sharptest.py` Basic functionality check.
  * `clocktest.py` Digital and analog clock demo.
  * `clock_batt.py` Low power demo of battery operated clock.
@@ -317,6 +318,8 @@ copied to the hardware root as `color_setup.py`. Example files:
 
  * `ssd1306_pyb.py` Setup file for monochrome displays using the official
  driver. Supports hard or soft SPI or I2C connections.
+ * `ssd1106_spi_pico.py` Setup file for monochrome displays.
+ Supports hard or soft SPI or I2C connections.
  * `ssd1351_esp32.py` As written supports an ESP32 connected to a 128x128 SSD1351
  display. After editing to match the display and wiring, it should be copied to
  the target as `/pyboard/color_setup.py`.
@@ -342,11 +345,15 @@ to check for newer versions:
  Provides text rendering of Python font files.
 
 A copy of the official driver for OLED displays using the SSD1306 chip is
-provided. The official file is here:  
+provided. The official file is here:
  * [SSD1306 driver](https://github.com/micropython/micropython/blob/master/drivers/display/ssd1306.py).
 
+A copy of the unofficial driver for OLED displays using the SH1106 chip is
+provided. The unofficial file is here:
+ * [Sh1106 driver](https://github.com/robert-hh/SH1106).
+
 Displays based on the Nokia 5110 (PCD8544 chip) require this driver. It is not
-in this repo but may be found here:  
+in this repo but may be found here:
  * [PCD8544/Nokia 5110](https://github.com/mcauser/micropython-pcd8544.git)
 
 ###### [Contents](./README.md#contents)
@@ -404,11 +411,12 @@ from gui.widgets.label import Label  # Import any widgets you plan to use
 from gui.widgets.dial import Dial, Pointer
 refresh(ssd, True)  # Initialise and clear display.
 ```
-Initialisation of text display follows. For each font a `CWriter` instance
-is created (for monochrome displays a `Writer` is used):
+
+Initialisation of color text display follows. For each font a `CWriter` instance
+is created:
 ```python
 from gui.core.writer import CWriter  # Renders color text
-import gui.fonts.arial10  # A Python Font
+from gui.fonts import arial10  # A Python Font
 from gui.core.colors import *  # Standard color constants
 
 CWriter.set_textpos(ssd, 0, 0)  # In case previous tests have altered it
@@ -417,6 +425,19 @@ wri = CWriter(ssd, arial10, GREEN, BLACK, verbose=False)  # Colors are defaults
 # wri = Writer(ssd, arial10, verbose=False)  # Monochrome display uses Writer
 wri.set_clip(True, True, False)
 ```
+
+Initialisation of monochorome text display follows. For each font a `Writer` instance
+is created:
+```python
+from gui.core.writer import Writer  # Renders color text
+from gui.fonts import arial10
+
+Writer.set_textpos(ssd, 0, 0)  # In case previous tests have altered it
+# Instantiate any Writers to be used (one for each font)
+wri = Writer(ssd, arial10, verbose=False)  # Monochrome display uses Writer
+wri.set_clip(True, True, False)
+```
+
 Calling `nanogui.refresh` on startup sets up and clears the display. The method
 will subsequently be called whenever a refresh is required. It takes two args:
  1. `device` The display instance (the GUI supports multiple displays).
@@ -488,7 +509,7 @@ Colors are handled flexibly. By default the colors used are those of the
 to warn of overrange or underrange values. The `color15.py` demo illustrates
 this.
 
-Constructor args:  
+Constructor args:
  1. `writer` The `Writer` instance (font and screen) to use.
  2. `row` Location on screen.
  3. `col`
@@ -507,7 +528,7 @@ Constructor args:
 
 The constructor displays the string at the required location.
 
-Methods:  
+Methods:
  1. `value` Redraws the label. This takes the following args:
     * `text=None` The text to display. If `None` displays the last value.
     * ` invert=False` If true, show inverse text.
@@ -520,7 +541,7 @@ Methods:
  Returns the current text string.  
  2. `show` No args. (Re)draws the label. Primarily for internal use by GUI.
 
-Module Constants:  
+Module Constants:
  * `ALIGN_LEFT=0`
  * `ALIGN_RIGHT=1`
  * `ALIGN_CENTER=2`
@@ -579,22 +600,22 @@ Keyword only args:
  `('0.0', '0.5', '1.0')`
  14. `value=None` Initial value. If `None` the meter will not be drawn until
  its `value()` method is called.
- 
+
 Methods:
  1. `value` Args: `n=None, color=None`.
     * `n` should be a float in range 0 to 1.0. Causes the meter to be updated.
     Out of range values are constrained. If `None` is passed the meter is not
     updated.
     * `color` Updates the color of the bar or line if a value is also passed.
-    `None` causes no change.  
- Returns the current value.  
+    `None` causes no change.
+ Returns the current value.
  2. `text` Updates the label if present (otherwise throws a `ValueError`). Args:
     * `text=None` The text to display. If `None` displays the last value.
     * ` invert=False` If true, show inverse text.
     * `fgcolor=None` Foreground color: if `None` the `Writer` default is used.
     * `bgcolor=None` Background color, as per foreground.
     * `bdcolor=None` Border color. As per above except that if `False` is
-    passed, no border is displayed. This clears a previously drawn border.  
+    passed, no border is displayed. This clears a previously drawn border.
  3. `show` No args. (Re)draws the meter. Primarily for internal use by GUI.
 
 ###### [Contents](./README.md#contents)
@@ -603,7 +624,7 @@ Methods:
 
 This is a virtual LED whose color may be altered dynamically.
 
-Constructor positional args:  
+Constructor positional args:
  1. `writer` The `Writer` instance (font and screen) to use.
  2. `row` Location on screen.
  3. `col`
@@ -627,7 +648,7 @@ Methods:
     * `fgcolor=None` Foreground color: if `None` the `Writer` default is used.
     * `bgcolor=None` Background color, as per foreground.
     * `bdcolor=None` Border color. As per above except that if `False` is
-    passed, no border is displayed. This clears a previously drawn border.  
+    passed, no border is displayed. This clears a previously drawn border.
  3. `show` No args. (Re)draws the LED. Primarily for internal use by GUI.
 
 ###### [Contents](./README.md#contents)
@@ -652,7 +673,7 @@ Pointer values are complex numbers.
 
 ### Dial class
 
-Constructor positional args:  
+Constructor positional args:
  1. `writer` The `Writer` instance (font and screen) to use.
  2. `row` Location on screen.
  3. `col`
@@ -684,12 +705,12 @@ Constructor arg:
  1. `dial` The `Dial` instance on which it is to be displayed.
 
 Methods:
- 1. `value` Args:  
+ 1. `value` Args:
     * `v=None` The value is a complex number. A magnitude exceeding unity is
     reduced (preserving phase) to constrain the `Pointer` within the unit
     circle.
     * `color=None` By default the pointer is rendered in the foreground color
-    of the parent `Dial`. Otherwise the passed color is used.  
+    of the parent `Dial`. Otherwise the passed color is used.
     Returns the current value.
  2. `show` No args. (Re)draws the control. Primarily for internal use by GUI.
 
