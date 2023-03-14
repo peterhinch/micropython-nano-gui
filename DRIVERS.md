@@ -63,6 +63,7 @@ access via the `Writer` and `CWriter` classes is documented
   &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;5.2.1 [EPD constructor args](./DRIVERS.md#521-epd-constructor-args)  
   &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;5.2.2 [EPD public methods](./DRIVERS.md#522-epd-public-methods)  
   &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;5.2.3 [EPD public bound variables](./DRIVERS.md#523-epd-public-bound-variables)  
+  5.3 [Waveshare 400x300 Pi Pico display](./DRIVERS.md#53-waveshare-400x300-pi-pico-display)  
  6. [EPD Asynchronous support](./DRIVERS.md#6-epd-asynchronous-support)  
  7. [Writing device drivers](./DRIVERS.md#7-writing-device-drivers)  
  8. [Links](./DRIVERS.md#8-links)  
