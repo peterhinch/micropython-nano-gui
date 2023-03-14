@@ -346,11 +346,11 @@ to check for newer versions:
 
 A copy of the official driver for OLED displays using the SSD1306 chip is
 provided. The official file is here:
- * [SSD1306 driver](https://github.com/micropython/micropython/blob/master/drivers/display/ssd1306.py).
+ * [SSD1306 driver](https://github.com/micropython/micropython-lib/blob/master/micropython/drivers/display/ssd1306/ssd1306.py).
 
 A copy of the unofficial driver for OLED displays using the SH1106 chip is
 provided. The unofficial file is here:
- * [Sh1106 driver](https://github.com/robert-hh/SH1106).
+ * [SH1106 driver](https://github.com/robert-hh/SH1106).
 
 Displays based on the Nokia 5110 (PCD8544 chip) require this driver. It is not
 in this repo but may be found here:
