@@ -1239,6 +1239,17 @@ following constructor args:
  * `busy=None` A `Pin` instance defined as `Pin.IN, Pin.PULL_UP`.
  * `asyn=False` Set `True` for asynchronous applications.
 
+An alternative driver supporting partial updates is `pico_epaper_42_part.py`.
+Usage is as above, but the driver supports two methods:
+ * `set_partial()`
+ * `set_full()`
+After issuing `set_partial()`, subsequent updates will be partial. Normal
+updates are restored by issuing `set_full()`. These should not be issued while
+an update is in progress.
+
+Partial updates are fast and visually unobtrusive but they are prone to
+ghosting.
+
 ###### [Contents](./DRIVERS.md#contents)
 
 # 6. EPD Asynchronous support
