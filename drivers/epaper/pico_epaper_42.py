@@ -204,9 +204,10 @@ class EPD(framebuf.FrameBuffer):
 
     async def _as_show(self):
         self.send_command(b"\x13")
-        for j in range(_EPD_HEIGHT):  # Loop would take ~300ms
+        for j in range(_EPD_HEIGHT):  # Loop blocks ~300ms
             self._line(j)
-            await asyncio.sleep_ms(0)
+            # For some reason the following did not work
+            #await asyncio.sleep_ms(0)
         self.send_command(b"\x12")  # Async .display_on()
         while not self.busy_pin():
             await asyncio.sleep_ms(10)  # About 1.7s

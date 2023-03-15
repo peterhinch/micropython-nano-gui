@@ -59,11 +59,11 @@ access via the `Writer` and `CWriter` classes is documented
   &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;5.1.3 [EPD public bound variables](./DRIVERS.md#513-epd-public-bound-variables)  
   &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;5.1.4 [FeatherWing Wiring](./DRIVERS.md#514-featherwing-wiring)  
   &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;5.1.5 [Micropower use](./DRIVERS.md#515-micropower-use)  
-  5.2 [Waveshare eInk Display HAT](./DRIVERS.md#52-waveshare-eink-display-hat)  
+  5.2 [Waveshare eInk Display HAT](./DRIVERS.md#52-waveshare-eink-display-hat) Pi HAT repurposed for MP hosts.  
   &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;5.2.1 [EPD constructor args](./DRIVERS.md#521-epd-constructor-args)  
   &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;5.2.2 [EPD public methods](./DRIVERS.md#522-epd-public-methods)  
   &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;5.2.3 [EPD public bound variables](./DRIVERS.md#523-epd-public-bound-variables)  
-  5.3 [Waveshare 400x300 Pi Pico display](./DRIVERS.md#53-waveshare-400x300-pi-pico-display)  
+  5.3 [Waveshare 400x300 Pi Pico display](./DRIVERS.md#53-waveshare-400x300-pi-pico-display) Can also be used with other hosts.  
  6. [EPD Asynchronous support](./DRIVERS.md#6-epd-asynchronous-support)  
  7. [Writing device drivers](./DRIVERS.md#7-writing-device-drivers)  
  8. [Links](./DRIVERS.md#8-links)  
@@ -1239,6 +1239,24 @@ following constructor args:
  * `rst=None` A `Pin` instance defined as `Pin.OUT`.
  * `busy=None` A `Pin` instance defined as `Pin.IN, Pin.PULL_UP`.
  * `asyn=False` Set `True` for asynchronous applications.
+
+##### Synchronous methods
+
+* `init` No args. Issues a hardware reset and initialises the hardware. This
+ is called by the constructor. It needs to explicitly be called to exit from a
+ deep sleep.
+ * `sleep` No args. Puts the display into deep sleep. If called while a refresh
+ is in progress it will block until the refresh is complete. `sleep` should be
+ called before a power down to avoid leaving the display in an abnormal state.
+ * `ready` No args. After issuing a `refresh` the device will become busy for
+ a period: `ready` status should be checked before issuing `refresh`.
+ * `wait_until_ready` No args. Pause until the device is ready.
+
+##### Asynchronous methods
+
+ * `updated` Asynchronous. No args. Pause until the framebuffer has been copied
+ to the display.
+ * `wait` Asynchronous. No args. Pause until the display refresh is complete.
 
 An alternative driver supporting partial updates is `pico_epaper_42_part.py`.
 Usage is as above, but the driver supports two methods:
