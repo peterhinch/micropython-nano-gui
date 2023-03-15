@@ -1,6 +1,11 @@
 # pico_epaper_42_part.py A 1-bit monochrome display driver for the Waveshare Pico
+
 # ePaper 4.2" display. Version supports partial updates.
 # Adapted from the Waveshare driver by Peter Hinch Sept 2022.
+# https://www.waveshare.com/pico-epaper-4.2.htm
+# UC8176 manual https://www.waveshare.com/w/upload/8/88/UC8176.pdf
+# Note that Waveshare's version of this driver may be out of data
+# https://github.com/waveshare/Pico_ePaper_Code/blob/main/pythonNanoGui/drivers/ePaper4in2.py
 
 # *****************************************************************************
 # * | File        :	  Pico_ePaper-3.7.py
@@ -222,13 +227,10 @@ class EPD(framebuf.FrameBuffer):
 
     def wait_until_ready(self):
         while not self.ready():
-            self.send_command(b"\x71")
             time.sleep_ms(100) 
 
     async def wait(self):
-        await asyncio.sleep_ms(0)  # Ensure tasks run that might make it unready
         while not self.ready():
-            self.send_command(b"\x71")
             await asyncio.sleep_ms(100)
 
     # Pause until framebuf has been copied to device.
@@ -249,10 +251,9 @@ class EPD(framebuf.FrameBuffer):
 
     async def _as_show(self):
         self.send_command(b"\x13")
-        for j in range(_EPD_HEIGHT):  # Loop blocks ~300ms
+        for j in range(_EPD_HEIGHT):  # Loop would block ~300ms
             self._line(j)
-            # For some reason the following did not work
-            # await asyncio.sleep_ms(0)
+            await asyncio.sleep_ms(0)
         self.send_command(b"\x12")  # Async .display_on()
         while not self.busy_pin():
             await asyncio.sleep_ms(10)  # About 1.7s
