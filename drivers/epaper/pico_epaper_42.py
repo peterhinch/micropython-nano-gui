@@ -1,10 +1,11 @@
 # pico_epaper_42.py A 1-bit monochrome display driver for the Waveshare Pico
+# ePaper 4.2" display. This version fixes bugs and supports partial updates.
+# https://github.com/peterhinch/micropython-nano-gui/blob/master/drivers/epaper/pico_epaper_42.py
 
-# ePaper 4.2" display. Version supports partial updates.
 # Adapted from the Waveshare driver by Peter Hinch Sept 2022-March 2023.
 # https://www.waveshare.com/pico-epaper-4.2.htm
 # UC8176 manual https://www.waveshare.com/w/upload/8/88/UC8176.pdf
-# Note that Waveshare's version of this driver may be out of date
+# Waveshare's copy of this driver.
 # https://github.com/waveshare/Pico_ePaper_Code/blob/main/pythonNanoGui/drivers/ePaper4in2.py
 
 # *****************************************************************************
