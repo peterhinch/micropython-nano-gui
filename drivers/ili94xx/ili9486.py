@@ -66,7 +66,7 @@ class ILI9486(framebuf.FrameBuffer):
         return cls.COLOR_INVERT ^ ((r & 0xF8) | (g & 0xE0) >> 5 | (g & 0x1C) << 11 | (b & 0xF8) << 5)
 
     # Transpose width & height for landscape mode
-    def __init__(self, spi, cs, dc, rst, height=320, width=480, usd=False, init_spi=False):
+    def __init__(self, spi, cs, dc, rst, height=320, width=480, usd=False, mirror=False, init_spi=False):
         self._spi = spi
         self._cs = cs
         self._dc = dc
@@ -107,7 +107,11 @@ class ILI9486(framebuf.FrameBuffer):
         # Default page address start == 0 end == 0x1DF (479)
         if self._long != 480:
             self._wcd(b"\x2b", int.to_bytes(self._long - 1, 4, "big"))  # SET_PAGE ht
-        self._wcd(b"\x36", b"\x48" if usd else b"\x88")  # MADCTL: RGB portrait mode
+#        self._wcd(b"\x36", b"\x48" if usd else b"\x88")  # MADCTL: RGB portrait mode
+        madctl = 0x48 if usd else 0x88
+        if mirror:
+            madctl ^= 0x80
+        self._wcd(b"\x36", madctl.to_bytes(1, 'big'))  # MADCTL: RGB portrait mode
         self._wcmd(b"\x11")  # sleep out
         self._wcmd(b"\x29")  # display on
 

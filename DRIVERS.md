@@ -416,6 +416,13 @@ training makes me baulk at exceeding datasheet limits but the choice is yours.
 I raised [this isse](https://github.com/adafruit/Adafruit_CircuitPython_ILI9341/issues/24).
 The response may be of interest.
 
+#### Troubleshooting
+
+Some Chinese modules produce garbled displays. Please try the
+[ILI9486 driver](./DRIVERS.md#34-driver-for-ili94xx) with the `mirror`
+constructor arg set `True`. Patch and testing provided by
+[Abel Deuring](https://github.com/peterhinch/micropython-micro-gui/issues/25#issuecomment-1475329104).
+
 ###### [Contents](./DRIVERS.md#contents)
 
 ## 3.3 Drivers for ST7789
@@ -709,6 +716,8 @@ powered from 5V or 3.3V: there is a regulator on board.
  `height` and `width` values.
  * `width=480`
  * `usd=False` Upside down: set `True` to invert display.
+ * `mirror=False` If `True` reflects display. Has been found necessary for some
+ Chinese ILI9341 modules.
  * `init_spi=False` This optional arg enables flexible options in configuring
  the SPI bus. The default assumes exclusive access to the bus. In this normal
  case, `color_setup.py` initialises it and the settings will be left in place.
