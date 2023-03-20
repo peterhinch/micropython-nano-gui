@@ -1,8 +1,11 @@
 # pico_epaper_42.py A 1-bit monochrome display driver for the Waveshare Pico
-# ePaper 4.2" display.
-# https://www.waveshare.com/pico-epaper-4.2.htm
 
-# Adapted from the Waveshare driver by Peter Hinch Sept 2022.
+# ePaper 4.2" display. Version supports partial updates.
+# Adapted from the Waveshare driver by Peter Hinch Sept 2022-March 2023.
+# https://www.waveshare.com/pico-epaper-4.2.htm
+# UC8176 manual https://www.waveshare.com/w/upload/8/88/UC8176.pdf
+# Note that Waveshare's version of this driver may be out of date
+# https://github.com/waveshare/Pico_ePaper_Code/blob/main/pythonNanoGui/drivers/ePaper4in2.py
 
 # *****************************************************************************
 # * | File        :	  Pico_ePaper-3.7.py
@@ -31,7 +34,9 @@
 # LIABILITY WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
-#
+
+# If .set_partial() is called, subsequent updates will be partial. To restore normal
+# updates, issue .set_full()
 
 from machine import Pin, SPI
 import framebuf
@@ -65,6 +70,29 @@ EPD_lut_wb = b"\xA0\x08\x08\x00\x00\x02\x90\x0F\x0F\x00\x00\x01\x50\x08\x08\x00\
 EPD_lut_bb = b"\x20\x08\x08\x00\x00\x02\x90\x0F\x0F\x00\x00\x01\x10\x08\x08\x00\x00\x02\
 \x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00"
 
+# ******************************partial screen update LUT********************************* #
+
+EPD_partial_lut_vcom1 = b"\x00\x19\x01\x00\x00\x01\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\
+\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\
+\x00\x00\x00\x00\x00\x00"
+
+EPD_partial_lut_ww1 = b"\x00\x19\x01\x00\x00\x01\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\
+\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\
+\x00\x00\x00\x00"
+
+EPD_partial_lut_bw1 =b"\x80\x19\x01\x00\x00\x01\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\
+\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\
+\x00\x00\x00\x00"
+
+EPD_partial_lut_wb1 = b"\x40\x19\x01\x00\x00\x01\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\
+\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\
+\x00\x00\x00\x00"
+
+
+EPD_partial_lut_bb1 = b"\x00\x19\x01\x00\x00\x01\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\
+\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\
+\x00\x00\x00\x00"
+
 class EPD(framebuf.FrameBuffer):
     # A monochrome approach should be used for coding this. The rgb method ensures
     # nothing breaks if users specify colors.
@@ -77,10 +105,10 @@ class EPD(framebuf.FrameBuffer):
         self.busy_pin = Pin(BUSY_PIN, Pin.IN, Pin.PULL_UP) if busy is None else busy
         self.cs_pin = Pin(CS_PIN, Pin.OUT) if cs is None else cs
         self.dc_pin = Pin(DC_PIN, Pin.OUT) if dc is None else dc
-        self.spi = SPI(1) if spi is None else spi
+        self.spi = SPI(1, sck = Pin(10), mosi=Pin(11), miso=Pin(28)) if spi is None else spi
         self.spi.init(baudrate=4_000_000)
         self._asyn = asyn
-        self._as_busy = False  # Set immediately on start of task. Cleared when busy pin is logically false (physically 1).
+        self._busy = False  # Set immediately on start of task. Cleared when busy pin is logically false (physically 1).
         self._updated = asyncio.Event()
 
         self.width = _EPD_WIDTH
@@ -97,7 +125,7 @@ class EPD(framebuf.FrameBuffer):
     def reset(self):
         for v in (1, 0, 1):
             self.reset_pin(v)
-            time.sleep_ms(20) 
+            time.sleep_ms(20)
 
     def send_command(self, command):
         self.dc_pin(0)
@@ -150,6 +178,22 @@ class EPD(framebuf.FrameBuffer):
 
         self.send_command(b"\x50")  # VCOM AND DATA INTERVAL SETTING
         self.send_bytes(b"\x97")  # 97white border 77black border		VBDF 17|D7 VBDW 97 VBDB 57		VBDF F7 VBDW 77 VBDB 37  VBDR B7
+
+        self.set_full()
+# Clear display
+        self.send_command(b"\x10")
+        for j in range(_EPD_HEIGHT):
+            self.send_bytes(b"\xff" * _BWIDTH)
+                
+        self.send_command(b"\x13")
+        for j in range(_EPD_HEIGHT):
+            self.send_bytes(b"\xff" * _BWIDTH)
+
+        self.send_command(b"\x12")
+        time.sleep_ms(10)
+        self.display_on()
+
+    def set_full(self):  # Normal full updates
         self.send_command(b"\x20")
         self.send_bytes(EPD_lut_vcom0)
             
@@ -164,38 +208,41 @@ class EPD(framebuf.FrameBuffer):
             
         self.send_command(b"\x24")
         self.send_bytes(EPD_lut_bb)
-# Clear display
-        self.send_command(b"\x10")
-        for j in range(_EPD_HEIGHT):
-            self.send_bytes(b"\xff" * _BWIDTH)
-                
-        self.send_command(b"\x13")
-        for j in range(_EPD_HEIGHT):
-            self.send_bytes(b"\xff" * _BWIDTH)
 
-        self.send_command(b"\x12")
-        time.sleep_ms(10)
-        self.display_on()
+    def set_partial(self):  # Partial updates
+        self.send_command(b"\x20")
+        self.send_bytes(EPD_partial_lut_vcom1)
+            
+        self.send_command(b"\x21")
+        self.send_bytes(EPD_partial_lut_ww1)
         
+        self.send_command(b"\x22")
+        self.send_bytes(EPD_partial_lut_bw1)
+            
+        self.send_command(b"\x23")
+        self.send_bytes(EPD_partial_lut_wb1)
+            
+        self.send_command(b"\x24")
+        self.send_bytes(EPD_partial_lut_bb1)
+
     def wait_until_ready(self):
-        while(not self.ready()):
-            self.send_command(b"\x71")
+        while not self.ready():
             time.sleep_ms(100) 
 
     async def wait(self):
-        await asyncio.sleep_ms(0)  # Ensure tasks run that might make it unready
         while not self.ready():
-            self.send_command(b"\x71")
             await asyncio.sleep_ms(100)
 
     # Pause until framebuf has been copied to device.
     async def updated(self):
+        self._updated.clear()
         await self._updated.wait()
+        self._updated.clear()
 
     # For polling in asynchronous code. Just checks pin state.
     # 0 == busy. Comment in official code is wrong. Code is correct.
     def ready(self):
-        return not(self._as_busy or (self.busy_pin() == 0))  # 0 == busy
+        return not (self._busy or (self.busy_pin() == 0))  # 0 == busy
 
     def _line(self, n, buf=bytearray(_BWIDTH)):
         img = self.mvb
@@ -206,27 +253,26 @@ class EPD(framebuf.FrameBuffer):
 
     async def _as_show(self):
         self.send_command(b"\x13")
-        for j in range(_EPD_HEIGHT):  # Loop blocks ~300ms
+        for j in range(_EPD_HEIGHT):  # Loop would block ~300ms
             self._line(j)
-            # For some reason the following did not work
-            #await asyncio.sleep_ms(0)
+            await asyncio.sleep_ms(0)
+        self._updated.set()
         self.send_command(b"\x12")  # Async .display_on()
         while not self.busy_pin():
             await asyncio.sleep_ms(10)  # About 1.7s
-        self._updated.set()
-        self._updated.clear()
-        self._as_busy = False
+        self._busy = False
 
     def show(self):
+        if self._busy:
+            raise RuntimeError('Cannot refresh: display is busy.')
+        self._busy = True  # Immediate busy flag. Pin goes low much later.
         if self._asyn:
-            if self._as_busy:
-                raise RuntimeError('Cannot refresh: display is busy.')
-            self._as_busy = True  # Immediate busy flag. Pin goes low much later.
             asyncio.create_task(self._as_show())
             return
         self.send_command(b"\x13")
         for j in range(_EPD_HEIGHT):
             self._line(j)
+        self._busy = False
         self.display_on()
         self.wait_until_ready()
 

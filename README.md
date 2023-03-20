@@ -61,6 +61,7 @@ display.
   3.1 [Application Initialisation](./README.md#31-application-initialisation) Initial setup and refresh method.  
   &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;3.1.1 [User defined colors](./README.md#311-user-defined-colors)  
   &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;3.1.2 [Monochrome displays](./README.md#312-monochrome-displays) A slight "gotcha" with ePaper.  
+  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;3.1.3 [Display update mechanism](./README.md#313-display-update-mechanism) How updates are managed.  
   3.2 [Label class](./README.md#32-label-class) Dynamic text at any screen location.  
   3.3 [Meter class](./README.md#33-meter-class) A vertical panel meter.  
   3.4 [LED class](./README.md#34-led-class) Virtual LED of any color.  
@@ -113,6 +114,7 @@ my GUI's employ the American spelling of `color`.
 
 ## 1.1 Change log
 
+15 Mar 2023 Driver update to 4.2 inch Waveshare ePpaper display.  
 12 Feb 2023 Add support for sh1106 driver. Fix color compatibility of SSD1306.  
 5 Sep 2022 Add support for additional Pico displays.  
 8 Aug 2022 Typo and grammar fixes from @bfiics.  
@@ -491,6 +493,16 @@ low saturation. In this context the resultant physically white background
 color may come as a surprise.
 
 In general the solution is to leave color settings at default.
+
+### 3.1.3 Display update mechanism
+
+A typical application comprises various widgets displaying user data. When a
+widget's `value` method is called, the framebuffer's contents are updated to
+reflect the widget's current state. The framebuffer is transferred to the
+physical hardware when `refresh(device)` is called. This allows multiple
+widgets to be refreshed at the same time. It also minimises processor overhead:
+`.value` is generally fast, while `refresh` is slow because of the time taken
+to transfer an entire buffer over SPI.
 
 ###### [Contents](./README.md#contents)
 

@@ -1218,6 +1218,8 @@ Pins 26-40 unused and omitted.
 
 ## 5.3 Waveshare 400x300 Pi Pico display
 
+The driver for this display now supports partial updates.
+
 This 4.2" display supports a Pi Pico or Pico W plugged into the rear of the
 unit. Alternatively it can be connected to any other host using the supplied
 cable. With a Pico variant the `color_setup` file is very simple:
@@ -1251,23 +1253,23 @@ following constructor args:
  * `ready` No args. After issuing a `refresh` the device will become busy for
  a period: `ready` status should be checked before issuing `refresh`.
  * `wait_until_ready` No args. Pause until the device is ready.
+ * `set_partial()` Enable partial updates.
+ * `set_full()` Restore normal update operation.
 
-##### Asynchronous methods
-
- * `updated` Asynchronous. No args. Pause until the framebuffer has been copied
- to the display.
- * `wait` Asynchronous. No args. Pause until the display refresh is complete.
-
-An alternative driver supporting partial updates is `pico_epaper_42_part.py`.
-Usage is as above, but the driver supports two methods:
- * `set_partial()`
- * `set_full()`
-After issuing `set_partial()`, subsequent updates will be partial. Normal
-updates are restored by issuing `set_full()`. These should not be issued while
-an update is in progress.
+ After issuing `set_partial()`, subsequent updates will be partial. Normal
+updates are restored by issuing `set_full()`. These methods should not be
+issued while an update is in progress.
 
 Partial updates are fast and visually unobtrusive but they are prone to
 ghosting.
+
+##### Asynchronous methods
+
+ * `wait` No args. If an update is in progress, pause until the display refresh
+ is complete, otherwise return is immediate.
+ * `updated` No args. Pause until the framebuffer has been copied to the
+ display. It is now safe to modify the framebuf, but display update may still
+ be in progress.
 
 ###### [Contents](./DRIVERS.md#contents)
 
