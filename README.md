@@ -711,6 +711,10 @@ Keyword only args:
 When a `Pointer` is instantiated it is assigned to the `Dial` by the `Pointer`
 constructor.
 
+Bound variable:
+
+ 1. `label` The `Label` instance if one was created.
+
 ### Pointer class
 
 Constructor arg:

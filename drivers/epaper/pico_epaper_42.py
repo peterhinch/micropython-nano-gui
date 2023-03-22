@@ -106,10 +106,10 @@ class EPD(framebuf.FrameBuffer):
         self.busy_pin = Pin(BUSY_PIN, Pin.IN, Pin.PULL_UP) if busy is None else busy
         self.cs_pin = Pin(CS_PIN, Pin.OUT) if cs is None else cs
         self.dc_pin = Pin(DC_PIN, Pin.OUT) if dc is None else dc
-        self.spi = SPI(1, sck = Pin(10), mosi=Pin(11), miso=Pin(28)) if spi is None else spi
-        self.spi.init(baudrate=4_000_000)
+        self.spi = SPI(1, sck = Pin(10), mosi = Pin(11), miso = Pin(28)) if spi is None else spi
+        self.spi.init(baudrate = 4_000_000)
         self._asyn = asyn
-        self._busy = False  # Set immediately on start of task. Cleared when busy pin is logically false (physically 1).
+        self._busy = False  # Set immediately on .show(). Cleared when busy pin is logically false (physically 1).
         self._updated = asyncio.Event()
 
         self.width = _EPD_WIDTH
