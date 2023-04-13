@@ -263,6 +263,9 @@ class EPD(framebuf.FrameBuffer):
             await asyncio.sleep_ms(10)  # About 1.7s
         self._busy = False
 
+    async def do_refresh(self, split):  # For micro-gui
+        await self._as_show()
+
     def show(self):
         if self._busy:
             raise RuntimeError('Cannot refresh: display is busy.')
