@@ -94,6 +94,12 @@ EPD_partial_lut_bb1 = b"\x00\x19\x01\x00\x00\x01\x00\x00\x00\x00\x00\x00\x00\x00
 \x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\
 \x00\x00\x00\x00"
 
+@micropython.viper
+def _linv(dest:ptr8, source:ptr8, length:int):
+    for n in range(length):
+        c = source[n]
+        dest[n] = c ^ 0xFF
+
 class EPD(framebuf.FrameBuffer):
     # A monochrome approach should be used for coding this. The rgb method ensures
     # nothing breaks if users specify colors.
@@ -245,33 +251,41 @@ class EPD(framebuf.FrameBuffer):
     def ready(self):
         return not (self._busy or (self.busy_pin() == 0))  # 0 == busy
 
-    def _line(self, n, buf=bytearray(_BWIDTH)):
-        img = self.mvb
-        s = n * _BWIDTH
-        for x, b in enumerate(img[s : s + _BWIDTH]):
-            buf[x] = b ^ 0xFF
+    @micropython.native
+    def _line(self, start, buf=bytearray(_BWIDTH)):  # Sending 50 bytes 40us at 10MHz, 12ms for 300 lines
+        _linv(buf, self.mvb[start:], _BWIDTH)  # Invert image data for EPD
         self.send_bytes(buf)
 
-    async def _as_show(self):
+    # Timing @10MHz/250MHz: full refresh 2.1s, partial 740ms
+    # Blocking with split=5 740/5=150ms
+    async def _as_show(self, split):
         self.send_command(b"\x13")
-        for j in range(_EPD_HEIGHT):  # Loop would block ~300ms
-            self._line(j)
+        lps = _EPD_HEIGHT // split
+        idx = 0
+        #ttt = time.ticks_ms()
+        for _ in range(split):  # For each segment
+            for _ in range(lps):
+                self._line(idx)
+                idx += _BWIDTH
             await asyncio.sleep_ms(0)
+        #print("Time", time.ticks_diff(time.ticks_ms(), ttt))
         self._updated.set()
-        self.send_command(b"\x12")  # Async .display_on()
+        self.send_command(b"\x12")  # Nonblocking .display_on()
         while not self.busy_pin():
-            await asyncio.sleep_ms(10)  # About 1.7s
+            await asyncio.sleep_ms(0)  # About 1.7s for full refresh
         self._busy = False
+        #print("Time", time.ticks_diff(time.ticks_ms(), ttt))  # ~630ms
 
     async def do_refresh(self, split):  # For micro-gui
-        await self._as_show()
+        assert (not self._busy), "Refresh while busy"
+        await self._as_show(split)  # split=5
 
-    def show(self):
+    def show(self):  # nanogui
         if self._busy:
             raise RuntimeError('Cannot refresh: display is busy.')
         self._busy = True  # Immediate busy flag. Pin goes low much later.
         if self._asyn:
-            asyncio.create_task(self._as_show())
+            asyncio.create_task(self._as_show(5))  # split into 5 segments
             return
         self.send_command(b"\x13")
         for j in range(_EPD_HEIGHT):
