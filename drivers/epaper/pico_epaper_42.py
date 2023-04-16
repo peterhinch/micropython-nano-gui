@@ -94,11 +94,15 @@ EPD_partial_lut_bb1 = b"\x00\x19\x01\x00\x00\x01\x00\x00\x00\x00\x00\x00\x00\x00
 \x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\
 \x00\x00\x00\x00"
 
+# Invert: EPD is black on white
+# 337/141 us for 2000 bytes (125/250MHz)
 @micropython.viper
-def _linv(dest:ptr8, source:ptr8, length:int):
-    for n in range(length):
-        c = source[n]
-        dest[n] = c ^ 0xFF
+def _linv(dest:ptr32, source:ptr32, length:int):
+    n: int = length-1
+    z: uint32 = int(0xFFFFFFFF)
+    while n >= 0:
+        dest[n] = source[n] ^ z
+        n -= 1
 
 class EPD(framebuf.FrameBuffer):
     # A monochrome approach should be used for coding this. The rgb method ensures
@@ -122,6 +126,7 @@ class EPD(framebuf.FrameBuffer):
         self.height = _EPD_HEIGHT
         self.buf = bytearray(_EPD_HEIGHT * _BWIDTH)
         self.mvb = memoryview(self.buf)
+        self.ibuf = bytearray(1000)  # Buffer for inverted pixels
         mode = framebuf.MONO_HLSB
         self.palette = BoolPalette(mode)
         super().__init__(self.buf, _EPD_WIDTH, _EPD_HEIGHT, mode)
@@ -252,44 +257,55 @@ class EPD(framebuf.FrameBuffer):
         return not (self._busy or (self.busy_pin() == 0))  # 0 == busy
 
     @micropython.native
-    def _line(self, start, buf=bytearray(_BWIDTH)):  # Sending 50 bytes 40us at 10MHz, 12ms for 300 lines
-        _linv(buf, self.mvb[start:], _BWIDTH)  # Invert image data for EPD
+    def _bsend(self, start, nbytes):
+        buf = self.ibuf
+        _linv(buf, self.mvb[start:], nbytes >> 2)  # Invert image data for EPD
         self.send_bytes(buf)
 
-    # Timing @10MHz/250MHz: full refresh 2.1s, partial 740ms
-    # Blocking with split=5 740/5=150ms
-    async def _as_show(self, split):
+    # Time to convert and transmit 1000 bytes ~ 1ms: most of that is tx @ 10MHz
+    # Yield every 16 transfers means blocking is ~16ms
+    # Total convert and transmit time for 15000 bytes is ~15ms.
+    # Timing @10MHz/250MHz: full refresh 2.1s, partial 740ms: the bulk of the time
+    # is spent spinning on the busy pin and is CPU frequency independent.
+    async def _as_show(self):
         self.send_command(b"\x13")
-        lps = _EPD_HEIGHT // split
-        idx = 0
-        #ttt = time.ticks_ms()
-        for _ in range(split):  # For each segment
-            for _ in range(lps):
-                self._line(idx)
-                idx += _BWIDTH
-            await asyncio.sleep_ms(0)
-        #print("Time", time.ticks_diff(time.ticks_ms(), ttt))
+        fbidx = 0  # Index into framebuf
+        nbytes = len(self.ibuf)  # Bytes to send
+        nleft = len(self.buf)  # Size of framebuf
+        npass = 0
+        while nleft > 0:
+            self._bsend(fbidx, nbytes)  # Invert, buffer and send nbytes
+            fbidx += nbytes  # Adjust for bytes already sent
+            nleft -= nbytes
+            nbytes = min(nbytes, nleft)
+            if not ((npass := npass + 1) % 16):
+                await asyncio.sleep_ms(0)  # Control blocking time
         self._updated.set()
         self.send_command(b"\x12")  # Nonblocking .display_on()
-        while not self.busy_pin():
-            await asyncio.sleep_ms(0)  # About 1.7s for full refresh
+        while not self.busy_pin():  # Wait on display hardware
+            await asyncio.sleep_ms(0)
         self._busy = False
-        #print("Time", time.ticks_diff(time.ticks_ms(), ttt))  # ~630ms
 
     async def do_refresh(self, split):  # For micro-gui
         assert (not self._busy), "Refresh while busy"
-        await self._as_show(split)  # split=5
+        await self._as_show()  # split=5
 
     def show(self):  # nanogui
         if self._busy:
             raise RuntimeError('Cannot refresh: display is busy.')
         self._busy = True  # Immediate busy flag. Pin goes low much later.
         if self._asyn:
-            asyncio.create_task(self._as_show(5))  # split into 5 segments
+            asyncio.create_task(self._as_show())
             return
         self.send_command(b"\x13")
-        for j in range(_EPD_HEIGHT):
-            self._line(j)
+        fbidx = 0  # Index into framebuf
+        nbytes = len(self.ibuf)  # Bytes to send
+        nleft = len(self.buf)  # Size of framebuf
+        while nleft > 0:
+            self._bsend(fbidx, nbytes)  # Invert, buffer and send nbytes
+            fbidx += nbytes  # Adjust for bytes already sent
+            nleft -= nbytes
+            nbytes = min(nbytes, nleft)
         self._busy = False
         self.display_on()
         self.wait_until_ready()
