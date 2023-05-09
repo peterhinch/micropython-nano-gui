@@ -62,6 +62,7 @@ display.
   &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;3.1.1 [User defined colors](./README.md#311-user-defined-colors)  
   &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;3.1.2 [Monochrome displays](./README.md#312-monochrome-displays) A slight "gotcha" with ePaper.  
   &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;3.1.3 [Display update mechanism](./README.md#313-display-update-mechanism) How updates are managed.  
+  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;3.1.4 [ePaper displays](./README.md#314-epaper-displays) New developments in ePaper.  
   3.2 [Label class](./README.md#32-label-class) Dynamic text at any screen location.  
   3.3 [Meter class](./README.md#33-meter-class) A vertical panel meter.  
   3.4 [LED class](./README.md#34-led-class) Virtual LED of any color.  
@@ -78,6 +79,13 @@ display.
 #### [Device driver document.](./DRIVERS.md)
 
 #### [Graph plotting module.](./FPLOT.md)
+
+#### [The extras directory.](./extras/README.md)
+
+The `extras` directory contains further widgets back-ported from 
+[micro-gui](https://github.com/peterhinch/micropython-micro-gui) plus further
+demos and information. The aim is to avoid this document becoming over long and
+daunting to new users.
 
 # 1. Introduction
 
@@ -192,16 +200,13 @@ may need to be adapted for non-pyboard targets):
 > cp color_setup.py /sd
 > repl ~ import gui.demos.aclock
 ```
-This demo reports to the REPL whether the performance boost described below is
-active.
 
 ## 1.4 A performance boost
 
-A firmware change in V1.17 has enabled the code size to be reduced. It has also
-accelerated text rendering on color displays. Use of color displays now
-requires firmware V1.17 or later. Existing users should update the display
-driver and GUI core files and should ensure that the new file
-`drivers/boolpalette.py` exists.
+Use of color displays now requires firmware V1.17 or later which offered a
+performance boost. If upgrading `nano-gui` from an installation which pre-dated
+V1.17 the display driver and GUI core files should be updated and the new file
+`drivers/boolpalette.py` must exist.
 
 ###### [Contents](./README.md#contents)
 
@@ -364,7 +369,8 @@ in this repo but may be found here:
 
 This script performs a basic check that the `color_setup.py` file matches the
 hardware, that (on color units) all three primary colors can be displayed and
-that pixels up to the edges of the display can be accessed.
+that pixels up to the edges of the display can be accessed. It is highly
+recommended that this be run on any new installation.
 ```python
 from color_setup import ssd  # Create a display instance
 from gui.core.colors import RED, BLUE, GREEN
@@ -482,8 +488,13 @@ demo `color15.py` for an example.
 Most widgets work on monochrome displays if color settings are left at default
 values. If a color is specified, drivers in this repo will convert it to black
 or white depending on its level of saturation. A low level will produce the
-background color, a high level the foreground. This can produce a surprise on
-ePaper units where the foreground is white.
+background color, a high level the foreground. Consequently demos written for
+color displays will work on monochrome units.
+
+On a monochrome OLED display the background is black and the foreground is
+white. This contrasts with ePaper units where the foreground is black on a
+white background. The display drivers perform this inversion so that user
+code renders as expected on color, mono OLED or ePaper units.
 
 At the bit level `1` represents the foreground. This is white on an emitting
 display such as an OLED. On a Sharp display it indicates reflection. On an
@@ -503,6 +514,16 @@ physical hardware when `refresh(device)` is called. This allows multiple
 widgets to be refreshed at the same time. It also minimises processor overhead:
 `.value` is generally fast, while `refresh` is slow because of the time taken
 to transfer an entire buffer over SPI.
+
+### 3.1.4 ePaper displays
+
+On ePaper displays `refresh` is both slow and visually intrusive, with the
+display flashing repeatedly. This made them unsatisfactory for displaying
+rapidly changing information. There is a new breed of ePaper display supporting
+effective partial updates notably 
+[the Waveshare Pico paper 4.2](https://www.waveshare.com/pico-epaper-4.2.htm).
+This can be used in such roles and is discussed  in 
+[EPD Asynchronous support](./DRIVERS.md#6-epd-asynchronous-support).
 
 ###### [Contents](./README.md#contents)
 

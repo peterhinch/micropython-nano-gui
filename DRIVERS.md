@@ -354,7 +354,9 @@ def spi_init(spi):
 ## 3.2 Drivers for ILI9341
 
 Adafruit make several displays using this chip, for example
-[this 3.2 inch unit](https://www.adafruit.com/product/1743).
+[this 3.2 inch unit](https://www.adafruit.com/product/1743). This display is
+large by microcontroller standards. See below for discussion of which hosts can
+be expected to work.
 
 The `color_setup.py` file should initialise the SPI bus with a baudrate of
 10_000_000. Args `polarity`, `phase`, `bits`, `firstbit` are defaults. Hard or
@@ -384,10 +386,15 @@ def spi_init(spi):
 ```
 
 The ILI9341 class uses 4-bit color to conserve RAM. Even with this adaptation
-the buffer size is 37.5KiB. See [Color handling](./DRIVERS.md#11-color-handling)
-for details of the implications of 4-bit color. On a Pyboard 1.1 the `scale.py`
-demo ran with 34.5K free with no modules frozen, and with 47K free with `gui`
-and contents frozen.
+the buffer size is 37.5KiB which is too large for some platforms. On a Pyboard
+1.1 the `scale.py` demo ran with 34.5K free with no modules frozen, and with
+47K free with `gui` and contents frozen. An ESP32 with SPIRAM has been tested.
+On an ESP32 without SPIRAM, `nano-gui` runs but
+[micro-gui](https://github.com/peterhinch/micropython-micro-gui) requires
+frozen bytecode. The RP2 Pico runs both GUI's.
+
+See [Color handling](./DRIVERS.md#11-color-handling) for details of the
+implications of 4-bit color. 
 
 The driver uses the `micropython.viper` decorator. If your platform does not
 support this, the Viper code will need to be rewritten with a substantial hit
@@ -400,7 +407,8 @@ are required. However this period may be unacceptable for some `uasyncio`
 applications. The driver provides an asynchronous `do_refresh(split=4)` method.
 If this is run the display will be refreshed, but will periodically yield to
 the scheduler enabling other tasks to run. This is documented
-[here](./ASYNC.md).
+[here](./ASYNC.md). [micro-gui](https://github.com/peterhinch/micropython-micro-gui)
+uses this automatically.
 
 Another option to reduce blocking is overclocking the SPI bus.
 
@@ -653,9 +661,10 @@ In addition to ILI9486 these have been tested: ILI9341, ILI9488 and HX8357D.
 
 The ILI9486 supports displays of up to 480x320 pixels which is large by
 microcontroller standards. Even with 4-bit color the frame buffer requires
-76,800 bytes. On a Pico `nanogui` works fine, but `micro-gui` fails to
+76,800 bytes. On a Pico `nanogui` works fine, but
+[micro-gui](https://github.com/peterhinch/micropython-micro-gui) fails to
 compile unless frozen bytecode is used, in which case it runs with about 75K of
-free RAM.
+free RAM. An ESP32 with SPIRAM should work.
 
 ##### Generic display wiring
 
@@ -951,12 +960,17 @@ completely with the device retaining the image indefinitely. Present day EPD
 units perform the slow refresh autonomously - the process makes no demands on
 the CPU enabling user code to continue to run.
 
-The drivers are compatible with `uasyncio`. One approach is to use synchronous
-methods only and the standard demos (some of which use `uasyncio`) may be run.
-However copying the framebuffer to the device blocks for some time - 250ms or
-more - which may be problematic for applications which need to respond to
-external events. A specific asynchronous mode provides support for reducing
-blocking time. See [EPD Asynchronous support](./DRIVERS.md#6-epd-asynchronous-support).
+The standard refresh method blocks (monopolises the CPU) until refresh is
+complete, adding an additional 2s delay. This enables the demo scripts to run
+unchanged, with the 2s delay allowing the results to be seen before the next
+refresh begins. This is fine for simple applications. The drivers also support 
+concurrency with `uasyncio`. Such applications can perform other tasks while a
+refresh is in progress. See 
+[EPD Asynchronous support](./DRIVERS.md#6-epd-asynchronous-support).
+
+Finally the [Waveshare 400x300 Pi Pico display](./DRIVERS.md#53-waveshare-400x300-pi-pico-display)
+supports partial updates. This is a major improvement in usability. This unit
+is easily used with hosts other than Pico/Pico W and is highly recommended.
 
 ## 5.1 Adafruit monochrome eInk Displays
 
@@ -1285,30 +1299,46 @@ ghosting.
 
 # 6. EPD Asynchronous support
 
-Normally when GUI code issues
+The following applies to nano-gui. Under micro-gui the update mechanism is
+a background task. Use with micro-gui is covered
+[here](https://github.com/peterhinch/micropython-micro-gui/blob/main/README.md#10-epaper-displays).
+Further, the comments address the case where the driver is instantiated with
+`asyn=True`. In the default case an EPD can be used like any other display.
+
+When GUI code issues
 ```python
-refresh(ssd)  # 250ms or longer depending on platform
+refresh(ssd)  # Several seconds on an EPD
 ```
-display data is copied to the device and a physical refresh is initiated. The
-code blocks while copying data to the display before returning. Subsequent
-physical refresh is performed by the display hardware taking several seconds.
-While physical refresh is nonblocking, the initial blocking period is too long
-for many `uasyncio` applications.
+the GUI updates the frame buffer contents and calls the device driver's `show`
+method. This causes the contents to be copied to the display hardware and a
+redraw to be inititated. This typically takes several seconds unless partial
+updates are enabled. The method (and hence `refresh`) blocks until the physical
+refresh is complete. The device drivers block for an additional 2 seconds: this
+enables demos written for normal displays to work (the 2 second pause allowing
+the result of each refresh to be seen).
 
-If an `EPD` is instantiated with `asyn=True` the process of copying the data to
-the device is performed by a task which periodically yields to the scheduler.
-By default blocking is limited to around 30ms.
+This long blocking period is not ideal in asynchronous code, and the process is
+modified if, in `color_setup.py`, an `EPD` is instantiated with `asyn=True`. In
+this case `refresh` calls the `show` method as before, but `show` creates a
+task `._as_show` and returns immediately. The task yields to the scheduler as
+necessary to ensure that blocking is limited to around 30ms. With `asyn=True`
+synchronous applications will not work: it is necessary to take control of the
+sequencing of refresh.
 
-A `.updated()` method lets user code pause after issuing `refresh()`. The pause
-lasts until the framebuf has been entirely copied to the hardware. The
-application is then free to alter the framebuf contents.
+In this case user code should ensure that changes to the framebuffer are
+postponed until the buffer contents have been copied to the display. Further, a
+subsequent refresh should be postponed until the physical refresh is complete.
+To achieve this the `ssd` instance has the following methods:
+ * `.updated()` (async) Pauses until the buffer is copied to the device.
+ * `.wait()` (async) Pauses until physical refresh is complete.
+ * `.ready()` (synchronous) Immediate return: `True` if physical refresh is
+ complete.
 
-It is invalid to issue `.refresh()` until the physical display refresh is
-complete; if this is attempted a `RuntimeError` will occur. The most efficient
-way to ensure that this cannot occur is to await the `.wait()` method prior to
-a refresh. This method will pause until any physical update is complete.
+If `.refresh()` is issued before the physical display refresh is complete a
+`RuntimeError` will occur. 
 
-The following illustrates the kind of approach which may be used:
+The following illustrates the kind of approach which may be used with a display
+instantiated with `asyn=True`:
 ```python
     while True:
         # Before refresh, ensure that a previous refresh is complete
@@ -1319,10 +1349,21 @@ The following illustrates the kind of approach which may be used:
         await ssd.updated()
         # Trigger an event which allows other tasks to update the
         # framebuffer in background
-        evt.set()
-        evt.clear()
-        await asyncio.sleep(180)
+        evt.set()  # Waiting task must clear the Event
+        await asyncio.sleep(180)  # 
 ```
+Some displays support partial updates. This is currently restricted to the
+[Pico Epaper 4.2"](https://www.waveshare.com/pico-epaper-4.2.htm). Partial
+updates are much faster and are visually non-intrusive at a cost of "ghosting"
+where black pixels fail to be fully cleared. All ghosting is removed when a
+full refresh is issued. Where a driver supports partial updates the following
+synchronous methods are provided:
+ * `set_partial()` Enable partial updates.
+ * `set_full()` Restore normal update operation.
+These must not be issued while an update is in progress.
+
+See the demo `eclock_async.py` for an example of managing partial updates: once
+per hour a full update is performed.
 
 ###### [Contents](./DRIVERS.md#contents)
 

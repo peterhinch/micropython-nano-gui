@@ -13,7 +13,10 @@ from gui.core.colors import *  # Populate color LUT before use.
 from gui.core.writer import Writer
 import framebuf
 import gc
+import sys
 
+if sys.implementation.version < (1, 20, 0):
+    raise OSError("Firmware V1.20 or later required.")
 
 def circle(dev, x0, y0, r, color, _=1): # Draw circle
     x, y, r = int(x0), int(y0), int(r)

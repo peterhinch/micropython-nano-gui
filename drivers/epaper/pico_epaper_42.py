@@ -309,6 +309,7 @@ class EPD(framebuf.FrameBuffer):
         self._busy = False
         self.display_on()
         self.wait_until_ready()
+        time.sleep_ms(2000)  # Give time for user to see result
 
     def sleep(self):
 #         self.send_command(b"\x02")  # power off
