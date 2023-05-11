@@ -120,10 +120,17 @@ class EPD(framebuf.FrameBuffer):
         self.spi.init(baudrate = 4_000_000)
         self._asyn = asyn
         self._busy = False  # Set immediately on .show(). Cleared when busy pin is logically false (physically 1).
-        self._updated = asyncio.Event()
+        self.updated = asyncio.Event()
+        self.complete = asyncio.Event()
 
+        # Public bound variables required by nanogui.
+        # Dimensions in pixels as seen by nanogui
         self.width = _EPD_WIDTH
         self.height = _EPD_HEIGHT
+        # Other public bound variable.
+        # Special mode enables demos written for generic displays to run.
+        self.demo_mode = False
+
         self.buf = bytearray(_EPD_HEIGHT * _BWIDTH)
         self.mvb = memoryview(self.buf)
         self.ibuf = bytearray(1000)  # Buffer for inverted pixels
@@ -241,16 +248,6 @@ class EPD(framebuf.FrameBuffer):
         while not self.ready():
             time.sleep_ms(100) 
 
-    async def wait(self):
-        while not self.ready():
-            await asyncio.sleep_ms(100)
-
-    # Pause until framebuf has been copied to device.
-    async def updated(self):
-        self._updated.clear()
-        await self._updated.wait()
-        self._updated.clear()
-
     # For polling in asynchronous code. Just checks pin state.
     # 0 == busy. Comment in official code is wrong. Code is correct.
     def ready(self):
@@ -280,11 +277,12 @@ class EPD(framebuf.FrameBuffer):
             nbytes = min(nbytes, nleft)
             if not ((npass := npass + 1) % 16):
                 await asyncio.sleep_ms(0)  # Control blocking time
-        self._updated.set()
+        self.updated.set()
         self.send_command(b"\x12")  # Nonblocking .display_on()
         while not self.busy_pin():  # Wait on display hardware
             await asyncio.sleep_ms(0)
         self._busy = False
+        self.complete.set()
 
     async def do_refresh(self, split):  # For micro-gui
         assert (not self._busy), "Refresh while busy"
@@ -295,6 +293,8 @@ class EPD(framebuf.FrameBuffer):
             raise RuntimeError('Cannot refresh: display is busy.')
         self._busy = True  # Immediate busy flag. Pin goes low much later.
         if self._asyn:
+            self.updated.clear()
+            self.complete.clear()
             asyncio.create_task(self._as_show())
             return
         self.send_command(b"\x13")
@@ -308,6 +308,10 @@ class EPD(framebuf.FrameBuffer):
             nbytes = min(nbytes, nleft)
         self._busy = False
         self.display_on()
+        if not self.demo_mode:
+            # Immediate return to avoid blocking the whole application.
+            # User should wait for ready before calling refresh()
+            return
         self.wait_until_ready()
         time.sleep_ms(2000)  # Give time for user to see result
 

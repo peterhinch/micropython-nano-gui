@@ -42,7 +42,8 @@ class EPD(framebuf.FrameBuffer):
         # ._as_busy is set immediately on start of task. Cleared
         # when busy pin is logically false (physically 1).
         self._as_busy = False
-        self._updated = asyncio.Event()
+        self.updated = asyncio.Event()
+        self.complete = asyncio.Event()
         # Public bound variables required by nanogui.
         # Dimensions in pixels as seen by nanogui (landscape mode).
         self.width = 296 if landscape else 128
@@ -114,16 +115,6 @@ class EPD(framebuf.FrameBuffer):
         while not self.ready():  
             sleep_ms(100)
 
-    # Asynchronous wait on ready state. Pause (4.9s) for physical refresh.
-    async def wait(self):
-        await asyncio.sleep_ms(0)  # Ensure tasks run that might make it unready
-        while not self.ready():
-            await asyncio.sleep_ms(100)
-
-    # Pause until framebuf has been copied to device.
-    async def updated(self):
-        await self._updated.wait()
-
     # Return immediate status. Pin state: 0 == busy.
     def ready(self):
         return not(self._as_busy or (self._busy() == 0))
@@ -162,8 +153,7 @@ class EPD(framebuf.FrameBuffer):
                     t = ticks_ms()
 
         cmd(b'\x11')  # Data stop
-        self._updated.set()
-        self._updated.clear()
+        self.updated.set()
         sleep_us(20)  # Allow for data coming back: currently ignore this
         cmd(b'\x12')  # DISPLAY_REFRESH
         # busy goes low now, for ~4.9 seconds.
@@ -171,6 +161,7 @@ class EPD(framebuf.FrameBuffer):
         while self._busy() == 0:
             await asyncio.sleep_ms(200)
         self._as_busy = False
+        self.complete.set()
 
     # draw the current frame memory.
     def show(self, buf1=bytearray(1)):
@@ -178,6 +169,8 @@ class EPD(framebuf.FrameBuffer):
             if self._as_busy:
                 raise RuntimeError('Cannot refresh: display is busy.')
             self._as_busy = True  # Immediate busy flag. Pin goes low much later.
+            self.updated.clear()
+            self.complete.clear()
             asyncio.create_task(self._as_show())
             return
 

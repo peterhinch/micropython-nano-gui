@@ -32,7 +32,8 @@ class EPD(framebuf.FrameBuffer):
         self._lsc = landscape
         self._asyn = asyn
         self._as_busy = False  # Set immediately on start of task. Cleared when busy pin is logically false (physically 1).
-        self._updated = asyncio.Event()
+        self.updated = asyncio.Event()
+        self.complete = asyncio.Event()
         # Dimensions in pixels. Waveshare code is portrait mode.
         # Public bound variables required by nanogui.
         self.width = 264 if landscape else 176  
@@ -130,15 +131,6 @@ class EPD(framebuf.FrameBuffer):
         dt = ticks_diff(ticks_ms(), t)
         print('wait_until_ready {}ms {:5.1f}mins'.format(dt, dt/60_000))
 
-    async def wait(self):
-        await asyncio.sleep_ms(0)  # Ensure tasks run that might make it unready
-        while not self.ready():
-            await asyncio.sleep_ms(100)
-
-    # Pause until framebuf has been copied to device.
-    async def updated(self):
-        await self._updated.wait()
-
     # For polling in asynchronous code. Just checks pin state.
     # 0 == busy. Comment in official code is wrong. Code is correct.
     def ready(self):
@@ -196,13 +188,13 @@ class EPD(framebuf.FrameBuffer):
                     await asyncio.sleep_ms(0)
                     t = ticks_ms()
 
-        self._updated.set()  # framebuf has now been copied to the device
-        self._updated.clear()
+        self.updated.set()  # framebuf has now been copied to the device
         cmd(b'\x12')  # DISPLAY_REFRESH
         await asyncio.sleep(1)
         while self._busy() == 0:
             await asyncio.sleep_ms(200)  # Don't release lock until update is complete
         self._as_busy = False
+        self.complete.set()
 
     # draw the current frame memory. Blocking time ~180ms
     def show(self, buf1=bytearray(1)):
@@ -210,6 +202,8 @@ class EPD(framebuf.FrameBuffer):
             if self._as_busy:
                 raise RuntimeError('Cannot refresh: display is busy.')
             self._as_busy = True
+            self.updated.clear()
+            self.complete.clear()
             asyncio.create_task(self._as_show())
             return
         t = ticks_us()

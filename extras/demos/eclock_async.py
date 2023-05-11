@@ -31,12 +31,12 @@ async def test():
     wri.set_clip(True, True, False)  # Clip to screen, no wrap
     refresh(ssd, True)
     if epaper:
-        await ssd.wait()
+        await ssd.complete.wait()
     ec = EClock(wri, 10, 10, 200, fgcolor=WHITE, bgcolor=BLACK)
     ec.value(t := time.localtime())  # Initial drawing
     refresh(ssd)
     if epaper:
-        await ssd.wait()
+        await ssd.complete.wait()
     mins = t[4]
 
     while True:
@@ -51,7 +51,7 @@ async def test():
             ec.value(t)
             refresh(ssd)
             if epaper:
-                await ssd.wait()
+                await ssd.complete.wait()
         await asyncio.sleep(10)
 
 try:

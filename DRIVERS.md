@@ -55,15 +55,21 @@ access via the `Writer` and `CWriter` classes is documented
  5. [ePaper displays](./DRIVERS.md#5-epaper-displays)  
   5.1 [Adafruit monochrome eInk Displays](./DRIVERS.md#51-adafruit-monochrome-eink-displays)  
   &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;5.1.1 [EPD constructor args](./DRIVERS.md#511-epd-constructor-args)  
-  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;5.1.2 [EPD public methods](./DRIVERS.md#512-epd-public-methods)  
-  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;5.1.3 [EPD public bound variables](./DRIVERS.md#513-epd-public-bound-variables)  
-  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;5.1.4 [FeatherWing Wiring](./DRIVERS.md#514-featherwing-wiring)  
-  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;5.1.5 [Micropower use](./DRIVERS.md#515-micropower-use)  
+  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;5.1.2 [Public methods](./DRIVERS.md#512-public-methods)  
+  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;5.1.3 [Events](./DRIVERS.md#513-events)  
+  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;5.1.4 [Public bound variables](./DRIVERS.md#514-public-bound-variables)  
+  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;5.1.5 [FeatherWing Wiring](./DRIVERS.md#515-featherwing-wiring)  
+  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;5.1.6 [Micropower use](./DRIVERS.md#516-micropower-use)  
   5.2 [Waveshare eInk Display HAT](./DRIVERS.md#52-waveshare-eink-display-hat) Pi HAT repurposed for MP hosts.  
   &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;5.2.1 [EPD constructor args](./DRIVERS.md#521-epd-constructor-args)  
-  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;5.2.2 [EPD public methods](./DRIVERS.md#522-epd-public-methods)  
-  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;5.2.3 [EPD public bound variables](./DRIVERS.md#523-epd-public-bound-variables)  
+  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;5.2.2 [Public methods](./DRIVERS.md#522-public-methods)  
+  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;5.2.3 [Events](./DRIVERS.md#523-events)  
+  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;5.2.4 [public bound variables](./DRIVERS.md#524-public-bound-variables)  
   5.3 [Waveshare 400x300 Pi Pico display](./DRIVERS.md#53-waveshare-400x300-pi-pico-display) Excellent display can also be used with other hosts.  
+  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;5.3.1 [Constructor args](./DRIVERS.md#531-constructor-args)  
+  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;5.3.2 [Public methods](./DRIVERS.md#532-public-methods)  
+  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;5.3.3 [Events](./DRIVERS.md#533-events)  
+  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;5.3.4 [Public bound variables](./DRIVERS.md#534-public-bound-variables)  
  6. [EPD Asynchronous support](./DRIVERS.md#6-epd-asynchronous-support)  
  7. [Writing device drivers](./DRIVERS.md#7-writing-device-drivers)  
  8. [Links](./DRIVERS.md#8-links)  
@@ -1036,9 +1042,10 @@ see below.
  * `asyn=False` Setting this `True` invokes an asynchronous mode. See
  [EPD Asynchronous support](./DRIVERS.md#6-epd-asynchronous-support).
 
-### 5.1.2 EPD public methods
+### 5.1.2 Public methods
 
-##### Synchronous methods
+All methods are synchronous.
+
  * `init` No args. Issues a hardware reset and initialises the hardware. This
  is called by the constructor. It needs to explicitly be called to exit from a
  deep sleep.
@@ -1049,12 +1056,18 @@ see below.
  a period: `ready` status should be checked before issuing `refresh`.
  * `wait_until_ready` No args. Pause until the device is ready.
 
-##### Asynchronous methods
- * `updated` Asynchronous. No args. Pause until the framebuffer has been copied
- to the display.
- * `wait` Asynchronous. No args. Pause until the display refresh is complete.
+### 5.1.3 Events
 
-### 5.1.3 EPD public bound variables
+These provide synchronisation in asynchronous applications where `asyn=True`.
+They are only needed in more advanced asynchronous applications and their use
+is discussed in [EPD Asynchronous support](./DRIVERS.md#6-epd-asynchronous-support).
+ * `updated` Set when framebuf has been copied to device. It is now safe to
+ modify widgets without risk of display corruption.
+ * `complete` Set when display update is complete. It is now safe to call
+ `ssd.refresh()`.
+ EPD.
+
+### 5.1.4 Public bound variables
 
  * `height` Integer. Height in pixels. Treat as read-only.
  * `width` Integer. Width in pixels. Treat as read-only.
@@ -1063,7 +1076,11 @@ see below.
  seconds to enable viewing. This enables generic nanogui demos to be run on an
  EPD.
 
-### 5.1.4 FeatherWing wiring
+Note that in synchronous applications with `demo_mode=False`, `refresh` returns
+while the display is updating. Applications should issue `wait_until_ready`
+before issuing another refresh.
+
+### 5.1.5 FeatherWing wiring
 
 The [pinout is listed here](https://learn.adafruit.com/adafruit-eink-display-breakouts/pinouts-2).
 The `busy` line is brought out to a labelled pad on the PCB. It can be linked
@@ -1096,7 +1113,7 @@ The FeatherWing has a reset button which shorts the RST line to Gnd. To avoid
 risk of damage to the microcontroller pin if the button is pressed, the pin
 should be configured as open drain.
 
-### 5.1.5 Micropower use
+### 5.1.6 Micropower use
 
 Developers of micropower applications will need to familiarise themselves with
 the power saving features of their board. Information may be found in
@@ -1210,12 +1227,14 @@ Pins 26-40 unused and omitted.
  * `rst` An initialised output pin. Initial value should be 1.
  * `busy` An initialised input pin.
  * `landscape=False` By default the long axis is vertical.
- * `asyn=False`
+ * `asyn=False` Setting this `True` invokes an asynchronous mode. See
+ [EPD Asynchronous support](./DRIVERS.md#6-epd-asynchronous-support).
 
 ### 5.2.2 EPD public methods
 
-##### Synchronous methods
- * `init` No args. Issues a hardware reset and initialises the hardware. This
+All methods are synchronous.
+
+* `init` No args. Issues a hardware reset and initialises the hardware. This
  is called by the constructor. It needs to explicitly be called to exit from a
  deep sleep.
  * `sleep` No args. Puts the display into deep sleep. If called while a refresh
@@ -1225,12 +1244,17 @@ Pins 26-40 unused and omitted.
  a period: `ready` status should be checked before issuing `refresh`.
  * `wait_until_ready` No args. Pause until the device is ready.
 
-##### Asynchronous methods
- * `updated` Asynchronous. No args. Pause until the framebuffer has been copied
- to the display.
- * `wait` Asynchronous. No args. Pause until the display refresh is complete.
+### 5.2.3 Events
 
-### 5.2.3 EPD public bound variables
+These provide synchronisation in asynchronous applications where `asyn=True`.
+They are only needed in more advanced asynchronous applications and their use
+is discussed in [EPD Asynchronous support](./DRIVERS.md#6-epd-asynchronous-support).
+ * `updated` Set when framebuf has been copied to device. It is now safe to
+ modify widgets without risk of display corruption.
+ * `complete` Set when display update is complete. It is now safe to call
+ `ssd.refresh()`.
+
+### 5.2.4 Public bound variables
 
  * `height` Integer. Height in pixels. Treat as read-only.
  * `width` Integer. Width in pixels. Treat as read-only.
@@ -1238,6 +1262,10 @@ Pins 26-40 unused and omitted.
  will block until display update is complete, and then for a further two
  seconds to enable viewing. This enables generic nanogui demos to be run on an
  EPD.
+
+Note that in synchronous applications with `demo_mode=False`, `refresh` returns
+while the display is updating. Applications should issue `wait_until_ready`
+before issuing another refresh.
 
 ## 5.3 Waveshare 400x300 Pi Pico display
 
@@ -1255,6 +1283,8 @@ gc.collect()  # Precaution before instantiating framebuf.
 ssd = SSD()  # Create a display instance. For normal applications.
 # ssd = SSD(asyn=True)  # Alternative for asynchronous applications.
 ```
+### 5.3.1 Constructor args
+
 For other hosts the pins need to be specified in `color_setup.py` via the
 following constructor args:
 
@@ -1266,7 +1296,9 @@ following constructor args:
  * `asyn=False` Set `True` for asynchronous applications. Leave `False` for
  microgui where the arg has no effect.
 
-##### Synchronous methods
+### 5.3.2 Public methods
+
+All methods are synchronous.
 
 * `init` No args. Issues a hardware reset and initialises the hardware. This
  is called by the constructor. It needs to explicitly be called to exit from a
@@ -1280,22 +1312,37 @@ following constructor args:
  * `set_partial()` Enable partial updates.
  * `set_full()` Restore normal update operation.
 
- After issuing `set_partial()`, subsequent updates will be partial. Normal
+After issuing `set_partial()`, subsequent updates will be partial. Normal
 updates are restored by issuing `set_full()`. These methods should not be
 issued while an update is in progress.
 
 Partial updates are fast and visually unobtrusive but they are prone to
 ghosting.
 
-##### Asynchronous methods
+### 5.3.3 Events
 
- * `wait` No args. If an update is in progress, pause until the display refresh
- is complete, otherwise return is immediate.
- * `updated` No args. Pause until the framebuffer has been copied to the
- display. It is now safe to modify the framebuf, but display update may still
- be in progress.
+These provide synchronisation in asynchronous applications where `asyn=True`.
+They are only needed in more advanced asynchronous applications and their use
+is discussed in [EPD Asynchronous support](./DRIVERS.md#6-epd-asynchronous-support).
+ * `updated` Set when framebuf has been copied to device. It is now safe to
+ modify widgets without risk of display corruption.
+ * `complete` Set when display update is complete. It is now safe to call
+ `ssd.refresh()`.
 
-###### [Contents](./DRIVERS.md#contents)
+### 5.3.4 Public bound variables
+
+ * `height` Integer. Height in pixels. Treat as read-only.
+ * `width` Integer. Width in pixels. Treat as read-only.
+ * `demo_mode=False` Boolean. If set `True` after instantiating, `refresh()`
+ will block until display update is complete, and then for a further two
+ seconds to enable viewing. This enables generic nanogui demos to be run on an
+ EPD.
+
+Note that in synchronous applications with `demo_mode=False`, `refresh` returns
+while the display is updating. Applications should issue `wait_until_ready`
+before issuing another refresh.
+
+ ###### [Contents](./DRIVERS.md#contents)
 
 # 6. EPD Asynchronous support
 
@@ -1303,9 +1350,9 @@ The following applies to nano-gui. Under micro-gui the update mechanism is
 a background task. Use with micro-gui is covered
 [here](https://github.com/peterhinch/micropython-micro-gui/blob/main/README.md#10-epaper-displays).
 Further, the comments address the case where the driver is instantiated with
-`asyn=True`. In the default case an EPD can be used like any other display.
+`asyn=True`.
 
-When GUI code issues
+When synchronous code issues
 ```python
 refresh(ssd)  # Several seconds on an EPD
 ```
@@ -1313,45 +1360,48 @@ the GUI updates the frame buffer contents and calls the device driver's `show`
 method. This causes the contents to be copied to the display hardware and a
 redraw to be inititated. This typically takes several seconds unless partial
 updates are enabled. The method (and hence `refresh`) blocks until the physical
-refresh is complete. The device drivers block for an additional 2 seconds: this
-enables demos written for normal displays to work (the 2 second pause allowing
-the result of each refresh to be seen).
+refresh is complete. If `demo_mode` is set, device drivers block for an
+additional 2 seconds to enable demos written for normal displays to work (the
+2 second pause allows the result of each refresh to be seen).
 
 This long blocking period is not ideal in asynchronous code, and the process is
 modified if, in `color_setup.py`, an `EPD` is instantiated with `asyn=True`. In
 this case `refresh` calls the `show` method as before, but `show` creates a
 task `._as_show` and returns immediately. The task yields to the scheduler as
-necessary to ensure that blocking is limited to around 30ms. With `asyn=True`
-synchronous applications will not work: it is necessary to take control of the
-sequencing of refresh.
+necessary to ensure that blocking is limited to around 30ms. If screen updates
+take place at a low rate the only precaution necessary is to ensure that
+sufficient time elapses between calls to `ssd.refresh()` for the update to
+complete. For example the following code fragment illustrates an application
+which performs a full EPD refresh once per minute:
 
-In this case user code should ensure that changes to the framebuffer are
-postponed until the buffer contents have been copied to the display. Further, a
-subsequent refresh should be postponed until the physical refresh is complete.
-To achieve this the `ssd` instance has the following methods:
- * `.updated()` (async) Pauses until the buffer is copied to the device.
- * `.wait()` (async) Pauses until physical refresh is complete.
- * `.ready()` (synchronous) Immediate return: `True` if physical refresh is
- complete.
-
-If `.refresh()` is issued before the physical display refresh is complete a
-`RuntimeError` will occur. 
-
-The following illustrates the kind of approach which may be used with a display
-instantiated with `asyn=True`:
 ```python
+async def run():
     while True:
-        # Before refresh, ensure that a previous refresh is complete
-        # Not strictly necessary if .updated() used after refresh.
-        await ssd.wait()
-        refresh(ssd)  # Immediate return. Creates a task to copy content to EPD.
-        # Wait until the framebuf content has been passed to EPD.
-        await ssd.updated()
-        # Trigger an event which allows other tasks to update the
-        # framebuffer in background
-        evt.set()  # Waiting task must clear the Event
-        await asyncio.sleep(180)  # 
+        # get data
+        # Update screen widgets
+        ssd.refresh()  # Launches background refresh
+        await asyncio.sleep(60)
 ```
+With `asyn=True` other running tasks experience latency measured in tens of ms.
+
+Finer control is available using the two public bound `Event` instances. This
+fragment assumes an application with a single task performing refreshes. The
+application has two `Event` instances, one requesting refresh and the other
+requesting widget updates:
+```python
+async def refresh_task():
+    while True:
+        await refresh_request.wait()  # Another task has requested refresh
+        refresh_request.clear()
+        ssd.refresh()  # Launch background refresh
+        await ssd.updated.wait()  # Wait until framebuf copied to device
+        data_request.set()  # Ask other tasks to update widgets
+        await ssd.complete.wait()
+        # Now safe to respond to refresh_request and issue ssd.refresh()
+```
+The `updated` and `complete` events are cleared when `ssd.refresh` is called
+and are set as the background refresh proceeds.
+
 Some displays support partial updates. This is currently restricted to the
 [Pico Epaper 4.2"](https://www.waveshare.com/pico-epaper-4.2.htm). Partial
 updates are much faster and are visually non-intrusive at a cost of "ghosting"
@@ -1363,7 +1413,7 @@ synchronous methods are provided:
 These must not be issued while an update is in progress.
 
 See the demo `eclock_async.py` for an example of managing partial updates: once
-per hour a full update is performed.
+per hour (on the half-hour) a full update is performed.
 
 ###### [Contents](./DRIVERS.md#contents)
 
