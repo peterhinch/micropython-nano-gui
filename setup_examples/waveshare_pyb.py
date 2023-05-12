@@ -32,5 +32,5 @@ prst = machine.Pin('Y3', machine.Pin.OUT_PP, value=1)
 pbusy = machine.Pin('Y4', machine.Pin.IN)
 spi = machine.SPI(2, baudrate=4_000_000)  # From https://github.com/mcauser/micropython-waveshare-epaper/blob/master/examples/2in9-hello-world/test.py
 gc.collect()  # Precaution before instantiating framebuf
-ssd = SSD(spi, pcs, pdc, prst, pbusy, landscape=False, asyn=True)  # Create a display instance
+ssd = SSD(spi, pcs, pdc, prst, pbusy, landscape=False)  # Create a display instance
 #ssd.demo_mode = True

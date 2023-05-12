@@ -38,4 +38,4 @@ pbusy = machine.Pin('Y4', machine.Pin.IN)
 # Datasheet P35 indicates up to 10MHz.
 spi = machine.SPI(2, baudrate=5_000_000)
 gc.collect()  # Precaution before instantiating framebuf
-ssd = SSD(spi, pcs, pdc, prst, pbusy, asyn=True)  # Create a display instance
+ssd = SSD(spi, pcs, pdc, prst, pbusy)  # Create a display instance

@@ -13,6 +13,6 @@ import gc
 from drivers.epaper.pico_epaper_42 import EPD as SSD
 
 gc.collect()  # Precaution before instantiating framebuf
-# Set asyn True to run asynchronous code such as epd_async.py
-# Set False for normal synchronous code e.g. other demos.
-ssd = SSD(asyn=True)  # Create a display instance
+ssd = SSD()  # Create a display instance
+# Set this to run demos written for arbitrary displays:
+# ssd.demo_mode = True

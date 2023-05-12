@@ -45,6 +45,13 @@ import time
 import uasyncio as asyncio
 from drivers.boolpalette import BoolPalette
 
+def asyncio_running():
+    try:
+        _ = asyncio.current_task()
+    except:
+        return False
+    return True
+
 # Display resolution
 _EPD_WIDTH = const(400)
 _BWIDTH = _EPD_WIDTH // 8
@@ -111,6 +118,7 @@ class EPD(framebuf.FrameBuffer):
     def rgb(r, g, b):
         return int((r > 127) or (g > 127) or (b > 127))
 
+    # Discard asyn: autodetect
     def __init__(self, spi=None, cs=None, dc=None, rst=None, busy=None, asyn=False):
         self.reset_pin = Pin(RST_PIN, Pin.OUT) if rst is None else rst
         self.busy_pin = Pin(BUSY_PIN, Pin.IN, Pin.PULL_UP) if busy is None else busy
@@ -118,7 +126,6 @@ class EPD(framebuf.FrameBuffer):
         self.dc_pin = Pin(DC_PIN, Pin.OUT) if dc is None else dc
         self.spi = SPI(1, sck = Pin(10), mosi = Pin(11), miso = Pin(28)) if spi is None else spi
         self.spi.init(baudrate = 4_000_000)
-        self._asyn = asyn
         self._busy = False  # Set immediately on .show(). Cleared when busy pin is logically false (physically 1).
         self.updated = asyncio.Event()
         self.complete = asyncio.Event()
@@ -284,7 +291,9 @@ class EPD(framebuf.FrameBuffer):
         self._busy = False
         self.complete.set()
 
-    async def do_refresh(self, split):  # For micro-gui
+    # Specific method for micro-gui. Unsuitable EPD's lack this method. Micro-gui
+    # does not test for asyncio as this is guaranteed to be up.
+    async def do_refresh(self, split):
         assert (not self._busy), "Refresh while busy"
         await self._as_show()  # split=5
 
@@ -292,7 +301,7 @@ class EPD(framebuf.FrameBuffer):
         if self._busy:
             raise RuntimeError('Cannot refresh: display is busy.')
         self._busy = True  # Immediate busy flag. Pin goes low much later.
-        if self._asyn:
+        if asyncio_running():
             self.updated.clear()
             self.complete.clear()
             asyncio.create_task(self._as_show())

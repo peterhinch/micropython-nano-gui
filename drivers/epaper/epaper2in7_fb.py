@@ -3,7 +3,7 @@
 # EPD is subclassed from framebuf.FrameBuffer for use with Writer class and nanogui.
 # Optimisations to reduce allocations and RAM use.
 
-# Copyright (c) Peter Hinch 2020
+# Copyright (c) Peter Hinch 2020-2023
 # Released under the MIT license see LICENSE
 
 # Based on the following sources:
@@ -16,6 +16,13 @@ import framebuf
 import uasyncio as asyncio
 from time import sleep_ms, ticks_ms, ticks_us, ticks_diff
 
+def asyncio_running():
+    try:
+        _ = asyncio.current_task()
+    except:
+        return False
+    return True
+
 class EPD(framebuf.FrameBuffer):
     # A monochrome approach should be used for coding this. The rgb method ensures
     # nothing breaks if users specify colors.
@@ -23,6 +30,7 @@ class EPD(framebuf.FrameBuffer):
     def rgb(r, g, b):
         return int((r > 127) or (g > 127) or (b > 127))
 
+    # Discard asyn: autodetect
     def __init__(self, spi, cs, dc, rst, busy, landscape=False, asyn=False):
         self._spi = spi
         self._cs = cs  # Pins
@@ -30,7 +38,6 @@ class EPD(framebuf.FrameBuffer):
         self._rst = rst
         self._busy = busy
         self._lsc = landscape
-        self._asyn = asyn
         self._as_busy = False  # Set immediately on start of task. Cleared when busy pin is logically false (physically 1).
         self.updated = asyncio.Event()
         self.complete = asyncio.Event()
@@ -198,7 +205,7 @@ class EPD(framebuf.FrameBuffer):
 
     # draw the current frame memory. Blocking time ~180ms
     def show(self, buf1=bytearray(1)):
-        if self._asyn:
+        if asyncio_running():
             if self._as_busy:
                 raise RuntimeError('Cannot refresh: display is busy.')
             self._as_busy = True
