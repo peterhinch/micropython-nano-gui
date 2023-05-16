@@ -22,7 +22,7 @@ import uasyncio as asyncio
 from micropython import const
 from time import sleep_ms, sleep_us, ticks_ms, ticks_us, ticks_diff
 
-_def asyncio_running():
+def asyncio_running():
     try:
         _ = asyncio.current_task()
     except:

@@ -57,5 +57,6 @@ async def test():
 try:
     asyncio.run(test())
 finally:
+    _ = asyncio.new_event_loop()
     if epaper:
         ssd.sleep()
