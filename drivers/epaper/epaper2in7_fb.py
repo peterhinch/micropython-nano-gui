@@ -15,6 +15,7 @@
 import framebuf
 import uasyncio as asyncio
 from time import sleep_ms, ticks_ms, ticks_us, ticks_diff
+from drivers.boolpalette import BoolPalette
 
 def asyncio_running():
     try:
@@ -49,6 +50,7 @@ class EPD(framebuf.FrameBuffer):
         self._buffer = bytearray(self.height * self.width // 8)
         self._mvb = memoryview(self._buffer)
         mode = framebuf.MONO_VLSB if landscape else framebuf.MONO_HLSB
+        self.palette = BoolPalette(mode)
         super().__init__(self._buffer, self.width, self.height, mode)
         self.init()
 
