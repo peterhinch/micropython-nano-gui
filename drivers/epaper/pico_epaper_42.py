@@ -124,12 +124,12 @@ class EPD(framebuf.FrameBuffer):
 
     # Discard asyn: autodetect
     def __init__(self, spi=None, cs=None, dc=None, rst=None, busy=None, asyn=False):
-        self.reset_pin = Pin(_RST_PIN, Pin.OUT) if rst is None else rst
-        self.busy_pin = Pin(_BUSY_PIN, Pin.IN, Pin.PULL_UP) if busy is None else busy
+        self._rst = Pin(_RST_PIN, Pin.OUT) if rst is None else rst
+        self._busy_pin = Pin(_BUSY_PIN, Pin.IN, Pin.PULL_UP) if busy is None else busy
         self._cs = Pin(_CS_PIN, Pin.OUT) if cs is None else cs
         self._dc = Pin(_DC_PIN, Pin.OUT) if dc is None else dc
         self._spi = SPI(1, sck=Pin(10), mosi=Pin(11), miso=Pin(28)) if spi is None else spi
-        self._spi.init(baudrate=4_000_000)  # Datasheet limit 10MHz
+        self._spi.init(baudrate=10_000_000)  # Datasheet limit 10MHz
         # Busy flag: set immediately on .show(). Cleared when busy pin is logically false.
         self._busy = False
         # Async API
@@ -144,19 +144,19 @@ class EPD(framebuf.FrameBuffer):
         # Special mode enables demos written for generic displays to run.
         self.demo_mode = False
 
-        self.buf = bytearray(_EPD_HEIGHT * _BWIDTH)
-        self.mvb = memoryview(self.buf)
-        self.ibuf = bytearray(1000)  # Buffer for inverted pixels
+        self._buf = bytearray(_EPD_HEIGHT * _BWIDTH)
+        self._mvb = memoryview(self._buf)
+        self._ibuf = bytearray(1000)  # Buffer for inverted pixels
         mode = framebuf.MONO_HLSB
         self.palette = BoolPalette(mode)  # Enable CWriter.
-        super().__init__(self.buf, _EPD_WIDTH, _EPD_HEIGHT, mode)
+        super().__init__(self._buf, _EPD_WIDTH, _EPD_HEIGHT, mode)
         self.init()
         time.sleep_ms(500)
 
     # Hardware reset
     def reset(self):
         for v in (1, 0, 1):
-            self.reset_pin(v)
+            self._rst(v)
             time.sleep_ms(20)
 
     def _command(self, command, data=None):
@@ -215,12 +215,12 @@ class EPD(framebuf.FrameBuffer):
     # For polling in asynchronous code. Just checks pin state.
     # 0 == busy. Comment in official code is wrong. Code is correct.
     def ready(self):
-        return not (self._busy or (self.busy_pin() == 0))  # 0 == busy
+        return not (self._busy or (self._busy_pin() == 0))  # 0 == busy
 
     @micropython.native
     def _bsend(self, start, nbytes):  # Invert b<->w, buffer and send nbytes source bytes
-        buf = self.ibuf  # Invert and buffer is done 32 bits at a time, hence >> 2
-        _linv(buf, self.mvb[start:], nbytes >> 2)
+        buf = self._ibuf  # Invert and buffer is done 32 bits at a time, hence >> 2
+        _linv(buf, self._mvb[start:], nbytes >> 2)
         self._dc(1)
         self._cs(0)
         self._spi.write(buf)
@@ -234,8 +234,8 @@ class EPD(framebuf.FrameBuffer):
     async def _as_show(self):
         self._command(b"\x13")
         fbidx = 0  # Index into framebuf
-        nbytes = len(self.ibuf)  # Bytes to send
-        nleft = len(self.buf)  # Size of framebuf
+        nbytes = len(self._ibuf)  # Bytes to send
+        nleft = len(self._buf)  # Size of framebuf
         npass = 0
         while nleft > 0:
             self._bsend(fbidx, nbytes)  # Invert, buffer and send nbytes
@@ -246,7 +246,7 @@ class EPD(framebuf.FrameBuffer):
                 await asyncio.sleep_ms(0)  # Control blocking time
         self.updated.set()
         self._command(b"\x12")  # Nonblocking .display_on()
-        while not self.busy_pin():  # Wait on display hardware
+        while not self._busy_pin():  # Wait on display hardware
             await asyncio.sleep_ms(0)
         self._busy = False
         self.complete.set()
@@ -268,8 +268,8 @@ class EPD(framebuf.FrameBuffer):
             return
         self._command(b"\x13")
         fbidx = 0  # Index into framebuf
-        nbytes = len(self.ibuf)  # Bytes to send
-        nleft = len(self.buf)  # Size of framebuf
+        nbytes = len(self._ibuf)  # Bytes to send
+        nleft = len(self._buf)  # Size of framebuf
         while nleft > 0:
             self._bsend(fbidx, nbytes)  # Invert, buffer and send nbytes
             fbidx += nbytes  # Adjust for bytes already sent
