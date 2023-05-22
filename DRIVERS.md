@@ -70,6 +70,7 @@ access via the `Writer` and `CWriter` classes is documented
   &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;5.3.2 [Public methods](./DRIVERS.md#532-public-methods)  
   &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;5.3.3 [Events](./DRIVERS.md#533-events)  
   &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;5.3.4 [Public bound variables](./DRIVERS.md#534-public-bound-variables)  
+  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;5.3.5 [The Greyscale Driver](./DRIVERS.md#535-the-greyscale-driver)  
  6. [EPD Asynchronous support](./DRIVERS.md#6-epd-asynchronous-support)  
  7. [Writing device drivers](./DRIVERS.md#7-writing-device-drivers)  
  8. [Links](./DRIVERS.md#8-links)  
@@ -1269,7 +1270,11 @@ before issuing another refresh.
 
 ## 5.3 Waveshare 400x300 Pi Pico display
 
-The driver for this display now supports partial updates.
+There are two drivers for this display:
+ 1. `pico_epaper_42.py` 1-bit black/white driver supports partial updates.
+ 2. `pico_epaper_42_gs.py` 2-bit greyscale driver. No partial updates.
+
+The drivers have identical args and methods.
 
 This 4.2" display supports a Pi Pico or Pico W plugged into the rear of the
 unit. Alternatively it can be connected to any other host using the supplied
@@ -1308,12 +1313,12 @@ All methods are synchronous.
  * `ready` No args. After issuing a `refresh` the device will become busy for
  a period: `ready` status should be checked before issuing `refresh`.
  * `wait_until_ready` No args. Pause until the device is ready.
- * `set_partial()` Enable partial updates.
- * `set_full()` Restore normal update operation.
+ * `set_partial()` Enable partial updates (does nothing on greyscale driver).
+ * `set_full()` Restore normal update operation (null on greyscale driver).
 
-After issuing `set_partial()`, subsequent updates will be partial. Normal
-updates are restored by issuing `set_full()`. These methods should not be
-issued while an update is in progress.
+On the 1-bit driver, after issuing `set_partial()`, subsequent updates will be
+partial. Normal updates are restored by issuing `set_full()`. These methods
+should not be issued while an update is in progress.
 
 Partial updates are fast and visually unobtrusive but they are prone to
 ghosting.
@@ -1340,6 +1345,30 @@ needed in more advanced asynchronous applications and their use is discussed in
 Note that in synchronous applications with `demo_mode=False`, `refresh` returns
 while the display is updating. Applications should issue `wait_until_ready`
 before issuing another refresh.
+
+### 5.3.5 The greyscale driver
+
+This is unsuitable for `micro-gui` because of its lack of partial updates.
+
+The greyscale driver will render code written for color screens, but the
+mapping of colors onto the limited number of grey values is unlikely to be
+ideal. It's best to choose colors specifically for this display. The following
+illustrates its use:
+```python
+from color_setup import ssd  # Create a display instance
+from gui.core.nanogui import refresh
+refresh(ssd, True)  # Initialise and clear display.
+ssd.wait_until_ready()
+ssd.fill(0)
+ssd.line(0, 0, ssd.width - 1, ssd.height - 1, 3)  # Black diagonal corner-to-corner
+ssd.rect(0, 0, 15, 15, 2)  # Dark grey square at top left
+ssd.rect(ssd.width -15, ssd.height -15, 15, 15, 1)  # Light grey square at bottom right
+ssd.fill_rect(0, 50, 15, 15, 1)  # Light grey
+ssd.fill_rect(0, 70, 15, 15, 2)  # Dark grey
+ssd.fill_rect(0, 90, 15, 15, 3)  # Black
+refresh(ssd)
+```
+Color values of 0 (white) to 3 (black) can explicitly be specified.
 
  ###### [Contents](./DRIVERS.md#contents)
 
