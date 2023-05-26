@@ -30,7 +30,7 @@ class Calendar:
         self.grid = Grid(wri, row, col, colwidth, rows, cols, **kwargs)
         self.grid.show()  # Draw grid lines
         for n, day in enumerate(DateCal.days):  # Populate day names
-            self.grid[[0, n]] = day[:3]
+            self.grid[0, n] = day[:3]
         self.show()
 
     def show(self):

@@ -7,6 +7,7 @@
 # UC8176 manual https://www.waveshare.com/w/upload/8/88/UC8176.pdf
 # Waveshare's copy of this driver.
 # https://github.com/waveshare/Pico_ePaper_Code/blob/main/pythonNanoGui/drivers/ePaper4in2.py
+# https://github.com/waveshare/Pico_ePaper_Code/blob/main/python/Pico-ePaper-4.2.py
 
 # *****************************************************************************
 # * | File        :	  Pico_ePaper-3.7.py

@@ -34,7 +34,7 @@ class Grid(DObject):
             c = col
 
     def _idx(self, n):
-        if isinstance(n, tuple) or isinstance(n, list):
+        if isinstance(n, tuple) or isinstance(n, list):  # list allows old syntax l[[r, c]]
             if n[0] >= self.nrows:
                 raise ValueError("Grid row index too large")
             if n[1] >= self.ncols:
@@ -46,13 +46,14 @@ class Grid(DObject):
             raise ValueError("Grid cell index too large")
         return idx
 
-    def __getitem__(self, n):  # Return the Label instance
-        return self.cells[self._idx(n)]
+    def __getitem__(self, *args):  # Return the Label instance
+        return self.cells[self._idx(args[0])]
 
-    # allow grid[[r, c]] = "foo" or kwargs for Label:
-    # grid[[r, c]] = {"text": str(n), "fgcolor" : RED}
-    def __setitem__(self, n, x):
-        v = self.cells[self._idx(n)].value
+    # allow grid[r, c] = "foo" or kwargs for Label:
+    # grid[r, c] = {"text": str(n), "fgcolor" : RED}
+    def __setitem__(self, *args):
+        v = self.cells[self._idx(args[0])].value
+        x = args[1]
         _ = v(**x) if isinstance(x, dict) else v(x)
 
     def show(self):

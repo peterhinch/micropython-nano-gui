@@ -40,8 +40,7 @@ specified in pixels with the column width being the specified width +4 to
 allow for borders. The dimensions of the widget including borders are thus:  
 height = no. of rows * (font height + 4)  
 width = sum(column width + 4)  
-Cells may be addressed as a 1-dimensional list or by a `[row, col]` 2-list or
-2-tuple.
+Cells may be addressed as a 1 or 2-dimensional array.
 
 Constructor args:  
  1. `writer` The `Writer` instance (font and screen) to use.
@@ -94,22 +93,22 @@ grid.show()  # Draw grid lines
 # Populate grid
 col = 0
 for y, txt in enumerate("ABCDE"):
-    grid[[y + 1, col]] = txt
+    grid[y + 1, col] = txt
 row = 0
 for col in range(1, cols):
-    grid[[row, col]] = str(col)
+    grid[row, col] = str(col)
 grid[20] = ""  # Clear cell 20 by setting its value to ""
-grid[[2, 5]] = str(42)  # Note syntax
+grid[2, 5] = str(42)  # 2d array syntax
 # Dynamic formatting
 def txt(text):
     return {"text": text}
 redfg = {"fgcolor": RED}
-grid[[3, 7]] = redfg | txt(str(99))  # Specify color as well as text
+grid[3, 7] = redfg | txt(str(99))  # Specify color as well as text
 invla = {"invert": True, "align": ALIGN_LEFT}
-grid[[2, 1]] = invla | txt("x")  # Invert using invert flag
+grid[2, 1] = invla | txt("x")  # Invert using invert flag
 bkongn = {"fgcolor": BLACK, "bgcolor": GREEN, "align": ALIGN_LEFT}  # Invert by swapping bg and fg
-grid[[3, 1]] = bkongn | txt("a")
-grid[[4,2]] = {"fgcolor": BLUE} | txt("go")
+grid[3, 1] = bkongn | txt("a")
+grid[4,2] = {"fgcolor": BLUE} | txt("go")
 refresh(ssd)
 ```
 ## Calendar
