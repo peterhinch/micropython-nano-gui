@@ -7,7 +7,6 @@ from extras.widgets.grid import Grid
 from gui.widgets.label import Label, ALIGN_CENTER
 from extras.date import DateCal
 
-
 class Calendar:
     def __init__(
         self, wri, row, col, colwidth, fgcolor, bgcolor, today_c, cur_c, sun_c, today_inv=False, cur_inv=False
@@ -29,8 +28,7 @@ class Calendar:
         row += self.lbl.height + 3  # Two border widths
         self.grid = Grid(wri, row, col, colwidth, rows, cols, **kwargs)
         self.grid.show()  # Draw grid lines
-        for n, day in enumerate(DateCal.days):  # Populate day names
-            self.grid[0, n] = day[:3]
+        self.grid[0, 0:7] = iter([d[:3] for d in DateCal.days])  # 3-char day names
         self.show()
 
     def show(self):

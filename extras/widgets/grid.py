@@ -6,6 +6,7 @@
 from gui.core.nanogui import DObject, Writer
 from gui.core.colors import *
 from gui.widgets.label import Label
+from extras.parse2d import do_args
 
 # lwidth may be integer Label width in pixels or a tuple/list of widths
 class Grid(DObject):
@@ -33,28 +34,27 @@ class Grid(DObject):
             r += self.cheight
             c = col
 
-    def _idx(self, n):
-        if isinstance(n, tuple) or isinstance(n, list):  # list allows old syntax l[[r, c]]
-            if n[0] >= self.nrows:
-                raise ValueError("Grid row index too large")
-            if n[1] >= self.ncols:
-                raise ValueError("Grid col index too large")
-            idx = n[1] + n[0] * self.ncols
-        else:
-            idx = n
-        if idx >= self.ncells:
-            raise ValueError("Grid cell index too large")
-        return idx
-
     def __getitem__(self, *args):  # Return the Label instance
-        return self.cells[self._idx(args[0])]
+        indices = do_args(args, self.nrows, self.ncols)
+        res = []
+        for i in indices:
+            res.append(self.cells[i])
+        return res
 
     # allow grid[r, c] = "foo" or kwargs for Label:
     # grid[r, c] = {"text": str(n), "fgcolor" : RED}
     def __setitem__(self, *args):
-        v = self.cells[self._idx(args[0])].value
-        x = args[1]
-        _ = v(**x) if isinstance(x, dict) else v(x)
+        x = args[1]  # Value
+        indices = do_args(args[: -1], self.nrows, self.ncols)
+        for i in indices:
+            try:
+                z = next(x)  # May be a generator
+            except StopIteration:
+                pass  # Repeat last value
+            except TypeError:
+                z = x
+            v = self.cells[i].value  # method of Label
+            _ = v(**z) if isinstance(x, dict) else v(z)
 
     def show(self):
         super().show()  # Draw border

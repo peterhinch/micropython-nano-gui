@@ -67,10 +67,35 @@ Constructor args:
 
 Methods:  
  * `show` Draw the grid lines to the framebuffer.
- * `__getitem__` This enables an individual `Label`'s `value` method to be
- retrieved using index notation. The args detailed above enable inividual cells
- to be updated.
+ * `__getitem__` Return a list containing one or more `Label` instances.
+ * `__setitem__` Assign a value to one or more labels. If multiple labels are
+ specified and a single text value is passed, all labels will receive that
+ value. If an iterator is passed, consecutive labels will receive values from
+ the iterator. If the iterator runs out of data, the last value will be
+ repeated.
 
+Addressing:  
+The `Label` instances may be addressed as a 1D array as follows
+```python
+grid[20] = str(42)
+grid[20:25] = iter([str(n) for n in range(20, 25)])
+```
+or as a 2D array:
+```python
+grid[2, 5] = "A"  # Row == 2, col == 5
+grid[0:7, 3] = "b"  # Populate col 3 of rows 0..6
+grid[1:3, 1:3] = (str(n) for n in range(25))  # Produces
+# 0 1
+# 2 3
+```
+Columns are populated from left to right, rows from top to bottom. Unused
+iterator values are ignored. If an iterator runs out of data the last value is
+repeated, thus
+```python
+grid[1:3, 1:3] = (str(n) for n in range(2))  # Produces
+# 0 1
+# 1 1
+```
 Sample usage (complete example):
 ```python
 from color_setup import ssd
@@ -91,12 +116,8 @@ grid = Grid(wri, row, col, colwidth, rows, cols, align=ALIGN_CENTER)
 grid.show()  # Draw grid lines
 
 # Populate grid
-col = 0
-for y, txt in enumerate("ABCDE"):
-    grid[y + 1, col] = txt
-row = 0
-for col in range(1, cols):
-    grid[row, col] = str(col)
+grid[1:6, 0] = iter("ABCDE")  # Label row and col headings
+grid[0, 1:cols] = (str(x) for x in range(cols))
 grid[20] = ""  # Clear cell 20 by setting its value to ""
 grid[2, 5] = str(42)  # 2d array syntax
 # Dynamic formatting
