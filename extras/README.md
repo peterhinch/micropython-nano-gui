@@ -67,7 +67,7 @@ Constructor args:
 
 Methods:  
  * `show` Draw the grid lines to the framebuffer.
- * `__getitem__` Return a list containing one or more `Label` instances.
+ * `__getitem__` Returns an iterator enabling `Label` instances to be accessed.
  * `__setitem__` Assign a value to one or more labels. If multiple labels are
  specified and a single text value is passed, all labels will receive that
  value. If an iterator is passed, consecutive labels will receive values from
@@ -95,6 +95,11 @@ repeated, thus
 grid[1:3, 1:3] = (str(n) for n in range(2))  # Produces
 # 0 1
 # 1 1
+```
+Read access:
+```python
+for label in grid[2, 0:]:
+    v = label.value()  # Access each label in row 2
 ```
 Sample usage (complete example):
 ```python
