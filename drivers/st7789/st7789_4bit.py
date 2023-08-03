@@ -32,6 +32,7 @@ PORTRAIT = 4
 GENERIC = (0, 0, 0)
 TDISPLAY = (52, 40, 1)
 PI_PICO_LCD_2 = (0, 0, 1)  # Waveshare Pico LCD 2 determined by Mike Wilson.
+DFR0995 = (34, 0, 0) # DFR0995 Contributed by @EdgarKluge
 
 @micropython.viper
 def _lcopy(dest:ptr16, source:ptr8, lut:ptr16, length:int):

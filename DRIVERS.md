@@ -504,6 +504,8 @@ Orientation (values for `disp_mode`):
 Display types (values for `display`):  
 `GENERIC` For Adafruit displays.  
 `TDISPLAY` For the TTGO T-Display and Waveshare Pico LCD.  
+`PI_PICO_LCD_2` Waveshare Pico LCD 2 determined by Mike Wilson.
+`DFR0995` DFR0995 Contributed by @EdgarKluge
 
 ### init_spi
 
