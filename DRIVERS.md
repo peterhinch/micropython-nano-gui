@@ -1374,6 +1374,20 @@ Color values of 0 (white) to 3 (black) can explicitly be specified.
 
  ###### [Contents](./DRIVERS.md#contents)
 
+## 5.4 WeAct Studio SSD1680 eInk Displays
+
+The driver supports the WeAct Studio SSD1680 2.9 inch 296*128 pixel
+[display](https://github.com/WeActStudio/WeActStudio.EpaperModule) that uses the
+[SSD1680 driver](https://github.com/WeActStudio/WeActStudio.EpaperModule/blob/master/Doc/SSD1680.pdf).
+
+This display lacks many features when compared to the ones from Waveshare, 
+two important examples are fast refresh and partial refresh. The big pro however is the price, 
+it costs half the money of the Waveshare 2.9in alternative.
+
+The driver is cross platform and supports landscape or portrait mode. To keep
+the buffer size down (to 4736 bytes) there is no greyscale support. It should
+be noted that WeAct Studio product page suggests to not update the display more frequently than every 180s.
+
 # 6. EPD Asynchronous support
 
 The following applies to nano-gui. Under micro-gui the update mechanism is
