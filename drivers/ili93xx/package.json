@@ -1,0 +1,7 @@
+{
+  "urls": [
+    ["drivers/ili93xx/ili9341.py", "github:peterhinch/micropython-nano-gui/drivers/ili93xx/ili9341.py"],
+    ["drivers/boolpalette.py", "github:peterhinch/micropython-nano-gui/drivers/boolpalette.py"],
+  ],
+  "version": "0.1"
+}

@@ -1,0 +1,7 @@
+{
+  "urls": [
+    ["drivers/ssd1306/ssd1306.py", "github:peterhinch/micropython-nano-gui/drivers/ssd1306/ssd1306.py"],
+    ["drivers/boolpalette.py", "github:peterhinch/micropython-nano-gui/drivers/boolpalette.py"],
+  ],
+  "version": "0.1"
+}

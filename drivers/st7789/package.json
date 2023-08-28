@@ -1,0 +1,7 @@
+{
+  "urls": [
+    ["drivers/st7789/st7789_4bit.py", "github:peterhinch/micropython-nano-gui/drivers/st7789/st7789_4bit.py"],
+    ["drivers/boolpalette.py", "github:peterhinch/micropython-nano-gui/drivers/boolpalette.py"],
+  ],
+  "version": "0.1"
+}

@@ -186,7 +186,15 @@ This stuff is easier than you might think.
 
 ### 1.3.1 Quick install
 
-The easy approach is to copy everything to your hardware using
+This is done using the official
+[mpremote utility](http://docs.micropython.org/en/latest/reference/mpremote.html)
+which should be installed on the PC.
+
+The easy approach is to copy everything to your hardware using `mip`
+```python
+>>> import mip
+>>> mip.install("github:peterhinch/micropython-nano-gui")
+```
 [rshell](https://github.com/dhylands/rshell). This consumes about 508KiB of
 space on your filesystem. Substantial pruning can be done to eliminate unused
 drivers, fonts, widgets and demos.

@@ -1,0 +1,10 @@
+{
+  "urls": [
+    ["drivers/ssd1351/ssd1351.py", "github:peterhinch/micropython-nano-gui/drivers/ssd1351/ssd1351.py"],
+    ["drivers/ssd1351/ssd1351_4bit.py", "github:peterhinch/micropython-nano-gui/drivers/ssd1351/ssd1351_4bit.py"],
+    ["drivers/ssd1351/ssd1351_16bit.py", "github:peterhinch/micropython-nano-gui/drivers/ssd1351/ssd1351_16bit.py"],
+    ["drivers/ssd1351/ssd1351_generic.py", "github:peterhinch/micropython-nano-gui/drivers/ssd1351/ssd1351_generic.py"],
+    ["drivers/boolpalette.py", "github:peterhinch/micropython-nano-gui/drivers/boolpalette.py"],
+  ],
+  "version": "0.1"
+}
