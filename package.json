@@ -38,7 +38,7 @@
     ["gui/demos/mono_test.py", "github:peterhinch/micropython-nano-gui/gui/demos/mono_test.py"],
     ["gui/demos/scale.py", "github:peterhinch/micropython-nano-gui/gui/demos/scale.py"],
     ["gui/demos/sharptest.py", "github:peterhinch/micropython-nano-gui/gui/demos/sharptest.py"],
-    ["gui/demos/tbox.py", "github:peterhinch/micropython-nano-gui/gui/demos/tbox.py"],
+    ["gui/demos/tbox.py", "github:peterhinch/micropython-nano-gui/gui/demos/tbox.py"]
   ],
   "version": "0.1"
 }

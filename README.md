@@ -169,7 +169,8 @@ $ cd micropython-nano-gui
 ```
 As supplied, `color_setup.py` assumes a Pyboard (1.x or D) connected to an
 Adafruit 1.27" OLED as specified in that file. If that doesn't correspond to
-your hardware, it should be edited to suit.
+your hardware, it should be edited to suit. See example files in the 
+`setup_examples` directory.
 ```bash
 $ mpremote mount .
 ```
@@ -188,25 +189,36 @@ This stuff is easier than you might think.
 
 This is done using the official
 [mpremote utility](http://docs.micropython.org/en/latest/reference/mpremote.html)
-which should be installed on the PC.
+which should be installed on the PC as described above.
 
-The easy approach is to copy everything to your hardware using `mip`
+#### Networked hardware
+
+The easy approach is to copy the entire GUI to your hardware using `mip`
 ```python
 >>> import mip
 >>> mip.install("github:peterhinch/micropython-nano-gui")
 ```
-[rshell](https://github.com/dhylands/rshell). This consumes about 508KiB of
-space on your filesystem. Substantial pruning can be done to eliminate unused
-drivers, fonts, widgets and demos.
+Substantial pruning can be done to eliminate unused fonts, widgets and demos.
+The appropriate driver for the display hardware is installed as follows
+(example is for ST7789):
+```python
+>>> mip.install("github:peterhinch/micropython-nano-gui/drivers/st7789")
+```
+The last part of the addresss (`st7789`) is the name of the directory holding
+drivers for the display in use.
 
-Edit `color_setup.py` as discussed above. Move to the root directory of the
-repo, run `rshell` and issue the following commands (note the `/sd` destination
-may need to be adapted for non-pyboard targets):
+After editing `color_setup.py` as discussed above it should be copied to the
+target hardware with:
 ```bash
-> cp -r drivers /sd
-> cp -r gui /sd
-> cp color_setup.py /sd
-> repl ~ import gui.demos.aclock
+$ mpremote cp color_setup.py :
+```
+#### Non networked hardware
+
+Installation is as per networked hardware except that `mip` on the target is
+replaced by `mpremote mip` on the PC:
+```bash
+$ mpremote mip install("github:peterhinch/micropython-nano-gui")
+$ mpremote mip install("github:peterhinch/micropython-nano-gui/drivers/st7789")
 ```
 
 ## 1.4 A performance boost

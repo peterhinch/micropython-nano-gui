@@ -1,7 +1,7 @@
 {
   "urls": [
     ["drivers/sharp/sharp.py", "github:peterhinch/micropython-nano-gui/drivers/sharp/sharp.py"],
-    ["drivers/boolpalette.py", "github:peterhinch/micropython-nano-gui/drivers/boolpalette.py"],
+    ["drivers/boolpalette.py", "github:peterhinch/micropython-nano-gui/drivers/boolpalette.py"]
   ],
   "version": "0.1"
 }

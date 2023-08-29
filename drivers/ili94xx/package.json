@@ -1,7 +1,7 @@
 {
   "urls": [
     ["drivers/ili94xx/ili9486.py", "github:peterhinch/micropython-nano-gui/drivers/ili94xx/ili9486.py"],
-    ["drivers/boolpalette.py", "github:peterhinch/micropython-nano-gui/drivers/boolpalette.py"],
+    ["drivers/boolpalette.py", "github:peterhinch/micropython-nano-gui/drivers/boolpalette.py"]
   ],
   "version": "0.1"
 }
