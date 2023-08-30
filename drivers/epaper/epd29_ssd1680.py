@@ -14,7 +14,6 @@
 # https://github.com/hfwang132/ssd1680-micropython-drivers
 
 # You can run a demo for this driver by executing the demo script "epd29_sync.py"
-# or "epd29_weactstudio.py" after changing landscape=False when creating "ssd" on color_setup.py
 
 import framebuf
 import uasyncio as asyncio

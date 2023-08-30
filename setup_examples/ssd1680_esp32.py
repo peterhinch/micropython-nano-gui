@@ -10,7 +10,7 @@ from machine import Pin, SPI
 import gc
 
 # *** Choose your color display driver here ***
-from drivers.ssd1680.epd29_ssd1680 import EPD as SSD
+from drivers.epaper.epd29_ssd1680 import EPD as SSD
 
 dc = Pin(4, Pin.OUT, value=0)
 rst_pin = 2
