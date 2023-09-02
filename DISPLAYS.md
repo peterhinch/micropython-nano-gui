@@ -19,6 +19,7 @@ Width and height are pixels.
 | 1.12GS |  96   |   96   | OLED  | [SSD1327][11d] | [Seeed 104030011][21m]       | Obsolescent.                                 |
 | 1.27C  | 128   |   96   | OLED  | [SSD1351][2d]  | [Adafruit 1673][2m]          |                                              |
 | 1.5C   | 128   |  128   | OLED  | [SSD1351][2d]  | [Adafruit 1431][3m]          |                                              |
+| 1.4M   | 128   |   64   | LCD   | [SSD7567s][16d]| [ST7567s][27m]               | Similar to SSD1306                           |
 | 1.44C  | 128   |  128   | TFT   | [ST7735R][4d]  | [Adafruit 2088][5m]          |                                              |
 | 1.5C   | 160   |  128   | TFT   | [ST7735R][4d]  | [Adafruit 358][6m]           |                                              |
 | 1.3C   | 240   |  240   | TFT   | [ST7789][5d]   | [Adafruit 4313][7m]          |                                              |
@@ -58,6 +59,13 @@ AKA [KeyStudio](https://wiki.keyestudio.com/Ks0056_keyestudio_1.3%22_128x64_OLED
 
 Nokia 5110 (PCD8544) displays. [This driver](https://github.com/mcauser/micropython-pcd8544.git)
 is compatible.
+
+## User contributed drivers
+
+The following drivers were contibuted by users. I am unable to support these as
+I don't possess the relevant hardware.
+SSD7567s contributed by EnricoRoss98 [PR](https://github.com/peterhinch/micropython-nano-gui/pull/57)
+SSD1680.py contributed by EnricoRoss98 [PR](https://github.com/peterhinch/micropython-nano-gui/pull/56)
 
 ## Adafruit displays
 
@@ -107,6 +115,7 @@ simple. See [this doc](./DRIVERS.md#7-writing-device-drivers) for details.
 [13d]: https://github.com/peterhinch/micropython-nano-gui/blob/master/drivers/sh1106/sh1106.py
 [14d]: https://github.com/peterhinch/micropython-nano-gui/blob/master/drivers/ssd1306/ssd1306.py
 [15d]: https://github.com/peterhinch/micropython-nano-gui/blob/master/DRIVERS.md#54-weact-studio-ssd1680-eink-displays
+[16d]: https://github.com/peterhinch/micropython-nano-gui/blob/master/drivers/st7567s/st7567s.py
 
 [1m]: https://www.adafruit.com/product/684
 [2m]: https://www.adafruit.com/product/1673
@@ -134,4 +143,4 @@ simple. See [this doc](./DRIVERS.md#7-writing-device-drivers) for details.
 [24m]: https://www.adafruit.com/product/2050
 [25m]: https://www.waveshare.com/wiki/Pico-ResTouch-LCD-3.5
 [26m]: https://aliexpress.com/item/1005004644515880.html
-
+[27m]: https://www.buydisplay.com/1-4-inch-graphic-128x64-lcd-module-serial-spi-st7567s-black-on-white

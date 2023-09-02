@@ -1,3 +1,4 @@
+# epd29_ssd1680.py
 # Nanogui driver for WeAct Studio 2.9" Black and White ePaper display.
 # This driver can be used with the 2.13" EPD from WeAct Studio or with
 # other displays with the same driver however, on my tests changing the resolution
@@ -12,6 +13,9 @@
 # Based on the following sources:
 # https://github.com/peterhinch/micropython-nano-gui/blob/master/drivers/epaper/epd29.py
 # https://github.com/hfwang132/ssd1680-micropython-drivers
+
+# Driver contributed by Enrico Rossini @EnricoRoss98
+# https://github.com/peterhinch/micropython-nano-gui/pull/56
 
 # You can run a demo for this driver by executing the demo script "epd29_sync.py"
 

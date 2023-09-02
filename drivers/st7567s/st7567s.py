@@ -1,3 +1,10 @@
+# st7567s.py
+
+# Released under the MIT License (MIT). See LICENSE.
+
+# Driver contributed by Enrico Rossini @EnricoRoss98
+# https://github.com/peterhinch/micropython-nano-gui/pull/57
+
 from micropython import const
 from gui.drivers.boolpalette import BoolPalette
 from time import sleep_ms
