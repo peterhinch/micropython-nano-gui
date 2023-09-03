@@ -218,8 +218,8 @@ $ mpremote cp color_setup.py :
 Installation is as per networked hardware except that `mip` on the target is
 replaced by `mpremote mip` on the PC:
 ```bash
-$ mpremote mip install("github:peterhinch/micropython-nano-gui")
-$ mpremote mip install("github:peterhinch/micropython-nano-gui/drivers/st7789")
+$ mpremote mip install "github:peterhinch/micropython-nano-gui"
+$ mpremote mip install "github:peterhinch/micropython-nano-gui/drivers/st7789"
 ```
 
 ## 1.4 A performance boost
