@@ -108,23 +108,6 @@ specific display chip should be consulted for SSD constructor arguments and SPI
 baudrate. The more exotic displays (Sharp and ePaper) have additional features
 and requirements detailed below.
 
-# 1.2 Installation
-
-Please ensure that device firmware is up to date. On networked hardware a
-display driver may be installed as follows (example is for ST7789):
-```python
->>> mip.install("github:peterhinch/micropython-nano-gui/drivers/st7789")
-```
-The last part of the addresss (`st7789`) is the name of the directory holding
-drivers for the display in use. In some cases the directory holds more than one
-driver: these will all be installed. Unused drivers may be deleted.
-
-On any hardware [mpremote](http://docs.micropython.org/en/latest/reference/mpremote.html#mpremote)
-may be used on the PC as follows:
-```bash
-$ mpremote mip install "github:peterhinch/micropython-nano-gui/drivers/st7789"
-```
-
 ## 1.1 Color handling
 
 Most color displays support colors specified as 16-bit quantities. Storing two
@@ -144,6 +127,23 @@ run in a visually identical manner under all drivers. This will apply to any
 application which uses the predefined colors. Differences become apparent when
 specifying custom colors. For detail see the main README
 [User defined colors](./README.md#311-user-defined-colors).
+
+## 1.2 Installation
+
+Please ensure that device firmware is up to date. On networked hardware a
+display driver may be installed as follows (example is for ST7789):
+```python
+>>> mip.install("github:peterhinch/micropython-nano-gui/drivers/st7789")
+```
+The last part of the addresss (`st7789`) is the name of the directory holding
+drivers for the display in use. In some cases the directory holds more than one
+driver: these will all be installed. Unused drivers may be deleted.
+
+On any hardware [mpremote](http://docs.micropython.org/en/latest/reference/mpremote.html#mpremote)
+may be used on the PC as follows:
+```bash
+$ mpremote mip install "github:peterhinch/micropython-nano-gui/drivers/st7789"
+```
 
 ###### [Contents](./DRIVERS.md#contents)
 
