@@ -28,6 +28,7 @@ access via the `Writer` and `CWriter` classes is documented
 
  1. [Introduction](./DRIVERS.md#1-introduction)  
   1.1 [Color handling](./DRIVERS.md#11-color-handling)  
+  1.2 [Installation](./DRIVERS.md#12-installation)
  2. [OLED displays](./DRIVERS.md#2-oled-displays)  
   2.1 [Drivers for SSD1351](./DRIVERS.md#21-drivers-for-ssd1351) Color OLEDs  
   2.2 [Drivers for SSD1331](./DRIVERS.md#22-drivers-for-ssd1331) Small color OLEDs  
@@ -106,6 +107,23 @@ to `color_setup.py` on the target's root. The section in this doc for the
 specific display chip should be consulted for SSD constructor arguments and SPI
 baudrate. The more exotic displays (Sharp and ePaper) have additional features
 and requirements detailed below.
+
+# 1.2 Installation
+
+Please ensure that device firmware is up to date. On networked hardware a
+display driver may be installed as follows (example is for ST7789):
+```python
+>>> mip.install("github:peterhinch/micropython-nano-gui/drivers/st7789")
+```
+The last part of the addresss (`st7789`) is the name of the directory holding
+drivers for the display in use. In some cases the directory holds more than one
+driver: these will all be installed. Unused drivers may be deleted.
+
+On any hardware [mpremote](http://docs.micropython.org/en/latest/reference/mpremote.html#mpremote)
+may be used on the PC as follows:
+```bash
+$ mpremote mip install "github:peterhinch/micropython-nano-gui/drivers/st7789"
+```
 
 ## 1.1 Color handling
 

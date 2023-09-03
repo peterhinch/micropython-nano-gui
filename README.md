@@ -187,7 +187,8 @@ This stuff is easier than you might think.
 
 ### 1.3.1 Quick install
 
-This is done using the official
+On networked hardware this is done with `mip` which is included in recent
+firmware. On non-networked hardware this is done using the official
 [mpremote utility](http://docs.micropython.org/en/latest/reference/mpremote.html)
 which should be installed on the PC as described above.
 
