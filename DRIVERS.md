@@ -315,11 +315,11 @@ cross-platform but assume `micropython.viper` capability. They use 8-bit or
 4-bit color to minimise the RAM used by the frame buffer.
 
 Drivers for [Adafruit 1.8" display](https://www.adafruit.com/product/358).
- * `st7735r.py` 8-bit color. 
+ * `st7735r.py` 8-bit color.
  * `st7735r_4bit.py` 4-bit color for further RAM reduction.
 
 For [Adafruit 1.44" display](https://www.adafruit.com/product/2088).
- * `st7735r144.py` 8-bit color. 
+ * `st7735r144.py` 8-bit color.
  * `st7735r144_4bit` 4 bit color.
 
 Users of other ST7735R based displays should beware: there are many variants
@@ -360,8 +360,8 @@ soft SPI may be used but hard may be faster.
  * `init_spi=False` This optional arg enables flexible options in configuring
  the SPI bus. See below.
 
-#### The init_spi constructor arg 
- 
+#### The init_spi constructor arg
+
 The `False` default assumes exclusive access to the bus. It is initialised by
 `color_setup.py` and those settings are left in place. If a callback function
 is passed, it will be called prior to each SPI bus write. This is for shared
@@ -419,7 +419,7 @@ On an ESP32 without SPIRAM, `nano-gui` runs but
 frozen bytecode. The RP2 Pico runs both GUI's.
 
 See [Color handling](./DRIVERS.md#11-color-handling) for details of the
-implications of 4-bit color. 
+implications of 4-bit color.
 
 The driver uses the `micropython.viper` decorator. If your platform does not
 support this, the Viper code will need to be rewritten with a substantial hit
@@ -524,6 +524,7 @@ Display types (values for `display`):
 `TDISPLAY` For the TTGO T-Display and Waveshare Pico LCD.  
 `PI_PICO_LCD_2` Waveshare Pico LCD 2 determined by Mike Wilson.
 `DFR0995` DFR0995 Contributed by @EdgarKluge
+`WAVESHARE_13` Waveshare 1.3" 240x240 LCD contributed by Aaron Mittelmeier
 
 ### init_spi
 
@@ -948,7 +949,7 @@ contiguous RAM is available.
 ### 4.4.1 Micropower applications
 
 These comments largely assume a Pyboard host. The application should import
-`upower` from 
+`upower` from
 [micropython-micropower](https://github.com/peterhinch/micropython-micropower).
 This turns the USB interface off if not in use to conserve power. It also
 provides an `lpdelay` function to implement a delay using `pyb.stop()` to
@@ -990,9 +991,9 @@ the CPU enabling user code to continue to run.
 The standard refresh method blocks (monopolises the CPU) until refresh is
 complete, adding an additional 2s delay. This enables the demo scripts to run
 unchanged, with the 2s delay allowing the results to be seen before the next
-refresh begins. This is fine for simple applications. The drivers also support 
+refresh begins. This is fine for simple applications. The drivers also support
 concurrency with `uasyncio`. Such applications can perform other tasks while a
-refresh is in progress. See 
+refresh is in progress. See
 [EPD Asynchronous support](./DRIVERS.md#6-epd-asynchronous-support).
 
 Finally the [Waveshare 400x300 Pi Pico display](./DRIVERS.md#53-waveshare-400x300-pi-pico-display)
@@ -1010,7 +1011,7 @@ An alternative is the
 [wiring details](./DRIVERS.md#514-featherwing-wiring) listed below.
 
 In my testing there are differences between these alternatives. The FeatherWing
-shows a black border around the display. The reason for this is 
+shows a black border around the display. The reason for this is
 [unclear](https://github.com/adafruit/Adafruit_CircuitPython_IL0373/issues/11#issuecomment-763704622).
 In development I encountered instances where the image on the flexible display
 gradually degraded after the system was powered down. The white background
@@ -1398,8 +1399,8 @@ The driver supports the WeAct Studio SSD1680 2.9 inch 296*128 pixel
 [display](https://github.com/WeActStudio/WeActStudio.EpaperModule) that uses the
 [SSD1680 driver](https://github.com/WeActStudio/WeActStudio.EpaperModule/blob/master/Doc/SSD1680.pdf).
 
-This display lacks many features when compared to the ones from Waveshare, 
-two important examples are fast refresh and partial refresh. The big pro however is the price, 
+This display lacks many features when compared to the ones from Waveshare,
+two important examples are fast refresh and partial refresh. The big pro however is the price,
 it costs half the money of the Waveshare 2.9in alternative.
 
 The driver is cross platform and supports landscape or portrait mode. To keep
@@ -1556,7 +1557,7 @@ hardware.
 ## 7.4 Mapped drivers
 
 In the simplest case the `FrameBuffer` mode is chosen to match a mode used by
-the hardware. The `rgb` static method converts colors to that format and 
+the hardware. The `rgb` static method converts colors to that format and
 `.show` writes it out.
 
 In some cases this can result in a need for a large `FrameBuffer`, either
