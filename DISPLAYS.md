@@ -6,8 +6,9 @@ Drivers used in [nano-gui](https://github.com/peterhinch/micropython-nano-gui),
 identical. These displays and drivers are also compatible with the
 [Writer class](https://github.com/peterhinch/micropython-font-to-py/blob/master/writer/WRITER.md).
 
-Note that the supported ePaper/eInk displays are unsuitable for interactive use
-owing to their long update time.
+Note that most ePaper/eInk displays are unsuitable for interactive use owing to
+their long update time. The one exception is the [Waveshare pico 4.2 inch][19m]
+which is quick enough to [work with micro-gui][1z].
 
 ## Displays using drivers in this repo
 
@@ -41,7 +42,7 @@ Width and height are pixels.
 | 2.9M   | 296   |  128   | eInk  | [UC8151D][7d]  | [Adafruit 4262][13m]         | Flexible ePaper display.                     |
 | 2.9M   | 296   |  128   | eInk  | [UC8151D][7d]  | [Adafruit 4777][15m]         | FeatherWing ePaper display.                  |
 | 2.9M   | 296   |  128   | eInk  | [SSD1680][15d] | [WeAct Studio ePaper][26m]   | WeAct Studio ePaper display.                 |
-| 4.2M   | 400   |  300   | eInk  | [WS][10d]      | [Waveshare pico 4.2][19m]    | Pico, Pico W plug in. Other hosts via cable. |
+| 4.2M   | 400   |  300   | eInk  | [WS][10d]      | [Waveshare pico 4.2][19m]    | Pico plugs in, others via cable [see][1z].   |
 | 2.7M   | 274   |  176   | eInk  | [HAT][8d]      | [Waveshare HAT][14m]         | HAT designed for Raspberry Pi, repurposed.   |
 | 2.7M   | 400   |  240   | Sharp | [Sharp][9d]    | [Adafruit 4694][16m]         | Micropower monochrome display.               |
 | 1.3M   | 168   |  144   | Sharp | [Sharp][9d]    | [Adafruit 3502][17m]         | Ditto.                                       |
@@ -99,7 +100,7 @@ simple. See [this doc](./DRIVERS.md#7-writing-device-drivers) for details.
 
 
 | Label | Controller    | Comments                                        |
-|:-----:|:-------------:|:------------------------------------------------|
+|:-----:|:--------------|:------------------------------------------------|
 | R     | [TSC2007][1t] | Resistive touch needs [external controller][1q] |
 | T     | [XPT2046][2t] | Resistive touch, XPT2046 controller.            |
 | K     | [FT6206][3t]  | Capacitive touch controller.                    |
@@ -149,7 +150,7 @@ simple. See [this doc](./DRIVERS.md#7-writing-device-drivers) for details.
 [16m]: https://www.adafruit.com/product/4694
 [17m]: https://www.adafruit.com/product/3502
 [18m]: https://www.waveshare.com/wiki/Pico-LCD-2
-[19m]: https://thepihut.com/collections/epaper-displays-for-raspberry-pi/products/4-2-e-paper-display-module-for-raspberry-pi-pico-black-white-400x300
+[19m]: https://www.waveshare.com/pico-epaper-4.2.htm
 [20m]: https://www.waveshare.com/product/ai/displays/oled/1.5inch-oled-module.htm?___SID=U
 [21m]: https://www.seeedstudio.com/Grove-OLED-Display-1-12.html?queryID=080778ddd8f54df96ca0e016af616327&objectID=1763&indexName=bazaar_retailer_products
 [22m]: https://www.waveshare.com/product/3.5inch-rpi-lcd-a.htm
@@ -165,3 +166,5 @@ simple. See [this doc](./DRIVERS.md#7-writing-device-drivers) for details.
 [3t]: https://github.com/peterhinch/micropython-touch/blob/master/TOUCHPAD.md#ft6206-capacitive-controller
 
 [1q]: https://www.adafruit.com/product/5423
+
+[1z]: https://github.com/peterhinch/micropython-micro-gui/blob/main/README.md#10-epaper-displays
