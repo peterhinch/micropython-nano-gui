@@ -2,7 +2,7 @@
 
 Drivers used in [nano-gui](https://github.com/peterhinch/micropython-nano-gui)
 and [micro-gui](https://github.com/peterhinch/micropython-micro-gui) are
-identical. These displays and drivers are also compatible with the 
+identical. These displays and drivers are also compatible with the
 [Writer class](https://github.com/peterhinch/micropython-font-to-py/blob/master/writer/WRITER.md).
 
 Note that the supported ePaper/eInk displays are unsuitable for interactive use
@@ -27,13 +27,13 @@ Width and height are pixels.
 | 2.0C   | 320   |  240   | TFT   | [ST7789][5d]   | [Waveshare Pico LCD 2][18m]  | For Pi Pico.                                 |
 | 1.54C  | 240   |  240   | TFT   | [ST7789][5d]   | [Adafruit 3787][8m]          |                                              |
 | 1.14C  | 240   |  135   | TFT   | [ST7789][5d]   | [T-Display][9m]              | ESP32 with attached display.                 |
-| 2.8C   | 320   |  240   | TFT   | [ST7789][5d]   | [Waveshare pico 2.8][10m]    | Display for Pi Pico.                         |
+| 2.8C   | 320   |  240   | TFT   | [ST7789][5d]   | [Waveshare pico 2.8][10m]    | Display for Pi Pico. (Touch support)         |
 | 1.14C  | 240   |  135   | TFT   | [ST7789][5d]   | [Waveshare pico 1.14][11m]   | For Pi Pico. Buttons good for micro-gui.     |
 | 1.14C  | 240   |  135   | TFT   | [ST7789][5d]   | [Pimoroni pico 1.14][23m]    | For Pi Pico. Buttons good for micro-gui.     |
-| 3.2C   | 320   |  240   | TFT   | [ILI9341][6d]  | [Adafruit 1743][12m]         | Big display. eBay equivalents work here.     |
+| 3.2C   | 320   |  240   | TFT   | [ILI9341][6d]  | [Adafruit 1743][12m]         | Big touch unit. eBay equivalents work here.  |
 | 3.5C   | 480   |  320   | TFT   | [ILI9486][12d] | [Waveshare Rpi 3.5 LCD][22m] | Pi HAT. Many pixels. Needs plenty of RAM.    |
-| 3.5C   | 480   |  320   | TFT   | [ILI9486][12d] | [Adafruit 3.5 LCD][24m]      | 3.5" HX8357D display, notes as above.        |
-| 3.5C   | 480   |  320   | TFT   | [ILI9486][12d] | [Waveshere RPI 3.5 LCD][25m] | 3.5" ILI9488 display, notes as above.        |
+| 3.5C   | 480   |  320   | TFT   | [ILI9486][12d] | [Adafruit 3.5 LCD][24m]      | 3.5" HX8357D touch, notes as above.          |
+| 3.5C   | 480   |  320   | TFT   | [ILI9486][12d] | [Waveshare Pico 3.5][25m]    | 3.5" Pico ILI9488 (touch).                   |
 | 2.9M   | 296   |  128   | eInk  | [UC8151D][7d]  | [Adafruit 4262][13m]         | Flexible ePaper display.                     |
 | 2.9M   | 296   |  128   | eInk  | [UC8151D][7d]  | [Adafruit 4777][15m]         | FeatherWing ePaper display.                  |
 | 2.9M   | 296   |  128   | eInk  | [SSD1680][15d] | [WeAct Studio ePaper][26m]   | WeAct Studio ePaper display.                 |
