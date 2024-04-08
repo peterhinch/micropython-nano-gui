@@ -1,7 +1,8 @@
 # Displays tested with nano-gui and micro-gui
 
-Drivers used in [nano-gui](https://github.com/peterhinch/micropython-nano-gui)
-and [micro-gui](https://github.com/peterhinch/micropython-micro-gui) are
+Drivers used in [nano-gui](https://github.com/peterhinch/micropython-nano-gui),
+[micro-gui](https://github.com/peterhinch/micropython-micro-gui) and
+[micropython-touch](https://github.com/peterhinch/micropython-touch) are
 identical. These displays and drivers are also compatible with the
 [Writer class](https://github.com/peterhinch/micropython-font-to-py/blob/master/writer/WRITER.md).
 
@@ -11,6 +12,8 @@ owing to their long update time.
 ## Displays using drivers in this repo
 
 Size is diagonal in inches. C/M/GS color/1-bit monochrome/greyscale.  
+Displays with a touch overlay are denoted by T, K or R depending on the touch
+hardware. See [Touch Displays below](./DISPLAYS.md#touch-displays).  
 Width and height are pixels.  
 
 | Size   | Width | Height | Tech  | Driver         | Description                  | Notes                                        |
@@ -27,13 +30,14 @@ Width and height are pixels.
 | 2.0C   | 320   |  240   | TFT   | [ST7789][5d]   | [Waveshare Pico LCD 2][18m]  | For Pi Pico.                                 |
 | 1.54C  | 240   |  240   | TFT   | [ST7789][5d]   | [Adafruit 3787][8m]          |                                              |
 | 1.14C  | 240   |  135   | TFT   | [ST7789][5d]   | [T-Display][9m]              | ESP32 with attached display.                 |
-| 2.8C   | 320   |  240   | TFT   | [ST7789][5d]   | [Waveshare pico 2.8][10m]    | Display for Pi Pico. (Touch support)         |
+| 2.8C K | 240   |  320   | TFT   | [ILI9341][6d]  | [Adafruit touch shield][28m] | Arduino shield format capacitive touch.      |
+| 2.8C T | 320   |  240   | TFT   | [ST7789][5d]   | [Waveshare pico 2.8][10m]    | Display for Pi Pico. (Touch support).        |
 | 1.14C  | 240   |  135   | TFT   | [ST7789][5d]   | [Waveshare pico 1.14][11m]   | For Pi Pico. Buttons good for micro-gui.     |
 | 1.14C  | 240   |  135   | TFT   | [ST7789][5d]   | [Pimoroni pico 1.14][23m]    | For Pi Pico. Buttons good for micro-gui.     |
-| 3.2C   | 320   |  240   | TFT   | [ILI9341][6d]  | [Adafruit 1743][12m]         | Big touch unit. eBay equivalents work here.  |
-| 3.5C   | 480   |  320   | TFT   | [ILI9486][12d] | [Waveshare Rpi 3.5 LCD][22m] | Pi HAT. Many pixels. Needs plenty of RAM.    |
-| 3.5C   | 480   |  320   | TFT   | [ILI9486][12d] | [Adafruit 3.5 LCD][24m]      | 3.5" HX8357D touch, notes as above.          |
-| 3.5C   | 480   |  320   | TFT   | [ILI9486][12d] | [Waveshare Pico 3.5][25m]    | 3.5" Pico ILI9488 (touch).                   |
+| 3.2C R | 320   |  240   | TFT   | [ILI9341][6d]  | [Adafruit 1743][12m]         | Big touch unit. eBay equivalents work here.  |
+| 3.5C T | 480   |  320   | TFT   | [ILI9486][12d] | [Waveshare Rpi 3.5 LCD][22m] | Pi HAT. Many pixels. Needs plenty of RAM.    |
+| 3.5C R | 480   |  320   | TFT   | [ILI9486][12d] | [Adafruit 3.5 LCD][24m]      | 3.5" HX8357D touch, notes as above.          |
+| 3.5C T | 480   |  320   | TFT   | [ILI9486][12d] | [Waveshare Pico 3.5][25m]    | 3.5" Pico ILI9488 (touch).                   |
 | 2.9M   | 296   |  128   | eInk  | [UC8151D][7d]  | [Adafruit 4262][13m]         | Flexible ePaper display.                     |
 | 2.9M   | 296   |  128   | eInk  | [UC8151D][7d]  | [Adafruit 4777][15m]         | FeatherWing ePaper display.                  |
 | 2.9M   | 296   |  128   | eInk  | [SSD1680][15d] | [WeAct Studio ePaper][26m]   | WeAct Studio ePaper display.                 |
@@ -90,6 +94,16 @@ hardware: these are easy to port to MicroPython. Only a minimal subset is
 needed to support these GUI's, with the result that the drivers can be very
 simple. See [this doc](./DRIVERS.md#7-writing-device-drivers) for details.
 
+# Touch displays
+
+
+
+| Label | Controller    | Comments                                        |
+|:-----:|:-------------:|:------------------------------------------------|
+| R     | [TSC2007][1t] | Resistive touch needs [external controller][1q] |
+| T     | [XPT2046][2t] | Resistive touch, XPT2046 controller.            |
+| K     | [FT6206][3t]  | Capacitive touch controller.                    |
+
 # Links
 
 #### [Device driver document.](./DRIVERS.md)
@@ -144,3 +158,10 @@ simple. See [this doc](./DRIVERS.md#7-writing-device-drivers) for details.
 [25m]: https://www.waveshare.com/wiki/Pico-ResTouch-LCD-3.5
 [26m]: https://aliexpress.com/item/1005004644515880.html
 [27m]: https://www.buydisplay.com/1-4-inch-graphic-128x64-lcd-module-serial-spi-st7567s-black-on-white
+[28m]: https://www.adafruit.com/product/1947
+
+[1t]: https://github.com/peterhinch/micropython-touch/blob/master/TOUCHPAD.md#tsc2007
+[2t]: https://github.com/peterhinch/micropython-touch/blob/master/TOUCHPAD.md#xpt2046
+[3t]: https://github.com/peterhinch/micropython-touch/blob/master/TOUCHPAD.md#ft6206-capacitive-controller
+
+[1q]: https://www.adafruit.com/product/5423
