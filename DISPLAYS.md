@@ -65,9 +65,15 @@ AKA [KeyStudio](https://wiki.keyestudio.com/Ks0056_keyestudio_1.3%22_128x64_OLED
 Nokia 5110 (PCD8544) displays. [This driver](https://github.com/mcauser/micropython-pcd8544.git)
 is compatible.
 
+Waveshare have published drivers for their other products, claiming nano-gui
+compatibility. Lacking the relevant hardware I am not in a position to assess or
+support these but feel free to use them. They have re-published `nano-gui` which
+they are entitled to do, but their copy may not include the latest bugfixes or
+enhancements.
+
 ## User contributed drivers
 
-The following drivers were contibuted by users. I am unable to support these as
+The following drivers were contributed by users. I am unable to support these as
 I don't possess the relevant hardware.
 SSD7567s contributed by EnricoRoss98 [PR](https://github.com/peterhinch/micropython-nano-gui/pull/57)
 SSD1680.py contributed by EnricoRoss98 [PR](https://github.com/peterhinch/micropython-nano-gui/pull/56)
