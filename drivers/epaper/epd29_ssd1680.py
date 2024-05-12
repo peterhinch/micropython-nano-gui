@@ -20,7 +20,7 @@
 # You can run a demo for this driver by executing the demo script "epd29_sync.py"
 
 import framebuf
-import uasyncio as asyncio
+import asyncio
 from micropython import const
 from time import sleep_ms, sleep_us, ticks_ms, ticks_us, ticks_diff
 from gui.drivers.boolpalette import BoolPalette
@@ -106,33 +106,33 @@ class EPD(framebuf.FrameBuffer):
         # print("software reset successful")
 
         # deriver output control
-        cmd(b'\x01', b'\x27\x01\x01')
+        cmd(b"\x01", b"\x27\x01\x01")
         # data entry mode
-        cmd(b'\x11', b'\x01')
+        cmd(b"\x11", b"\x01")
         # set ram-x addr start/end pos
-        cmd(b'\x44', b'\x00\x0F')
+        cmd(b"\x44", b"\x00\x0F")
         # set ram-y addr start/end pos
-        cmd(b'\x45', b'\x27\x01\x00\x00')
+        cmd(b"\x45", b"\x27\x01\x00\x00")
         # border waveform
-        cmd(b'\x3c', b'\x05')
+        cmd(b"\x3c", b"\x05")
         # display update control
-        cmd(b'\x21', b'\x00\x80')
+        cmd(b"\x21", b"\x00\x80")
         # set ram-x addr cnt to 0
-        cmd(b'\x4e', b'\x00')
+        cmd(b"\x4e", b"\x00")
         # set ram-y addr cnt to 0x127
-        cmd(b'\x4F', b'\x27\x01')
+        cmd(b"\x4F", b"\x27\x01")
 
         # set to use internal temperature sensor
-        cmd(b'\x18', b'\x80')
+        cmd(b"\x18", b"\x80")
 
-        '''
+        """
         # read from internal temperature sensor
         self._dc(0)
         self._spi.write(b'\x1B')
         print(self._spi.read(2))
         self._dc(1)
         print(self._spi.read(2))
-        '''
+        """
 
         self.wait_until_ready()
         # print('Init Done.')
@@ -148,10 +148,13 @@ class EPD(framebuf.FrameBuffer):
         return not (self._as_busy or (self._busy() == 1))
 
     # draw the current frame memory.
-    def show(self, buf1=bytearray(1),
-             fast_refresh=False,  # USELESS for this driver, doesn't work well at all
-             deepsleep_after_refresh=False,
-             lightsleep_while_waiting_for_refresh=False):
+    def show(
+        self,
+        buf1=bytearray(1),
+        fast_refresh=False,  # USELESS for this driver, doesn't work well at all
+        deepsleep_after_refresh=False,
+        lightsleep_while_waiting_for_refresh=False,
+    ):
         if not self.ready():
             # Hardware reset to exit deep sleep mode
             self.hw_reset()
@@ -160,7 +163,7 @@ class EPD(framebuf.FrameBuffer):
         cmd = self._command
         dat = self._data
 
-        cmd(b'\x24')
+        cmd(b"\x24")
         if self._lsc:  # Landscape mode
             wid = self.width
             tbc = self.height // 8  # Vertical bytes per column
@@ -183,11 +186,11 @@ class EPD(framebuf.FrameBuffer):
                 dat(buf1)
 
         if fast_refresh:
-            cmd(b'\x22', b'\xFF')
+            cmd(b"\x22", b"\xFF")
         else:
-            cmd(b'\x22', b'\xF7')
+            cmd(b"\x22", b"\xF7")
         sleep_us(20)
-        cmd(b'\x20')  # DISPLAY_REFRESH
+        cmd(b"\x20")  # DISPLAY_REFRESH
 
         if lightsleep_while_waiting_for_refresh:
             # set Pin hold=True is needed before entering lightsleep and after you must revert it back to hold=False
@@ -198,6 +201,6 @@ class EPD(framebuf.FrameBuffer):
 
         self.wait_until_ready()
         if deepsleep_after_refresh:
-            cmd(b'\x10', b'\x01')
+            cmd(b"\x10", b"\x01")
         else:
-            cmd(b'\x10', b'\x00')
+            cmd(b"\x10", b"\x00")

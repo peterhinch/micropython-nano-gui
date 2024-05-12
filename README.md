@@ -82,7 +82,7 @@ display.
 
 #### [The extras directory.](./extras/README.md)
 
-The `extras` directory contains further widgets back-ported from 
+The `extras` directory contains further widgets back-ported from
 [micro-gui](https://github.com/peterhinch/micropython-micro-gui) plus further
 demos and information. The aim is to avoid this document becoming over long and
 daunting to new users.
@@ -106,7 +106,7 @@ without SPIRAM. Running on ESP8266 is possible but frozen bytecode must be used
 owing to its restricted RAM - see
 [Appendix 1 Freezing bytecode](./README.md#appendix-1-freezing-bytecode).
 
-It uses synchronous code but is compatible with `uasyncio`. Some demo programs
+It uses synchronous code but is compatible with `asyncio`. Some demo programs
 illustrate this. Code is standard MicroPython, but some device drivers use the
 `native` and `viper` decorators.
 
@@ -132,7 +132,7 @@ firmware V1.17 or later.
 26 Aug 2021 Support [PR7682](https://github.com/micropython/micropython/pull/7682)
 for fast text rendering.  
 25 Apr 2021 Support TTGO T-Display.  
-26 Mar 2021 Add ST7789. Alter uasyncio support on ili9341.  
+26 Mar 2021 Add ST7789. Alter asyncio support on ili9341.  
 
 ## 1.2 Description
 
@@ -169,7 +169,7 @@ $ cd micropython-nano-gui
 ```
 As supplied, `color_setup.py` assumes a Pyboard (1.x or D) connected to an
 Adafruit 1.27" OLED as specified in that file. If that doesn't correspond to
-your hardware, it should be edited to suit. See example files in the 
+your hardware, it should be edited to suit. See example files in the
 `setup_examples` directory.
 ```bash
 $ mpremote mount .
@@ -291,8 +291,8 @@ Demos for larger displays.
  * `aclock.py` Analog clock demo. Cross platform.
  * `alevel.py` Spirit level using Pyboard accelerometer.
  * `fpt.py` Plot demo. Cross platform.
- * `scale.py` A demo of the `Scale` widget. Cross platform. Uses `uasyncio`.
- * `asnano_sync.py` Two Pyboard specific demos using the GUI with `uasyncio`.
+ * `scale.py` A demo of the `Scale` widget. Cross platform. Uses `asyncio`.
+ * `asnano_sync.py` Two Pyboard specific demos using the GUI with `asyncio`.
  * `asnano.py` Could readily be adapted for other targets.
  * `tbox.py` Demo `Textbox` class. Cross-platform.
 
@@ -309,8 +309,8 @@ Demos for Sharp displays:
  * `clocktest.py` Digital and analog clock demo.
  * `clock_batt.py` Low power demo of battery operated clock.
 
-Usage with `uasyncio` is discussed [here](./ASYNC.md). In summary the GUI works
-well with `uasyncio` but the blocking which occurs during transfer of the
+Usage with `asyncio` is discussed [here](./ASYNC.md). In summary the GUI works
+well with `asyncio` but the blocking which occurs during transfer of the
 framebuffer to the display may affect more demanding applications. Some display
 drivers have an additional asynchronous refresh method. This may optionally be
 used to mitigate the resultant latency.
@@ -362,7 +362,7 @@ copied to the hardware root as `color_setup.py`. Example files:
  * `st7789_ttgo.py` Setup for the TTGO T-Display device.
  * `waveshare_pyb.py` 176*274 ePaper display on Pyboard.
  * `epd29_pyb_sync.py` Adafruit 2.9 inch ePaper display for synchronous code.
- * `epd29_pyb_async.py` Adafruit 2.9 inch ePaper display: `uasyncio` applications.
+ * `epd29_pyb_async.py` Adafruit 2.9 inch ePaper display: `asyncio` applications.
 
 ## 2.2 Dependencies
 
@@ -541,9 +541,9 @@ to transfer an entire buffer over SPI.
 On ePaper displays `refresh` is both slow and visually intrusive, with the
 display flashing repeatedly. This made them unsatisfactory for displaying
 rapidly changing information. There is a new breed of ePaper display supporting
-effective partial updates notably 
+effective partial updates notably
 [the Waveshare Pico paper 4.2](https://www.waveshare.com/pico-epaper-4.2.htm).
-This can be used in such roles and is discussed  in 
+This can be used in such roles and is discussed  in
 [EPD Asynchronous support](./DRIVERS.md#6-epd-asynchronous-support).
 
 ###### [Contents](./README.md#contents)
@@ -959,7 +959,7 @@ A further issue is that, by default, ESP8266 firmware does not support complex
 numbers. This rules out the plot module and the `Dial` widget. It is possible
 to turn on complex support in the build, but I haven't tried this.
 
-I set out to run the `scale.py` and `textbox.py` demos as these use `uasyncio`
+I set out to run the `scale.py` and `textbox.py` demos as these use `asyncio`
 to create dynamic content, and the widgets themselves are relatively complex.
 
 I froze a subset of the `drivers` and the `gui` directories. A subset minimises

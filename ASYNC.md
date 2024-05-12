@@ -7,7 +7,7 @@
 ## Blocking
 
 The suitability of `nanogui` for use with cooperative schedulers such as
-`uasyncio` is constrained by the underlying display driver. The GUI supports
+`asyncio` is constrained by the underlying display driver. The GUI supports
 displays whose driver is subclassed from `framebuf`. Such drivers hold the
 frame buffer on the host, transferring its entire contents to the display
 hardware, usually via I2C or SPI. Current drivers block for the time taken by
@@ -50,7 +50,7 @@ between devices having a `do_refresh` method and those that do not:
     while True:
         # Update widgets
         if hasattr(ssd, 'do_refresh'):
-            # Option to reduce uasyncio latency
+            # Option to reduce asyncio latency
             await ssd.do_refresh()
         else:
             # Normal synchronous call

@@ -18,10 +18,11 @@
 # Adfruit code transposing the axes.
 
 import framebuf
-import uasyncio as asyncio
+import asyncio
 from micropython import const
 from time import sleep_ms, sleep_us, ticks_ms, ticks_us, ticks_diff
 from drivers.boolpalette import BoolPalette
+
 
 def asyncio_running():
     try:
@@ -30,7 +31,9 @@ def asyncio_running():
         return False
     return True
 
+
 MAX_BLOCK = const(20)  # Maximum blocking time (ms) for asynchronous show.
+
 
 class EPD(framebuf.FrameBuffer):
     # A monochrome approach should be used for coding this. The rgb method ensures
@@ -96,43 +99,43 @@ class EPD(framebuf.FrameBuffer):
         cmd = self._command
         # Power setting. Data from Adafruit.
         # Datasheet default \x03\x00\x26\x26\x03 - slightly different voltages.
-        cmd(b'\x01', b'\x03\x00\x2b\x2b\x09')
+        cmd(b"\x01", b"\x03\x00\x2b\x2b\x09")
         # Booster soft start. Matches datasheet.
-        cmd(b'\x06', b'\x17\x17\x17')
-        cmd(b'\x04')  # Power on
+        cmd(b"\x06", b"\x17\x17\x17")
+        cmd(b"\x04")  # Power on
         sleep_ms(200)
         # Iss https://github.com/adafruit/Adafruit_CircuitPython_IL0373/issues/16
-        cmd(b'\x00', b'\x9f')
+        cmd(b"\x00", b"\x9f")
         # CDI: As used by Adafruit. Datasheet is confusing on this.
         # See https://github.com/adafruit/Adafruit_CircuitPython_IL0373/issues/11
         # With 0x37 got white border on flexible display, black on FeatherWing
         # 0xf7 still produced black border on FeatherWing
-        cmd(b'\x50', b'\x37')
+        cmd(b"\x50", b"\x37")
         # PLL: correct for 150Hz as specified in Adafruit code
-        cmd(b'\x30', b'\x29')
+        cmd(b"\x30", b"\x29")
         # Resolution 128w * 296h as required by IL0373
-        cmd(b'\x61', b'\x80\x01\x28')  # Note hex(296) == 0x128
+        cmd(b"\x61", b"\x80\x01\x28")  # Note hex(296) == 0x128
         # Set VCM_DC. Now clarified with Adafruit.
         # https://github.com/adafruit/Adafruit_CircuitPython_IL0373/issues/17
-        cmd(b'\x82', b'\x12')  # Set Vcom to -1.0V
+        cmd(b"\x82", b"\x12")  # Set Vcom to -1.0V
         sleep_ms(50)
-        print('Init Done.')
+        print("Init Done.")
 
     # For use in synchronous code: blocking wait on ready state.
     def wait_until_ready(self):
         sleep_ms(50)
-        while not self.ready():  
+        while not self.ready():
             sleep_ms(100)
 
     # Return immediate status. Pin state: 0 == busy.
     def ready(self):
-        return not(self._as_busy or (self._busy() == 0))
+        return not (self._as_busy or (self._busy() == 0))
 
     async def _as_show(self, buf1=bytearray(1)):
         mvb = self._mvb
         cmd = self._command
         dat = self._data
-        cmd(b'\x13')
+        cmd(b"\x13")
         t = ticks_ms()
         if self._lsc:  # Landscape mode
             wid = self.width
@@ -150,21 +153,21 @@ class EPD(framebuf.FrameBuffer):
                 if not vbc:
                     hpc += 1
                     idx = iidx + hpc
-                if not(i & 0x0f) and (ticks_diff(ticks_ms(), t) > _MAX_BLOCK):
+                if not (i & 0x0F) and (ticks_diff(ticks_ms(), t) > _MAX_BLOCK):
                     await asyncio.sleep_ms(0)
                     t = ticks_ms()
         else:
             for i, b in enumerate(mvb):
                 buf1[0] = ~b
                 dat(buf1)
-                if not(i & 0x0f) and (ticks_diff(ticks_ms(), t) > _MAX_BLOCK):
+                if not (i & 0x0F) and (ticks_diff(ticks_ms(), t) > _MAX_BLOCK):
                     await asyncio.sleep_ms(0)
                     t = ticks_ms()
 
-        cmd(b'\x11')  # Data stop
+        cmd(b"\x11")  # Data stop
         self.updated.set()
         sleep_us(20)  # Allow for data coming back: currently ignore this
-        cmd(b'\x12')  # DISPLAY_REFRESH
+        cmd(b"\x12")  # DISPLAY_REFRESH
         # busy goes low now, for ~4.9 seconds.
         await asyncio.sleep(1)
         while self._busy() == 0:
@@ -176,7 +179,7 @@ class EPD(framebuf.FrameBuffer):
     def show(self, buf1=bytearray(1)):
         if asyncio_running():
             if self._as_busy:
-                raise RuntimeError('Cannot refresh: display is busy.')
+                raise RuntimeError("Cannot refresh: display is busy.")
             self._as_busy = True  # Immediate busy flag. Pin goes low much later.
             self.updated.clear()
             self.complete.clear()
@@ -189,7 +192,7 @@ class EPD(framebuf.FrameBuffer):
         # DATA_START_TRANSMISSION_2 Datasheet P31 indicates this sets
         # busy pin low (True) and that it stays logically True until
         # refresh is complete. In my testing this doesn't happen.
-        cmd(b'\x13')
+        cmd(b"\x13")
         if self._lsc:  # Landscape mode
             wid = self.width
             tbc = self.height // 8  # Vertical bytes per column
@@ -211,9 +214,9 @@ class EPD(framebuf.FrameBuffer):
                 buf1[0] = ~b
                 dat(buf1)
 
-        cmd(b'\x11')  # Data stop
+        cmd(b"\x11")  # Data stop
         sleep_us(20)  # Allow for data coming back: currently ignore this
-        cmd(b'\x12')  # DISPLAY_REFRESH
+        cmd(b"\x12")  # DISPLAY_REFRESH
         # 258ms to get here on Pyboard D
         # Checking with scope, busy goes low now. For 4.9s.
         if not self.demo_mode:
@@ -229,8 +232,8 @@ class EPD(framebuf.FrameBuffer):
         self.wait_until_ready()
         cmd = self._command
         # CDI: not sure about value or why we set this here. Copying Adafruit.
-        cmd(b'\x50', b'\x17')
+        cmd(b"\x50", b"\x17")
         # Set VCM_DC. 0 is datasheet default.
-        cmd(b'\x82', b'\x00')
+        cmd(b"\x82", b"\x00")
         # POWER_OFF. User code should pull ENA low to power down the display.
-        cmd(b'\x02')
+        cmd(b"\x02")

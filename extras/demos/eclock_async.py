@@ -14,7 +14,7 @@ ssd = SSD()  #asyn=True)  # Create a display instance. See link for meaning of a
 """
 
 from color_setup import ssd
-import uasyncio as asyncio
+import asyncio
 import time
 from gui.core.writer import Writer
 from gui.core.nanogui import refresh
@@ -25,6 +25,7 @@ from extras.widgets.eclock import EClock
 epaper = hasattr(ssd, "wait_until_ready")
 if epaper and not hasattr(ssd, "set_partial"):
     raise OSError("ePaper display does not support partial update.")
+
 
 async def test():
     wri = Writer(ssd, font, verbose=False)
@@ -53,6 +54,7 @@ async def test():
             if epaper:
                 await ssd.complete.wait()
         await asyncio.sleep(10)
+
 
 try:
     asyncio.run(test())

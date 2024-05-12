@@ -11,7 +11,7 @@
 from time import sleep_ms
 import gc
 import framebuf
-import uasyncio as asyncio
+import asyncio
 from drivers.boolpalette import BoolPalette
 
 

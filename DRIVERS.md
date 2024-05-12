@@ -425,10 +425,10 @@ The driver uses the `micropython.viper` decorator. If your platform does not
 support this, the Viper code will need to be rewritten with a substantial hit
 to performance.
 
-#### Use with uasyncio
+#### Use with asyncio
 
 A full refresh blocks for ~200ms. If this is acceptable, no special precautions
-are required. However this period may be unacceptable for some `uasyncio`
+are required. However this period may be unacceptable for some `asyncio`
 applications. The driver provides an asynchronous `do_refresh(split=4)` method.
 If this is run the display will be refreshed, but will periodically yield to
 the scheduler enabling other tasks to run. This is documented
@@ -565,11 +565,11 @@ spi = SPI(1, 30_000_000, sck=Pin(10), mosi=Pin(11), miso=Pin(8))
 ssd = SSD(spi, dc=pdc, cs=pcs, rst=prst, disp_mode=PORTRAIT | USD)
 ```
 
-#### Use with uasyncio
+#### Use with asyncio
 
 Running the SPI bus at 60MHz a refresh blocks for 83ms (tested on a Pi Pico at
 standard clock frequency). If the blocking period is acceptable, no special
-precautions are required. This period may be unacceptable for some `uasyncio`
+precautions are required. This period may be unacceptable for some `asyncio`
 applications. Some may use lower SPI baudrates either for electrical reasons or
 where the host cannot support high speeds, and some platforms may run Python
 code at a different speed.
@@ -788,10 +788,10 @@ The driver uses the `micropython.viper` decorator. If your platform does not
 support this, the Viper code will need to be rewritten with a substantial hit
 to performance.
 
-#### Use with uasyncio
+#### Use with asyncio
 
 A full refresh blocks for ~220ms. If this is acceptable, no special precautions
-are required. However this period may be unacceptable for some `uasyncio`
+are required. However this period may be unacceptable for some `asyncio`
 applications. The driver provides an asynchronous `do_refresh(split=4)` method.
 If this is run the display will be refreshed, but will periodically yield to
 the scheduler enabling other tasks to run. This is documented
@@ -992,7 +992,7 @@ The standard refresh method blocks (monopolises the CPU) until refresh is
 complete, adding an additional 2s delay. This enables the demo scripts to run
 unchanged, with the 2s delay allowing the results to be seen before the next
 refresh begins. This is fine for simple applications. The drivers also support
-concurrency with `uasyncio`. Such applications can perform other tasks while a
+concurrency with `asyncio`. Such applications can perform other tasks while a
 refresh is in progress. See
 [EPD Asynchronous support](./DRIVERS.md#6-epd-asynchronous-support).
 

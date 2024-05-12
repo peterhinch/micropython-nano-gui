@@ -20,7 +20,7 @@ from time import sleep_ms  # , ticks_us, ticks_diff
 import framebuf
 import gc
 import micropython
-import uasyncio as asyncio
+import asyncio
 from drivers.boolpalette import BoolPalette
 
 # User orientation constants

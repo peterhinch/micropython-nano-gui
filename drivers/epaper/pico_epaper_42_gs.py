@@ -42,8 +42,9 @@
 from machine import Pin, SPI
 import framebuf
 import time
-import uasyncio as asyncio
+import asyncio
 from drivers.boolpalette import BoolPalette
+
 
 def asyncio_running():
     try:
@@ -51,6 +52,7 @@ def asyncio_running():
     except:
         return False
     return True
+
 
 # Display resolution
 _EPD_WIDTH = const(400)
@@ -93,7 +95,7 @@ def _lmap(dest: ptr8, source: ptr8, pattern: int, length: int):
         for _ in range(2):
             t = source[s]
             for _ in range(4):
-                e |= ((pattern >> (t & 3)) & 1)
+                e |= (pattern >> (t & 3)) & 1
                 t >>= 2
                 e <<= 1
             s += 1
@@ -101,18 +103,20 @@ def _lmap(dest: ptr8, source: ptr8, pattern: int, length: int):
         dest[d] = e >> 1
         d += 1
 
+
 # Color mapping.
 # There is no LUT - colors.py creates 13 color constants which have 2-bit values determined
 # by EPD.rgb(). These 2-bit values are written to the framebuf. The _lmap function produces
 # 1-bit colors which are written to two buffers on the hardware. Each buffer is written using
 # a different LUT so that grey values appear as 1 in one hardware buffer and 0 in the other.
 
+
 class EPD(framebuf.FrameBuffer):
     # The rgb method maps colors onto a 2-bit greyscale
     # colors.py creates color constants with 2-bit colors which are written to FB
     @staticmethod
     def rgb(r, g, b):
-        return min((r + g + b) >> 7, 3)  # Greyscale in range 0 <= gs <= 3 
+        return min((r + g + b) >> 7, 3)  # Greyscale in range 0 <= gs <= 3
 
     # Discard asyn arg: autodetect
     def __init__(self, spi=None, cs=None, dc=None, rst=None, busy=None, asyn=False):
@@ -120,8 +124,8 @@ class EPD(framebuf.FrameBuffer):
         self._busy_pin = Pin(_BUSY_PIN, Pin.IN, Pin.PULL_UP) if busy is None else busy
         self._cs = Pin(_CS_PIN, Pin.OUT) if cs is None else cs
         self._dc = Pin(_DC_PIN, Pin.OUT) if dc is None else dc
-        self._spi = SPI(1, sck = Pin(10), mosi = Pin(11), miso = Pin(28)) if spi is None else spi
-        self._spi.init(baudrate = 10_000_000)  # Datasheet allows 10MHz
+        self._spi = SPI(1, sck=Pin(10), mosi=Pin(11), miso=Pin(28)) if spi is None else spi
+        self._spi.init(baudrate=10_000_000)  # Datasheet allows 10MHz
         self._busy = False  # Set immediately on .show(). Cleared when busy pin is logically false (physically 1).
         # Async API
         self.updated = asyncio.Event()
@@ -172,7 +176,7 @@ class EPD(framebuf.FrameBuffer):
 
     def display_on(self):
         self._command(b"\x12")
-        time.sleep_ms(100) 
+        time.sleep_ms(100)
         self.wait_until_ready()
 
     def init(self):
@@ -182,15 +186,18 @@ class EPD(framebuf.FrameBuffer):
         self._command(b"\x06", b"\x17\x17\x17")  # boost soft start
         self._command(b"\x04")  # POWER_ON
         self.wait_until_ready()
-        self._command(b"\x00", b"\x3F")  # panel setting. Works with BF and 3F, not with 1F or 2F. But black border.
+        self._command(
+            b"\x00", b"\x3F"
+        )  # panel setting. Works with BF and 3F, not with 1F or 2F. But black border.
         # KW-BF   KWR-AF	BWROTP 0f	BWOTP 1f  PGH was 0xBF
         self._command(b"\x30", b"\x3C")  #  PLL setting
         self._command(b"\x61", b"\x01\x90\x01\x2C")  #  resolution setting
         self._command(b"\x82", b"\x12")  # vcom_DC setting PGH 0x28 in normal driver
 
-        self._command(b"\x50", b"\x57")  # VCOM AND DATA INTERVAL SETTING PGH 97 black border 57 white border
+        self._command(
+            b"\x50", b"\x57"
+        )  # VCOM AND DATA INTERVAL SETTING PGH 97 black border 57 white border
         self.set_grey()  # Greyscale LUT
-
 
     def set_grey(self):
         self._command(b"\x20", EPD_grey_lut_vcom)
@@ -202,12 +209,14 @@ class EPD(framebuf.FrameBuffer):
 
     def wait_until_ready(self):
         while not self.ready():
-            time.sleep_ms(100) 
+            time.sleep_ms(100)
 
     def set_partial(self):  # Allow demos to run
         pass
+
     def set_full(self):
         pass
+
     # For polling in asynchronous code. Just checks pin state.
     # 0 == busy. Comment in official code is wrong. Code is correct.
     def ready(self):
@@ -246,12 +255,12 @@ class EPD(framebuf.FrameBuffer):
         self.complete.set()
 
     async def do_refresh(self, split):  # For micro-gui
-        assert (not self._busy), "Refresh while busy"
+        assert not self._busy, "Refresh while busy"
         await self._as_show()  # split=5
 
     def show(self):  # nanogui
         if self._busy:
-            raise RuntimeError('Cannot refresh: display is busy.')
+            raise RuntimeError("Cannot refresh: display is busy.")
         self._busy = True  # Immediate busy flag. Pin goes low much later.
         if asyncio_running():
             self.updated.clear()
@@ -281,6 +290,6 @@ class EPD(framebuf.FrameBuffer):
         time.sleep_ms(2000)  # Give time for user to see result
 
     def sleep(self):
-#         self._command(b"\x02")  # power off
-#         self.wait_until_ready()
+        #         self._command(b"\x02")  # power off
+        #         self.wait_until_ready()
         self._command(b"\x07", b"\xA5")  # deep sleep
