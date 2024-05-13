@@ -1,6 +1,6 @@
 # ILI9341 nano-gui driver for ili9341 displays
 
-# Copyright (c) Peter Hinch 2020
+# Copyright (c) Peter Hinch 2020-2024
 # Released under the MIT license see LICENSE
 
 # This work is based on the following sources.
@@ -15,16 +15,20 @@ import asyncio
 from drivers.boolpalette import BoolPalette
 
 
+# ~80μs on RP2 @ 250MHz.
 @micropython.viper
 def _lcopy(dest: ptr16, source: ptr8, lut: ptr16, length: int):
     # rgb565 - 16bit/pixel
-    n = 0
-    for x in range(length):
+    n: int = 0
+    x: int = 0
+    while length:
         c = source[x]
         dest[n] = lut[c >> 4]  # current pixel
         n += 1
         dest[n] = lut[c & 0x0F]  # next pixel
         n += 1
+        x += 1
+        length -= 1
 
 
 class ILI9341(framebuf.FrameBuffer):

@@ -11,8 +11,7 @@ import asyncio
 from drivers.boolpalette import BoolPalette
 
 # Initialisation ported from Russ Hughes' C driver
-# https://github.com/russhughes/gc9a01_mpy/blob/main/src/gc9a01.h
-# https://github.com/russhughes/gc9a01_mpy/blob/main/src/gc9a01.c
+# https://github.com/russhughes/gc9a01_mpy/
 # Based on a ST7789 C driver: https://github.com/devbis/st7789_mpy
 # Many registers are undocumented. Lines initialising them are commented "?"
 # in cases where initialising them seems to have no effect.

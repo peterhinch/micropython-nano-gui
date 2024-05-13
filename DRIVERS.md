@@ -824,6 +824,7 @@ Clock rates up to 100MHz are supported according to the chip datasheet section
 PCB layout and grounding. I have run 33MHz without issue.
 
 #### GC9A01 Constructor args:
+
  * `spi` An initialised SPI bus instance.
  * `cs` An initialised output pin. Initial value should be 1.
  * `dc` An initialised output pin. Initial value should be 0.
@@ -859,8 +860,19 @@ some asyncio applications. The driver provides an asynchronous
 `do_refresh(split=4)` method. If this is run the display will be refreshed, but
 will periodically yield to the scheduler enabling other tasks to run. This is
 documented [here](./ASYNC.md).
-[micro-gui](https://github.com/peterhinch/micropython-micro-gui) uses this
+[micro-gui](https://github.com/peterhinch/micropython-micro-gui) and
+[micropython-touch](https://github.com/peterhinch/micropython-touch) use this
 automatically.
+
+#### Driver design note
+
+The display setup is based on [this driver](https://github.com/russhughes/gc9a01_mpy/)
+by Russ Hughes. It uses a number of undocumented registers. Under test the
+initialisation of most of these registers could be commented out without obvious
+effects, however two of them were necessary to avoid display corruption. All the
+calls were left in place with appropriate code comments. The source of the code
+in question was unclear. Russ Hughes indicated that it probably originated with
+a display manufacturer.
 
 ###### [Contents](./DRIVERS.md#contents)
 

@@ -1,6 +1,6 @@
 # ILI9486 nano-gui driver for ili9486 displays
 
-# Copyright (c) Peter Hinch 2022
+# Copyright (c) Peter Hinch 2022-2024
 # Released under the MIT license see LICENSE
 
 # Much help provided by @brave-ulysses in this thread
@@ -22,13 +22,16 @@ from drivers.boolpalette import BoolPalette
 @micropython.viper
 def _lcopy(dest: ptr16, source: ptr8, lut: ptr16, length: int):
     # rgb565 - 16bit/pixel
-    n = 0
-    for x in range(length):
+    n: int = 0
+    x: int = 0
+    while length:
         c = source[x]
         dest[n] = lut[c >> 4]  # current pixel
         n += 1
         dest[n] = lut[c & 0x0F]  # next pixel
         n += 1
+        x += 1
+        length -= 1
 
 
 # FB is in landscape mode, hence issue a column at a time to portrait mode hardware.
@@ -41,7 +44,7 @@ def _lscopy(dest: ptr16, source: ptr8, lut: ptr16, ch: int):
     n = 0
     clsb = col & 1
     idx = col >> 1  # 2 pixels per byte
-    for _ in range(height):
+    while height:
         if clsb:
             c = source[idx] & 0x0F
         else:
@@ -49,6 +52,7 @@ def _lscopy(dest: ptr16, source: ptr8, lut: ptr16, ch: int):
         dest[n] = lut[c]  # 16 bit transfer of rightmost 4-bit pixel
         n += 1  # 16 bit
         idx += wbytes
+        height -= 1
 
 
 class ILI9486(framebuf.FrameBuffer):

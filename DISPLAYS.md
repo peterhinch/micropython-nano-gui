@@ -27,6 +27,8 @@ Width and height are pixels.
 | 1.44C  | 128   |  128   | TFT   | [ST7735R][4d]  | [Adafruit 2088][5m]          |                                              |
 | 1.5C   | 160   |  128   | TFT   | [ST7735R][4d]  | [Adafruit 358][6m]           |                                              |
 | 1.3C   | 240   |  240   | TFT   | [ST7789][5d]   | [Adafruit 4313][7m]          |                                              |
+| 1.28C Q| 240   |  240   | TFT   | [GC9A01][17d]  | [W'share 1.28 touch LCD][29m]| Round touch display                          |
+| 1.28C Q| 240   |  240   | TFT   | [GC9A01][17d]  | [W'share 1.28 touch LCD][30m]| Round touch display with embedded RP2 chip   |
 | 1.5GS  | 128   |  128   | OLED  | [SSD1327][11d] | [Waveshare 13992][20m]       |                                              |
 | 2.0C   | 320   |  240   | TFT   | [ST7789][5d]   | [Waveshare Pico LCD 2][18m]  | For Pi Pico.                                 |
 | 1.54C  | 240   |  240   | TFT   | [ST7789][5d]   | [Adafruit 3787][8m]          |                                              |
@@ -110,6 +112,7 @@ simple. See [this doc](./DRIVERS.md#7-writing-device-drivers) for details.
 | R     | [TSC2007][1t] | Resistive touch needs [external controller][1q] |
 | T     | [XPT2046][2t] | Resistive touch, XPT2046 controller.            |
 | K     | [FT6206][3t]  | Capacitive touch controller.                    |
+| Q     | [CST816S][4t] | Capacitive touch controller.                    |
 
 # Links
 
@@ -137,6 +140,7 @@ simple. See [this doc](./DRIVERS.md#7-writing-device-drivers) for details.
 [14d]: https://github.com/peterhinch/micropython-nano-gui/blob/master/drivers/ssd1306/ssd1306.py
 [15d]: https://github.com/peterhinch/micropython-nano-gui/blob/master/DRIVERS.md#54-weact-studio-ssd1680-eink-displays
 [16d]: https://github.com/peterhinch/micropython-nano-gui/blob/master/drivers/st7567s/st7567s.py
+[17d]: https://github.com/peterhinch/micropython-nano-gui/blob/master/drivers/gc9a01/gc9a01.py
 
 [1m]: https://www.adafruit.com/product/684
 [2m]: https://www.adafruit.com/product/1673
@@ -166,10 +170,13 @@ simple. See [this doc](./DRIVERS.md#7-writing-device-drivers) for details.
 [26m]: https://aliexpress.com/item/1005004644515880.html
 [27m]: https://www.buydisplay.com/1-4-inch-graphic-128x64-lcd-module-serial-spi-st7567s-black-on-white
 [28m]: https://www.adafruit.com/product/1947
+[29m]: https://www.waveshare.com/wiki/1.28inch_Touch_LCD
+[30m]: https://www.waveshare.com/wiki/RP2040-Touch-LCD-1.28
 
 [1t]: https://github.com/peterhinch/micropython-touch/blob/master/TOUCHPAD.md#tsc2007
 [2t]: https://github.com/peterhinch/micropython-touch/blob/master/TOUCHPAD.md#xpt2046
 [3t]: https://github.com/peterhinch/micropython-touch/blob/master/TOUCHPAD.md#ft6206-capacitive-controller
+[4t]: https://github.com/peterhinch/micropython-touch/blob/master/TOUCHPAD.md#cst816s-capacitive-controller
 
 [1q]: https://www.adafruit.com/product/5423
 
