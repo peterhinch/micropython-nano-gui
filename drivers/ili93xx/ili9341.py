@@ -87,12 +87,10 @@ class ILI9341(framebuf.FrameBuffer):
         self._wcd(b"\xb6", b"\x08\x82\x27")  # DFUNCTR
         self._wcd(b"\xf2", b"\x00")  # ENABLE3G Enable 3 gamma ctrl
         self._wcd(b"\x26", b"\x01")  # GAMMASET Gamma curve selected
-        self._wcd(
-            b"\xe0", b"\x0F\x31\x2B\x0C\x0E\x08\x4E\xF1\x37\x07\x10\x03\x0E\x09\x00"
-        )  # GMCTRP1
-        self._wcd(
-            b"\xe1", b"\x00\x0E\x14\x03\x11\x07\x31\xC1\x48\x08\x0F\x0C\x31\x36\x0F"
-        )  # GMCTRN1
+        # GMCTRP1
+        self._wcd(b"\xe0", b"\x0F\x31\x2B\x0C\x0E\x08\x4E\xF1\x37\x07\x10\x03\x0E\x09\x00")
+        # GMCTRN1
+        self._wcd(b"\xe1", b"\x00\x0E\x14\x03\x11\x07\x31\xC1\x48\x08\x0F\x0C\x31\x36\x0F")
         self._wcmd(b"\x11")  # SLPOUT Exit sleep
         sleep_ms(100)
         self._wcmd(b"\x29")  # DISPLAY_ON

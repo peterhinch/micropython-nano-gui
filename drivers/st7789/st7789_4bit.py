@@ -1,7 +1,7 @@
 # st7789.py Driver for ST7789 LCD displays for nano-gui
 
 # Released under the MIT License (MIT). See LICENSE.
-# Copyright (c) 2021 Peter Hinch, Ihor Nehrutsa
+# Copyright (c) 2021-2024 Peter Hinch, Ihor Nehrutsa
 
 # Tested displays:
 # Adafruit 1.3" 240x240 Wide Angle TFT LCD Display with MicroSD - ST7789
@@ -39,13 +39,16 @@ WAVESHARE_13 = (0, 0, 16)  # Waveshare 1.3" 240x240 LCD contributed by Aaron Mit
 @micropython.viper
 def _lcopy(dest: ptr16, source: ptr8, lut: ptr16, length: int):
     # rgb565 - 16bit/pixel
-    n = 0
-    for x in range(length):
+    n: int = 0
+    x: int = 0
+    while length:
         c = source[x]
         dest[n] = lut[c >> 4]  # current pixel
         n += 1
         dest[n] = lut[c & 0x0F]  # next pixel
         n += 1
+        x += 1
+        length -= 1
 
 
 class ST7789(framebuf.FrameBuffer):
