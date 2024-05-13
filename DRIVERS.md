@@ -1,7 +1,8 @@
 # Display drivers
 
 These drivers support [nano-gui](./README.md), [micro-gui](https://github.com/peterhinch/micropython-micro-gui),
-and [Writer and CWriter](https://github.com/peterhinch/micropython-font-to-py/blob/master/writer/WRITER.md).
+[micropython-touch](https://github.com/peterhinch/micropython-touch) and
+[Writer and CWriter](https://github.com/peterhinch/micropython-font-to-py/blob/master/writer/WRITER.md).
 They currently support four display technologies: OLED (color and monochrome),
 color TFT, monochrome Sharp displays and EPD (ePaper/eInk).
 All drivers provide a display class subclassed from the built-in
@@ -42,6 +43,7 @@ access via the `Writer` and `CWriter` classes is documented
   &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;3.3.3 [Waveshare Pico LCD 2](./DRIVERS.md#333-waveshare-pico-lcd-2)  
   &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;3.3.4 [Troubleshooting](./DRIVERS.md#334-troubleshooting)  
   3.4 [Driver for ILI94xx](./DRIVERS.md#34-driver-for-ili94xx) Generic ILI94xx and HX8357D driver for large displays.  
+  3.5 [Driver for gc9a01](./DRIVERS.md#35-driver-for-gc9a01) Round 240x240 displays.  
  4. [Drivers for sharp displays](./DRIVERS.md#4-drivers-for-sharp-displays) Large low power monochrome displays  
   4.1 [Display characteristics](./DRIVERS.md#41-display-characteristics)  
   &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;4.1.1 [The VCOM bit](./DRIVERS.md#411-the-vcom-bit)  
@@ -810,6 +812,55 @@ where possible. These defaults are common to a range of controllers.
 The driver is quite minimal. Drivers released by display manufacturers set up
 the controller to achieve precise color rendering. With a 4-bit palette these
 consume bytes with zero visual benefit.
+
+## 3.5 Driver for gc9a01
+
+This chip is used on 240x240 pixel circular displays. While all pixels are
+accessible, only those in a 240 pixel diameter circle are visible. The
+`color_setup.py` file should initialise the SPI bus. Args polarity, phase, bits,
+firstbit are defaults. Hard or soft SPI may be used but hard may be faster.
+Clock rates up to 100MHz are supported according to the chip datasheet section
+7.3.4, but high speeds are sensitive to  electrical issues such as lead lengths,
+PCB layout and grounding. I have run 33MHz without issue.
+
+#### GC9A01 Constructor args:
+ * `spi` An initialised SPI bus instance.
+ * `cs` An initialised output pin. Initial value should be 1.
+ * `dc` An initialised output pin. Initial value should be 0.
+ * `rst` An initialised output pin. Initial value should be 1.
+ * `height=240` Display dimensions in pixels.
+ * `width=240`
+ * `lscape=False` If `True`, display is rotated 90° (Landscape mode).
+ * `usd=False` Upside down: if `True` display is inverted.
+ * `mirror=False` If `True` a mirror-image is displayed
+ * `init_spi=False` For shared SPI bus applications. See note below.
+
+#### Shared SPI bus
+
+This optional arg enables flexible options in configuring the SPI bus. The
+default assumes exclusive access to the bus. In this normal case,
+`color_setup.py` initialises it and the settings are left in place. If the bus
+is shared with devices which require different settings, a callback function
+should be passed. It will be called prior to each SPI bus write. The callback
+will receive a single arg being the SPI bus instance. It will typically be a
+one-liner or lambda initialising the bus to be suitable for the GC9A01. A
+minimal example is this function:
+
+```py
+def spi_init(spi):
+    spi.init(baudrate=33_000_000)
+```
+#### Use with asyncio
+
+A full refresh blocks for ~70ms, measured on RP2 with 30MHz hard SPI and
+standard clock. This is reduced to 61ms at 250MHz clock. If this is acceptable,
+no special precautions are required. However this period may be unacceptable for
+some asyncio applications. The driver provides an asynchronous
+`do_refresh(split=4)` method. If this is run the display will be refreshed, but
+will periodically yield to the scheduler enabling other tasks to run. This is
+documented [here](./ASYNC.md).
+[micro-gui](https://github.com/peterhinch/micropython-micro-gui) uses this
+automatically.
 
 ###### [Contents](./DRIVERS.md#contents)
 
