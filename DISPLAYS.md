@@ -122,6 +122,8 @@ simple. See [this doc](./DRIVERS.md#7-writing-device-drivers) for details.
 
 #### [micro-gui](https://github.com/peterhinch/micropython-micro-gui)
 
+#### [micropython-touch](https://github.com/peterhinch/micropython-touch)
+
 #### [Writer and CWriter](https://github.com/peterhinch/micropython-font-to-py/blob/master/writer/WRITER.md)
 
 [1d]: https://github.com/peterhinch/micropython-nano-gui/blob/master/DRIVERS.md#22-drivers-for-ssd1331

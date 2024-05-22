@@ -41,6 +41,8 @@ wrap or clipping.
 ![Image](images/seismo.JPG) A mockup of a seismograph screen on an ePaper
 display.
 
+![Image](images/round.JPG) Circular display using gc9a01 controller.
+
 # Contents
 
  1. [Introduction](./README.md#1-introduction)  
@@ -123,6 +125,7 @@ my GUI's employ the American spelling of `color`.
 
 ## 1.1 Change log
 
+22 May 2024 Support circular displays with gc9a01 controller.
 15 Mar 2023 Driver update to 4.2 inch Waveshare ePpaper display.  
 12 Feb 2023 Add support for sh1106 driver. Fix color compatibility of SSD1306.  
 5 Sep 2022 Add support for additional Pico displays.  
