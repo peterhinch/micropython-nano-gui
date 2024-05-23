@@ -1,5 +1,6 @@
-# gc9a01 nano-gui driver for gc9a01 displays
-# Default args are for a 240*240 (typically circular) display
+# gc9a01_8_bit.py nano-gui driver for gc9a01 displays using 8 bit pixels
+# Default args are for a 240*240 (typically circular) display. This will result
+# in a 57,600 byte frame buffer.
 
 # Copyright (c) Peter Hinch 2024
 # Released under the MIT license see LICENSE
@@ -20,33 +21,30 @@ from drivers.boolpalette import BoolPalette
 # Waveshare touch board https://www.waveshare.com/wiki/1.28inch_Touch_LCD has CST816S touch controller
 # Touch controller uses I2C
 
-# Portrait mode. ~70μs on RP2 at standard clock.
+# g4 g3 g2 b7  b6 b5 b4 b3  r7 r6 r5 r4  r3 g7 g6 g5
 @micropython.viper
-def _lcopy(dest: ptr16, source: ptr8, lut: ptr16, length: int):
+def _lcopy(dest: ptr16, source: ptr8, length: int, gscale: bool):
     # rgb565 - 16bit/pixel
     n: int = 0
-    x: int = 0
     while length:
-        c = source[x]  # Source byte holds two 4-bit colors
-        dest[n] = lut[c >> 4]  # current pixel
+        c = source[n]
+        if gscale:  # Source byte holds 8-bit greyscale
+            # dest rrrr rggg gggb bbbb
+            dest[n] = (c & 0xF1) | (c >> 5) | ((c & 0x1C) << 11) | ((c & 0xF1) << 5)
+        else:  # Source byte holds 8-bit rrrgggbb
+            # dest 000b b000 rrr0 0ggg
+            dest[n] = (c & 0xE0) | ((c & 0x1C) >> 2) | ((c & 0x03) << 11)
         n += 1
-        dest[n] = lut[c & 0x0F]  # next pixel
-        n += 1
-        x += 1
         length -= 1
 
 
 class GC9A01(framebuf.FrameBuffer):
-
-    lut = bytearray(32)  # Color LUT holds all possible 16-bit colors
-
-    # Convert r, g, b in range 0-255 to a 16 bit colour value
-    # LS byte goes into LUT offset 0, MS byte into offset 1
-    # Same mapping in linebuf so LS byte is shifted out 1st
-    # GC9A01 expects RGB order. 8 bit register writes require padding
-    @classmethod
-    def rgb(cls, r, g, b):
-        return (r & 0xF8) | ((g & 0xE0) >> 5) | ((g & 0x1C) << 11) | ((b & 0xF8) << 5)
+    # Convert r, g, b in range 0-255 to an 8 bit colour value
+    # rrrgggbb. Converted to 16 bit on the fly.
+    # GC9A01 expects RGB order.
+    @staticmethod
+    def rgb(r, g, b):
+        return (r & 0xE0) | ((g >> 3) & 0x1C) | (b >> 6)
 
     def __init__(
         self,
@@ -68,10 +66,11 @@ class GC9A01(framebuf.FrameBuffer):
         self.height = height  # Logical dimensions for GUIs
         self.width = width
         self._spi_init = init_spi
-        mode = framebuf.GS4_HMSB
+        self._gscale = False  # Interpret buffer as rrrgggbb color
+        mode = framebuf.GS8  # Use 8bit greyscale for 8 bit color.
         self.palette = BoolPalette(mode)
         gc.collect()
-        buf = bytearray(height * width // 2)  # Frame buffer
+        buf = bytearray(height * width)  # Frame buffer
         self._mvb = memoryview(buf)
         super().__init__(buf, width, height, mode)
         self._linebuf = bytearray(width * 2)  # Line buffer (16-bit colors)
@@ -172,8 +171,12 @@ class GC9A01(framebuf.FrameBuffer):
         self._spi.write(data)
         self._cs(1)
 
+    def greyscale(self, gs=None):
+        if gs is not None:
+            self._gscale = gs
+        return self._gscale
+
     def show(self):  # Physical display is in portrait mode
-        clut = GC9A01.lut
         lb = self._linebuf
         buf = self._mvb
         if self._spi_init:  # A callback was passed
@@ -181,10 +184,11 @@ class GC9A01(framebuf.FrameBuffer):
         self._wcmd(b"\x2c")  # WRITE_RAM
         self._dc(1)
         self._cs(0)
-        wd = self.width // 2
+        wd = self.width
         ht = self.height
+        cm = self._gscale  # color False, greyscale True
         for start in range(0, wd * ht, wd):  # For each line
-            _lcopy(lb, buf[start:], clut, wd)  # Copy and map colors
+            _lcopy(lb, buf[start:], wd, cm)  # Copy and map colors
             self._spi.write(lb)
         self._cs(1)
 
@@ -193,19 +197,19 @@ class GC9A01(framebuf.FrameBuffer):
             lines, mod = divmod(self.height, split)  # Lines per segment
             if mod:
                 raise ValueError("Invalid do_refresh arg.")
-            clut = GC9A01.lut
             lb = self._linebuf
             buf = self._mvb
             self._wcmd(b"\x2c")  # WRITE_RAM
             self._dc(1)
-            wd = self.width // 2
+            wd = self.width
+            cm = self._gscale  # color False, greyscale True
             line = 0
             for _ in range(split):  # For each segment
                 if self._spi_init:  # A callback was passed
                     self._spi_init(self._spi)  # Bus may be shared
                 self._cs(0)
                 for start in range(wd * line, wd * (line + lines), wd):  # For each line
-                    _lcopy(lb, buf[start:], clut, wd)  # Copy and map colors
+                    _lcopy(lb, buf[start:], wd, cm)  # Copy and map colors
                     self._spi.write(lb)
                 line += lines
                 self._cs(1)  # Allow other tasks to use bus
