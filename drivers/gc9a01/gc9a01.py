@@ -89,10 +89,9 @@ class GC9A01(framebuf.FrameBuffer):
         # Default page address start == 0 end == 0xEF (239)
         self._wcd(b"\x2b", int.to_bytes(height - 1, 4, "big"))  # SET_PAGE ht
         # **** Start of opaque chip setup ****
-        self._wcmd(b"\xEF")  # Inter register enable 2
-        self._wcd(b"\xEB", b"\x14")  # ?
         self._wcmd(b"\xFE")  # Inter register enable 1
-        self._wcmd(b"\xEF")  # Inter register enable 2
+        self._wcmd(b"\xEF")  # Inter register enable 2. Sequence is necessary
+        # to enable access to other registers.
         self._wcd(b"\xEB", b"\x14")  # ?
         self._wcd(b"\x84", b"\x40")  # ?
         self._wcd(b"\x85", b"\xFF")  # ?
@@ -134,9 +133,9 @@ class GC9A01(framebuf.FrameBuffer):
         self._wcd(b"\x67", b"\x00\x3C\x00\x00\x00\x01\x54\x10\x32\x98")  # Undoc but needed
         self._wcd(b"\x74", b"\x10\x85\x80\x00\x00\x4E\x00")  # ?
         self._wcd(b"\x98", b"\x3e\x07")  # ?
-        self._wcmd(b"\x35")  # Tearing effect line on
-        self._wcmd(b"\x21")  # Display inversion on ???
-        self._wcmd(b"\x11")
+        # self._wcmd(b"\x35")  # Tearing effect line on. This pin is unused.
+        self._wcmd(b"\x21")  # Display inversion on
+        self._wcmd(b"\x11")  # Sleep out
         sleep_ms(120)
         # *************************
 

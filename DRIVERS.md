@@ -823,6 +823,15 @@ Clock rates up to 100MHz are supported according to the chip datasheet section
 7.3.4, but high speeds are sensitive to  electrical issues such as lead lengths,
 PCB layout and grounding. I have run 33MHz without issue.
 
+Two versions are provided:
+* `gc9a01.py` 4-bit driver, frame buffer requires 28,800 bytes of RAM.
+* `gc9a01_8_bit.py` 8-bit driver, requires 57,600 bytes.
+
+For use with the three GUI options the 4-bit version is normally preferred. The
+8-bit version allows more colors to be displayed on any given screen. It also
+offers a mode in which 8-bit greyscale full-screen bitmap images can be
+displayed. Both have identical constructor args.
+
 #### GC9A01 Constructor args:
 
  * `spi` An initialised SPI bus instance.
@@ -835,6 +844,19 @@ PCB layout and grounding. I have run 33MHz without issue.
  * `usd=False` Upside down: if `True` display is inverted.
  * `mirror=False` If `True` a mirror-image is displayed
  * `init_spi=False` For shared SPI bus applications. See note below.
+
+ #### Method (8-bit version only)
+
+ * `greyscale(gs=None)` By default the frame buffer contents are interpreted as
+ `rrrgggbb` color values. If `True` is passed, the contents will be treated as
+ 8-bit greyscale values. This mode will persist until the method is called with
+ `False`. Returns the current greyscale state. It is possible to superimpose
+ widgets on an image, but the mapping of colors onto the greyscale may yield
+ unexpected grey values. `WHITE` and `BLACK` work well. In
+ [micro-gui](https://github.com/peterhinch/micropython-micro-gui) and
+ [micropython-touch](https://github.com/peterhinch/micropython-touch) the
+ `after_open` method should be used to render the image to the framebuf and to
+ overlay any widgets.
 
 #### Shared SPI bus
 
