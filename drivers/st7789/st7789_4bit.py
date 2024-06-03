@@ -78,8 +78,6 @@ class ST7789(framebuf.FrameBuffer):
     ):
         if not 0 <= disp_mode <= 7:
             raise ValueError("Invalid display mode:", disp_mode)
-        if not display in (GENERIC, TDISPLAY, PI_PICO_LCD_2):
-            print("WARNING: unsupported display parameter value.")
         self._spi = spi  # Clock cycle time for write 16ns 62.5MHz max (read is 150ns)
         self._rst = rst  # Pins
         self._dc = dc

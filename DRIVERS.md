@@ -828,9 +828,8 @@ Two versions are provided:
 * `gc9a01_8_bit.py` 8-bit driver, requires 57,600 bytes.
 
 For use with the three GUI options the 4-bit version is normally preferred. The
-8-bit version allows more colors to be displayed on any given screen. It also
-offers a mode in which 8-bit greyscale full-screen bitmap images can be
-displayed. Both have identical constructor args.
+8-bit version allows more colors to be displayed on any given screen. Both have
+identical constructor args and method.
 
 #### GC9A01 Constructor args:
 
@@ -845,14 +844,15 @@ displayed. Both have identical constructor args.
  * `mirror=False` If `True` a mirror-image is displayed
  * `init_spi=False` For shared SPI bus applications. See note below.
 
- #### Method (8-bit version only)
+ #### Method
 
- * `greyscale(gs=None)` By default the frame buffer contents are interpreted as
- `rrrgggbb` color values. If `True` is passed, the contents will be treated as
- 8-bit greyscale values. This mode will persist until the method is called with
- `False`. Returns the current greyscale state. It is possible to superimpose
- widgets on an image, but the mapping of colors onto the greyscale may yield
- unexpected grey values. `WHITE` and `BLACK` work well. In
+ * `greyscale(gs=None)` Setting `gs=True` enables the screen to be used to show
+a full screen monochrome image. By default the frame buffer contents are
+interpreted as color values. In greyscale mode the contents are treated as
+greyscale  values. This mode persists until the method is called with
+`gs=False`. The method returns the current greyscale state. It is possible to
+superimpose widgets on an image, but the mapping of colors onto the greyscale
+may yield unexpected shades of grey. `WHITE` and `BLACK` work well. In
  [micro-gui](https://github.com/peterhinch/micropython-micro-gui) and
  [micropython-touch](https://github.com/peterhinch/micropython-touch) the
  `after_open` method should be used to render the image to the framebuf and to
