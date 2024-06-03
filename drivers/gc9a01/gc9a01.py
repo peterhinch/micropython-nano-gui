@@ -20,17 +20,25 @@ from drivers.boolpalette import BoolPalette
 # Waveshare touch board https://www.waveshare.com/wiki/1.28inch_Touch_LCD has CST816S touch controller
 # Touch controller uses I2C
 
+# Output RGB565 format, 16 bit/pixel:
+# g4 g3 g2 b7  b6 b5 b4 b3  r7 r6 r5 r4  r3 g7 g6 g5
 # Portrait mode. ~70μs on RP2 at standard clock.
 @micropython.viper
-def _lcopy(dest: ptr16, source: ptr8, lut: ptr16, length: int):
-    # rgb565 - 16bit/pixel
+def _lcopy(dest: ptr16, source: ptr8, lut: ptr16, length: int, gscale: bool):
     n: int = 0
     x: int = 0
     while length:
         c = source[x]  # Source byte holds two 4-bit colors
-        dest[n] = lut[c >> 4]  # current pixel
-        n += 1
-        dest[n] = lut[c & 0x0F]  # next pixel
+        p = c >> 4  # current pixel
+        q = c & 0x0F  # next pixel
+        if gscale:  # Treat as greyscale
+            dest[n] = p >> 1 | p << 4 | p << 9 | ((p & 0x01) << 15)
+            n += 1
+            dest[n] = q >> 1 | q << 4 | q << 9 | ((q & 0x01) << 15)
+        else:  # Color lookup
+            dest[n] = lut[p]  # current pixel
+            n += 1
+            dest[n] = lut[q]  # next pixel
         n += 1
         x += 1
         length -= 1
@@ -68,6 +76,7 @@ class GC9A01(framebuf.FrameBuffer):
         self.height = height  # Logical dimensions for GUIs
         self.width = width
         self._spi_init = init_spi
+        self._gscale = False  # Interpret buffer as index into color LUT
         mode = framebuf.GS4_HMSB
         self.palette = BoolPalette(mode)
         gc.collect()
@@ -171,6 +180,11 @@ class GC9A01(framebuf.FrameBuffer):
         self._spi.write(data)
         self._cs(1)
 
+    def greyscale(self, gs=None):
+        if gs is not None:
+            self._gscale = gs
+        return self._gscale
+
     def show(self):  # Physical display is in portrait mode
         clut = GC9A01.lut
         lb = self._linebuf
@@ -182,8 +196,9 @@ class GC9A01(framebuf.FrameBuffer):
         self._cs(0)
         wd = self.width // 2
         ht = self.height
+        cm = self._gscale  # color False, greyscale True
         for start in range(0, wd * ht, wd):  # For each line
-            _lcopy(lb, buf[start:], clut, wd)  # Copy and map colors
+            _lcopy(lb, buf[start:], clut, wd, cm)  # Copy and map colors
             self._spi.write(lb)
         self._cs(1)
 
@@ -198,13 +213,14 @@ class GC9A01(framebuf.FrameBuffer):
             self._wcmd(b"\x2c")  # WRITE_RAM
             self._dc(1)
             wd = self.width // 2
+            cm = self._gscale  # color False, greyscale True
             line = 0
             for _ in range(split):  # For each segment
                 if self._spi_init:  # A callback was passed
                     self._spi_init(self._spi)  # Bus may be shared
                 self._cs(0)
                 for start in range(wd * line, wd * (line + lines), wd):  # For each line
-                    _lcopy(lb, buf[start:], clut, wd)  # Copy and map colors
+                    _lcopy(lb, buf[start:], clut, wd, cm)  # Copy and map colors
                     self._spi.write(lb)
                 line += lines
                 self._cs(1)  # Allow other tasks to use bus
