@@ -1,15 +1,15 @@
 # 1. Displaying photo images
 
-The display drivers in this repo were primarily designed for displaying geometric shapes
-and fonts. With a minor update they may also be used for image display. The method used is
-ideal for full screen images however with suitable user code smaller images may be
-rendered. It is also possible to overlay an image with GUI controls, although transparency
-is not supported.
+The display drivers in this repo were originally designed for displaying
+geometric shapes and fonts. With a minor update they may also be used for image
+display. The method used is ideal for full screen images however with suitable
+user code smaller images may be rendered. It is also possible to overlay an
+image with GUI controls, although transparency is not supported.
 
-The following notes apply
-[nanogui](https://github.com/peterhinch/micropython-nano-gui)
-[micro-gui](https://github.com/peterhinch/micropython-micro-gui) and
-[micropython-touch](https://github.com/peterhinch/micropython-touch).
+GUI references:  
+[nanogui](https://github.com/peterhinch/micropython-nano-gui)  
+[micro-gui](https://github.com/peterhinch/micropython-micro-gui)  
+[micropython-touch](https://github.com/peterhinch/micropython-touch)
 
 Images for display should be converted to a [netpbm format](https://en.wikipedia.org/wiki/Netpbm),
 namely a `.pgm` file for a monochrome image or `.ppm` for color. This may be
@@ -19,21 +19,21 @@ greyscale to enable a monochrome image to display on a 4-bit driver. This is
 done using a CPython utility `img_cvt.py` documented below.
 
 An updated driver has a `greyscale` method enabling the frame buffer contents to
-be interpreted at show time as either color or greyscale. This
+be interpreted at show time as either color or greyscale.
 
 ## 1.2 Supported drivers
 
-Currently only gc9a01 drivers are supported.
+Currently gc9a01, ili948x, ili9341 and st7789 drivers are supported.
 
 ## 1.3 Monochrome images
 
 These may be displayed using 8-bit or 16-bit drivers by treating it as if it
-were color: exporting the image from the graphics program as a `.ppm` color
+were color: by exporting the image from the graphics program as a `.ppm` color
 image and using `img_cvt.py` to convert it to the correct color mode.
 
 On 4-bit drivers the image should be exported as a `.pgm` greyscale;
-`img_cvt.py` will convert it to 4-bit format. In testing this produced good
-results.
+`img_cvt.py` will convert it to 4-bit format. This utility uses error diffusion
+(dithering) to avoid banding and produced good results in testing.
 
 ## 1.4 Color images
 
@@ -79,3 +79,6 @@ size. In other cases the rows and cols values must be used to populate a subset
 of the frame buffer pixels or to display a subset of the image pixels. Secondly
 the built-in flash of some platforms can be slow. If there is a visible pause in
 displaying the image this is likely to be the cause.
+
+
+## doc to be continued
