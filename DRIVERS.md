@@ -1172,7 +1172,6 @@ needed in more advanced asynchronous applications and their use is discussed in
  modify widgets without risk of display corruption.
  * `complete` Set when display update is complete. It is now safe to call
  `ssd.refresh()`.
- EPD.
 
 ### 5.1.4 Public bound variables
 

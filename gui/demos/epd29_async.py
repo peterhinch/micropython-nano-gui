@@ -19,7 +19,7 @@ from gui.widgets.dial import Dial, Pointer
 import gui.fonts.arial10 as arial10
 import gui.fonts.font6 as small
 
-ssd._asyn = True  # HACK to make it config agnostic
+# ssd._asyn = True  # HACK to make it config agnostic
 # Some ports don't support uos.urandom.
 # See https://github.com/peterhinch/micropython-samples/tree/master/random
 def xorshift64star(modulo, seed=0xF9AC6BA4):
@@ -94,7 +94,7 @@ async def meter(evt):
 
 async def main():
     refresh(ssd, True)  # Clear display
-    await ssd.wait()
+    await ssd.complete.wait()
     print("Ready")
     evt = asyncio.Event()
     asyncio.create_task(meter(evt))
@@ -102,9 +102,9 @@ async def main():
     asyncio.create_task(compass(evt))
     while True:
         # Normal procedure before refresh, but 10s sleep should mean it always returns immediately
-        await ssd.wait()
+        await ssd.complete.wait()
         refresh(ssd)  # Launches ._as_show()
-        await ssd.updated()
+        await ssd.updated.wait()
         # Content has now been shifted out so coros can update
         # framebuffer in background
         evt.set()
