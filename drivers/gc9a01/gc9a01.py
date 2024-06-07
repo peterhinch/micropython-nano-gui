@@ -81,7 +81,7 @@ class GC9A01(framebuf.FrameBuffer):
         self.palette = BoolPalette(mode)
         gc.collect()
         buf = bytearray(height * width // 2)  # Frame buffer
-        self._mvb = memoryview(buf)
+        self.mvb = memoryview(buf)
         super().__init__(buf, width, height, mode)
         self._linebuf = bytearray(width * 2)  # Line buffer (16-bit colors)
 
@@ -188,7 +188,7 @@ class GC9A01(framebuf.FrameBuffer):
     def show(self):  # Physical display is in portrait mode
         clut = GC9A01.lut
         lb = self._linebuf
-        buf = self._mvb
+        buf = self.mvb
         if self._spi_init:  # A callback was passed
             self._spi_init(self._spi)  # Bus may be shared
         self._wcmd(b"\x2c")  # WRITE_RAM
@@ -209,7 +209,7 @@ class GC9A01(framebuf.FrameBuffer):
                 raise ValueError("Invalid do_refresh arg.")
             clut = GC9A01.lut
             lb = self._linebuf
-            buf = self._mvb
+            buf = self.mvb
             self._wcmd(b"\x2c")  # WRITE_RAM
             self._dc(1)
             wd = self.width // 2

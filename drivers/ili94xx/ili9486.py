@@ -20,15 +20,22 @@ from drivers.boolpalette import BoolPalette
 
 # Portrait mode
 @micropython.viper
-def _lcopy(dest: ptr16, source: ptr8, lut: ptr16, length: int):
+def _lcopy(dest: ptr16, source: ptr8, lut: ptr16, length: int, gscale: bool):
     # rgb565 - 16bit/pixel
     n: int = 0
     x: int = 0
     while length:
         c = source[x]
-        dest[n] = lut[c >> 4]  # current pixel
-        n += 1
-        dest[n] = lut[c & 0x0F]  # next pixel
+        p = c >> 4  # current pixel
+        q = c & 0x0F  # next pixel
+        if gscale:
+            dest[n] = p >> 1 | p << 4 | p << 9 | ((p & 0x01) << 15)
+            n += 1
+            dest[n] = q >> 1 | q << 4 | q << 9 | ((q & 0x01) << 15)
+        else:
+            dest[n] = lut[p]  # current pixel
+            n += 1
+            dest[n] = lut[q]  # next pixel
         n += 1
         x += 1
         length -= 1
@@ -36,8 +43,8 @@ def _lcopy(dest: ptr16, source: ptr8, lut: ptr16, length: int):
 
 # FB is in landscape mode, hence issue a column at a time to portrait mode hardware.
 @micropython.viper
-def _lscopy(dest: ptr16, source: ptr8, lut: ptr16, ch: int):
-    col = ch & 0x1FF  # Unpack (viper 4 parameter limit)
+def _lscopy(dest: ptr16, source: ptr8, lut: ptr16, ch: int, gscale: bool):
+    col = ch & 0x1FF  # Unpack (viper old 4 parameter limit)
     height = (ch >> 9) & 0x1FF
     wbytes = ch >> 19  # Width in bytes is width // 2
     # rgb565 - 16bit/pixel
@@ -49,7 +56,8 @@ def _lscopy(dest: ptr16, source: ptr8, lut: ptr16, ch: int):
             c = source[idx] & 0x0F
         else:
             c = source[idx] >> 4
-        dest[n] = lut[c]  # 16 bit transfer of rightmost 4-bit pixel
+        dest[n] = c >> 1 | c << 4 | c << 9 | ((c & 0x01) << 15) if gscale else lut[c]
+        # dest[n] = lut[c]  # 16 bit transfer of rightmost 4-bit pixel
         n += 1  # 16 bit
         idx += wbytes
         height -= 1
@@ -83,11 +91,12 @@ class ILI9486(framebuf.FrameBuffer):
         self._long = max(height, width)  # Physical dimensions of screen and aspect ratio
         self._short = min(height, width)
         self._spi_init = init_spi
+        self._gscale = False  # Interpret buffer as index into color LUT
         mode = framebuf.GS4_HMSB
         self.palette = BoolPalette(mode)
         gc.collect()
         buf = bytearray(height * width // 2)
-        self._mvb = memoryview(buf)
+        self.mvb = memoryview(buf)
         super().__init__(buf, width, height, mode)  # Logical aspect ratio
         self._linebuf = bytearray(self._short * 2)
 
@@ -140,11 +149,17 @@ class ILI9486(framebuf.FrameBuffer):
         self._spi.write(data)
         self._cs(1)
 
+    def greyscale(self, gs=None):
+        if gs is not None:
+            self._gscale = gs
+        return self._gscale
+
     # @micropython.native  # Made almost no difference to timing
     def show(self):  # Physical display is in portrait mode
         clut = ILI9486.lut
         lb = self._linebuf
-        buf = self._mvb
+        buf = self.mvb
+        cm = self._gscale  # color False, greyscale True
         if self._spi_init:  # A callback was passed
             self._spi_init(self._spi)  # Bus may be shared
         self._wcmd(b"\x2c")  # WRITE_RAM
@@ -154,14 +169,14 @@ class ILI9486(framebuf.FrameBuffer):
             wd = self.width // 2
             ht = self.height
             for start in range(0, wd * ht, wd):  # For each line
-                _lcopy(lb, buf[start:], clut, wd)  # Copy and map colors
+                _lcopy(lb, buf[start:], clut, wd, cm)  # Copy and map colors
                 self._spi.write(lb)
         else:  # Landscpe 264ms on RP2 120MHz, 30MHz SPI clock
             width = self.width
             wd = width - 1
             cargs = (self.height << 9) + (width << 18)  # Viper 4-arg limit
             for col in range(width):  # For each column of landscape display
-                _lscopy(lb, buf, clut, wd - col + cargs)  # Copy and map colors
+                _lscopy(lb, buf, clut, wd - col + cargs, cm)  # Copy and map colors
                 self._spi.write(lb)
         self._cs(1)
 
@@ -172,7 +187,8 @@ class ILI9486(framebuf.FrameBuffer):
                 raise ValueError("Invalid do_refresh arg.")
             clut = ILI9486.lut
             lb = self._linebuf
-            buf = self._mvb
+            buf = self.mvb
+            cm = self._gscale  # color False, greyscale True
             self._wcmd(b"\x2c")  # WRITE_RAM
             self._dc(1)
             if self.width < self.height:  # Portrait: write sets of rows
@@ -183,7 +199,7 @@ class ILI9486(framebuf.FrameBuffer):
                         self._spi_init(self._spi)  # Bus may be shared
                     self._cs(0)
                     for start in range(wd * line, wd * (line + lines), wd):  # For each line
-                        _lcopy(lb, buf[start:], clut, wd)  # Copy and map colors
+                        _lcopy(lb, buf[start:], clut, wd, cm)  # Copy and map colors
                         self._spi.write(lb)
                     line += lines
                     self._cs(1)  # Allow other tasks to use bus
@@ -197,7 +213,7 @@ class ILI9486(framebuf.FrameBuffer):
                         self._spi_init(self._spi)  # Bus may be shared
                     self._cs(0)
                     for col in range(sc, ec, -1):  # For each column of landscape display
-                        _lscopy(lb, buf, clut, col + cargs)  # Copy and map colors
+                        _lscopy(lb, buf, clut, col + cargs, cm)  # Copy and map colors
                         self._spi.write(lb)
                     sc -= lines
                     ec -= lines
