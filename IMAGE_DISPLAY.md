@@ -37,7 +37,7 @@ display as if it were color (see section 2).
 
 On 4-bit drivers the greyscale image should be exported as a `.pgm` file;
 `img_cvt.py` will convert it to 4-bit format. The following is an example of a
-monochrome image rendered on a 240x320 display with a 4-bit driver.
+monochrome image rendered on a 240x320 display with a 4-bit driver.  
 ![Image](./images/deer_mono.JPG)  
 The image is overlaid by a touchable `Button` widget.
 
