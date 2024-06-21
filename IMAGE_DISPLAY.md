@@ -127,13 +127,16 @@ necessarily a greyscale image). When asked for Data Formatting, select RAW.
 ## 2.2 Using img_cvt.py
 
 This takes a PPM or PGM file and outputs a binary file in the correct format for
-display. Typical usage:
+display; alternatively a Python source file may be output. The latter offers the
+option to freeze the file for fast display with minimal RAM use. Typical usage:
+
 ```bash
 $ ./img_cvt.py test.ppm test.bin
 ```
 Mandatory positional args:
 1. `infile` Input file path.
-2. `outfile` Output file path.
+2. `outfile` Output file path. If the file extension is `.py` a Python source
+file will be output.
 Optional args:
 1. `-r` or `--rows` Expected image dimensions. If passed these are checked
 against the actual image and a warning printed on a mismatch.
@@ -159,7 +162,16 @@ except that selecting `None` led to a substantial loss of quality.
 
 # 3. Populating the Frame Buffer
 
-## 3.1 Output file format
+A binary file may be used as in the examples in section 1.5: this is RAM
+efficient but file access from Flash tends to be slow.
+
+Converting to Python source offers two routes for fast updates. A `FrameBuffer`
+may be instantiated from the Python file and blitted to the device. Best suited
+for small graphical elements such as sprites. Full screen images can be copied
+to the device buffer - again yielding rapid updates. If the source file is
+frozen this is RAM efficient and fast.
+
+## 3.1 Binary output file format
 
 The first four bytes comprise a count of rows, then cols, in big-endian format.
 The following bytes are pixel data in a horizontally mapped format. Pixels
@@ -168,7 +180,36 @@ imagined as an array of size `rows * cols` the sequence of pixels coming from th
 input stream is:  
 p[0, 0],p[0, 1]...p[0, cols-1],p[1, 0],p[1,1]...p[1, cols-1]...p[rows-1, cols-1]
 
-## 3.2 Frame Buffer Access
+## 3.2 Python output file format
+
+Bound variables:
+* `source` The path of the source image file.
+* `rows` Image dimensions in pixels.
+* `cols`
+* `mode` Mode used to create a FrameBuffer
+* `data` Image data bytes, with layout as per binary file.
+
+## 3.3 Using a Python image file
+
+To display a full screen image it may be copied the device's underlying buffer:
+```py
+import img  # Python file containing the image
+ssd.mvb[:] = img.data
+```
+An alternative approach is to create a second `FrameBuffer` instance from the
+image and blit it to the `ssd` device (which is a `FrameBuffer` subclass).
+Unfortunately [this issue](https://github.com/micropython/micropython/pull/15285)
+prevents creating a `FrameBuffer` from a Flash-based `bytes` object. However
+blitting small RAM-based Python images would be useful for projects such as
+games.
+```py
+import img  # Python file containing the image
+ba = bytearray(img.data)  # Put in RAM because of above issue
+fb = framebuf.FrameBuffer(ba, img.cols, img.rows, img.mode)
+ssd.blit(fb, col, row)  # blit to a given location
+```
+
+## 3.4 Frame Buffer Access
 
 Updated display drivers have a `mvb` bound variable: this is a `memoryview` into
 the bytearray containing the frame buffer. The three GUIs make the display
