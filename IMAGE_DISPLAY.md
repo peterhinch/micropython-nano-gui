@@ -186,7 +186,8 @@ Bound variables:
 * `source` The path of the source image file.
 * `rows` Image dimensions in pixels.
 * `cols`
-* `mode` Mode used to create a FrameBuffer
+* `mode` Mode used to create a FrameBuffer: values correspond to
+[FrameBuffer constants](https://docs.micropython.org/en/latest/library/framebuf.html#constants).
 * `data` Image data bytes, with layout as per binary file.
 
 ## 3.3 Using a Python image file

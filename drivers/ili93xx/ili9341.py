@@ -62,12 +62,12 @@ class ILI9341(framebuf.FrameBuffer):
         self.width = width
         self._spi_init = init_spi
         self._gscale = False  # Interpret buffer as index into color LUT
-        mode = framebuf.GS4_HMSB
-        self.palette = BoolPalette(mode)
+        self.mode = framebuf.GS4_HMSB
+        self.palette = BoolPalette(self.mode)
         gc.collect()
         buf = bytearray(self.height * self.width // 2)
         self.mvb = memoryview(buf)
-        super().__init__(buf, self.width, self.height, mode)
+        super().__init__(buf, self.width, self.height, self.mode)
         self._linebuf = bytearray(self.width * 2)
         # Hardware reset
         self._rst(0)

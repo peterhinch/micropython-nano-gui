@@ -96,12 +96,12 @@ class ST7789(framebuf.FrameBuffer):
         self._spi_init = init_spi  # Possible user callback
         self._lock = asyncio.Lock()
         self._gscale = False  # Interpret buffer as index into color LUT
-        mode = framebuf.GS4_HMSB  # Use 4bit greyscale.
-        self.palette = BoolPalette(mode)
+        self.mode = framebuf.GS4_HMSB  # Use 4bit greyscale.
+        self.palette = BoolPalette(self.mode)
         gc.collect()
         buf = bytearray(height * -(-width // 2))  # Ceiling division for odd widths
         self.mvb = memoryview(buf)
-        super().__init__(buf, width, height, mode)
+        super().__init__(buf, width, height, self.mode)
         self._linebuf = bytearray(self.width * 2)  # 16 bit color out
         self._init(disp_mode, orientation)
         self.show()

@@ -92,12 +92,12 @@ class ILI9486(framebuf.FrameBuffer):
         self._short = min(height, width)
         self._spi_init = init_spi
         self._gscale = False  # Interpret buffer as index into color LUT
-        mode = framebuf.GS4_HMSB
-        self.palette = BoolPalette(mode)
+        self.mode = framebuf.GS4_HMSB
+        self.palette = BoolPalette(self.mode)
         gc.collect()
         buf = bytearray(height * width // 2)
         self.mvb = memoryview(buf)
-        super().__init__(buf, width, height, mode)  # Logical aspect ratio
+        super().__init__(buf, width, height, self.mode)  # Logical aspect ratio
         self._linebuf = bytearray(self._short * 2)
 
         # Hardware reset

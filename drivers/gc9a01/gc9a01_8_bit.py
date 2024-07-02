@@ -63,12 +63,12 @@ class GC9A01(framebuf.FrameBuffer):
         self.height = height  # Logical dimensions for GUIs
         self.width = width
         self._spi_init = init_spi
-        mode = framebuf.GS8  # Use 8bit greyscale for 8 bit color.
-        self.palette = BoolPalette(mode)
+        self.mode = framebuf.GS8  # Use 8bit greyscale for 8 bit color.
+        self.palette = BoolPalette(self.mode)
         gc.collect()
         buf = bytearray(height * width)  # Frame buffer
         self.mvb = memoryview(buf)
-        super().__init__(buf, width, height, mode)
+        super().__init__(buf, width, height, self.mode)
         self._linebuf = bytearray(width * 2)  # Line buffer (16-bit colors)
 
         # Hardware reset
