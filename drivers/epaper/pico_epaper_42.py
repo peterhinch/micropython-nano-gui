@@ -118,6 +118,7 @@ def _linv(dest: ptr32, source: ptr32, length: int):
 
 
 class EPD(framebuf.FrameBuffer):
+    MAXBLOCK = 25  # Max async blocking time in ms
     # A monochrome approach should be used for coding this. The rgb method ensures
     # nothing breaks if users specify colors.
     @staticmethod
@@ -229,7 +230,7 @@ class EPD(framebuf.FrameBuffer):
         self._cs(1)
 
     # Time to convert and transmit 1000 bytes ~ 1ms: most of that is tx @ 10MHz
-    # Yield every 16 transfers means blocking is ~16ms
+    # Yield whenever code has blocked for more than EPD.MAXBLOCK
     # Total convert and transmit time for 15000 bytes is ~15ms.
     # Timing @10MHz/250MHz: full refresh 2.1s, partial 740ms: the bulk of the time
     # is spent spinning on the busy pin and is CPU frequency independent.
@@ -238,14 +239,15 @@ class EPD(framebuf.FrameBuffer):
         fbidx = 0  # Index into framebuf
         nbytes = len(self._ibuf)  # Bytes to send
         nleft = len(self._buf)  # Size of framebuf
-        npass = 0
+        tyield = time.ticks_ms()  # Time of last yield
         while nleft > 0:
             self._bsend(fbidx, nbytes)  # Invert, buffer and send nbytes
             fbidx += nbytes  # Adjust for bytes already sent
             nleft -= nbytes
             nbytes = min(nbytes, nleft)
-            if not ((npass := npass + 1) % 16):
-                await asyncio.sleep_ms(0)  # Control blocking time
+            if time.ticks_diff(time.ticks_ms(), tyield) > EPD.MAXBLOCK:
+                await asyncio.sleep_ms(0)  # Don't allow excessive blocking
+                tyield = time.ticks_ms()
         self.updated.set()
         self._command(b"\x12")  # Nonblocking .display_on()
         while not self._busy_pin():  # Wait on display hardware

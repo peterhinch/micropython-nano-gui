@@ -112,6 +112,7 @@ def _lmap(dest: ptr8, source: ptr8, pattern: int, length: int):
 
 
 class EPD(framebuf.FrameBuffer):
+    MAXBLOCK = 25  # Max async blocking time in ms
     # The rgb method maps colors onto a 2-bit greyscale
     # colors.py creates color constants with 2-bit colors which are written to FB
     @staticmethod
@@ -238,14 +239,15 @@ class EPD(framebuf.FrameBuffer):
             nbytes = len(self.ibuf)  # Bytes to send
             didx = nbytes * 2  # Increment of framebuf index
             nleft = len(self._buf)  # Size of framebuf
-            npass = 0
+            tyield = time.ticks_ms()  # Time of last yield
             while nleft > 0:
                 self._bsend(fbidx, pattern, nbytes)  # Grey-map, buffer and send nbytes
                 fbidx += didx  # Adjust for bytes already sent
                 nleft -= didx
                 nbytes = min(nbytes, nleft)
-                if not ((npass := npass + 1) % 16):
-                    await asyncio.sleep_ms(0)  # Control blocking time
+                if time.ticks_diff(time.ticks_ms(), tyield) > EPD.MAXBLOCK:
+                    await asyncio.sleep_ms(0)  # Don't allow excessive blocking
+                    tyield = time.ticks_ms()
 
         self.updated.set()
         self._command(b"\x12")  # Nonblocking .display_on()

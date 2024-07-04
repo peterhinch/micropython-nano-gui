@@ -1447,6 +1447,10 @@ needed in more advanced asynchronous applications and their use is discussed in
  seconds to enable viewing. This enables generic nanogui demos to be run on an
  EPD.
 
+ Class variable:
+ * `MAXBLOCK = 25` Defines the maximum period (in ms) that an asynchronous
+ refresh can block before yielding to the scheduler.
+
 Note that in synchronous applications with `demo_mode=False`, `refresh` returns
 while the display is updating. Applications should issue `wait_until_ready`
 before issuing another refresh.
