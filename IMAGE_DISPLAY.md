@@ -209,6 +209,36 @@ ba = bytearray(img.data)  # Put in RAM because of above issue
 fb = framebuf.FrameBuffer(ba, img.cols, img.rows, img.mode)
 ssd.blit(fb, col, row)  # blit to a given location
 ```
+Until this issue is resolved a frozen Python image may be blitted to all or part
+of the screen with this code:
+```py
+def blit(ssd, img, row=0, col=0):
+    def scale(x, sz):
+        return x * sz if sz else x // 2
+
+    mvb = ssd.mvb  # Memoryview of display's bytearray.
+    irows = min(img.rows, ssd.height - row)  # Clip rows
+    icols = min(img.cols, ssd.width - col)  # Clip cols
+    if (mode := img.mode) != ssd.mode:
+        raise ValueError("Image and display have differing modes.")
+    sz = size[mode]  # Allow for no. of bytes per pixel
+    ibytes = scale(img.cols, sz)  # Bytes per row of unclipped image data
+    dbytes = scale(icols, sz)  # Bytes per row to output to display
+    dwidth = scale(ssd.width, sz)  # Display width in bytes
+    d = scale(row * ssd.width + col, sz)  # Destination index
+    s = 0  # Source index
+    while irows:
+        mvb[d : d + dbytes] = img.data[s : s + dbytes]
+        s += ibytes
+        d += dwidth
+        irows -= 1
+```
+called as follows:
+```py
+import my_picture as img  # Python image file
+# Instantiate ssd as per the GUI in use
+blit(ssd, img, 0, 0)  # Display at top left of screen
+```
 
 ## 3.4 Frame Buffer Access
 

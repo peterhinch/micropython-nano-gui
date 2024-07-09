@@ -10,7 +10,10 @@ All drivers provide a display class subclassed from the built-in
  * Graphics via the `FrameBuffer` graphics primitives.
  * Text rendering in arbitrary fonts via `Writer` and `Cwriter` classes (see
  [font_to_py.py](https://github.com/peterhinch/micropython-font-to-py.git)).
- * Use with nano-gui and [micro-gui](https://github.com/peterhinch/micropython-micro-gui/).
+ * Use with nano-gui, [micro-gui](https://github.com/peterhinch/micropython-micro-gui/)
+ and [micropython-touch](https://github.com/peterhinch/micropython-touch).
+ * Photo image display in conjunction with any of the above GUI's: see
+ [IMAGE_DISPLAY.md](./IMAGE_DISPLAY.md) (on selected larger displays).
 
 It should be noted that in the interests of conserving RAM these drivers offer
 a bare minimum of functionality required to support the above. Most drivers
