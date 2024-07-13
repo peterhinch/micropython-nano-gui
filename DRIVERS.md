@@ -1388,7 +1388,7 @@ via a supplied cable.
 
 Two versions of this display exist. They require different drivers. The type of
 a board may be distinguished as below, with the V2 board being the rightmost
-image:
+image:  
 ![Image](images/V1_EPD.JPG)  ![Image](images/V2_EPD.JPG)
 
 There are two drivers for the V1 display:
