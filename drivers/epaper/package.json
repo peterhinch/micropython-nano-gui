@@ -4,6 +4,7 @@
     ["drivers/epaper/epaper2in7_fb.py", "github:peterhinch/micropython-nano-gui/drivers/epaper/epaper2in7_fb.py"],
     ["drivers/epaper/pico_epaper_42_gs.py", "github:peterhinch/micropython-nano-gui/drivers/epaper/pico_epaper_42_gs.py"],
     ["drivers/epaper/pico_epaper_42.py", "github:peterhinch/micropython-nano-gui/drivers/epaper/pico_epaper_42.py"],
+    ["drivers/epaper/pico_epaper_42_v2.py", "github:peterhinch/micropython-nano-gui/drivers/epaper/pico_epaper_42_v2.py"],
     ["drivers/epaper/epd29_ssd1680.py", "github:peterhinch/micropython-nano-gui/drivers/epaper/epd29_ssd1680.py"],
     ["drivers/boolpalette.py", "github:peterhinch/micropython-nano-gui/drivers/boolpalette.py"]
   ],
