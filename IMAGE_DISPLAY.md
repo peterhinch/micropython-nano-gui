@@ -212,6 +212,9 @@ ssd.blit(fb, col, row)  # blit to a given location
 Until this issue is resolved a frozen Python image may be blitted to all or part
 of the screen with this code:
 ```py
+from framebuf import RGB565, GS4_HMSB, GS8
+size = {RGB565: 2, GS4_HMSB: 0, GS8: 1}
+
 def blit(ssd, img, row=0, col=0):
     def scale(x, sz):
         return x * sz if sz else x // 2

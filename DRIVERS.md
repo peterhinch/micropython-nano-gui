@@ -77,6 +77,7 @@ access via the `Writer` and `CWriter` classes is documented
   &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;5.3.3 [Events](./DRIVERS.md#533-events)  
   &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;5.3.4 [Public bound variables](./DRIVERS.md#534-public-bound-variables)  
   &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;5.3.5 [The Greyscale Driver](./DRIVERS.md#535-the-greyscale-driver)  
+  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;5.3.6 [Current consumption](./DRIVERS.md#536-current-consumption)  
  6. [EPD Asynchronous support](./DRIVERS.md#6-epd-asynchronous-support)  
  7. [Writing device drivers](./DRIVERS.md#7-writing-device-drivers)  
  8. [Links](./DRIVERS.md#8-links)  
@@ -1378,13 +1379,28 @@ before issuing another refresh.
 
 ## 5.3 Waveshare 400x300 Pi Pico display
 
-There are two drivers for this display:
+This display has excellent support for partial updates which are fast, visually
+unobtrusive updates. They have the drawback of "ghosting" where the remnants of
+the previous image is visible. At any time a full update may be performed which
+removes all trace of ghosting. This model of display has low levels of ghosting
+and thus is supported by micro-gui. The model supports hosts other than the Pico
+via a supplied cable.
+
+Two versions of this display exist. They require different drivers. The type of
+a board may be distinguished as below, with the V2 board being the rightmost
+image:
+![Image](images/V1_EPD.JPG)  ![Image](images/V2_EPD.JPG)
+
+There are two drivers for the V1 display:
  1. `pico_epaper_42.py` 1-bit black/white driver supports partial updates.
  2. `pico_epaper_42_gs.py` 2-bit greyscale driver. No partial updates.
+ Currently the V2 display has only a 1-bit driver, contributed by Michael
+ Surdouski. It supports partial updates.
+ 1. `pico_epaper_42_v2.py`
 
-The drivers have identical args and methods.
+All drivers have identical args and methods.
 
-This 4.2" display supports a Pi Pico or Pico W plugged into the rear of the
+The 4.2" displays support a Pi Pico or Pico W plugged into the rear of the
 unit. Alternatively it can be connected to any other host using the supplied
 cable. With a Pico variant the `color_setup` file is very simple:
 ```python
@@ -1415,9 +1431,9 @@ All methods are synchronous.
 * `init` No args. Issues a hardware reset and initialises the hardware. This
  is called by the constructor. It needs to explicitly be called to exit from a
  deep sleep.
- * `sleep` No args. Puts the display into deep sleep. If called while a refresh
- is in progress it will block until the refresh is complete. `sleep` should be
- called before a power down to avoid leaving the display in an abnormal state.
+ * `sleep` No args. Puts the display into deep sleep. `sleep` should be  called
+ before a power down to avoid leaving the display in an abnormal state. See note
+ on current consumption.
  * `ready` No args. After issuing a `refresh` the device will become busy for
  a period: `ready` status should be checked before issuing `refresh`.
  * `wait_until_ready` No args. Pause until the device is ready.
@@ -1427,9 +1443,6 @@ All methods are synchronous.
 On the 1-bit driver, after issuing `set_partial()`, subsequent updates will be
 partial. Normal updates are restored by issuing `set_full()`. These methods
 should not be issued while an update is in progress.
-
-Partial updates are fast and visually unobtrusive but they are prone to
-ghosting.
 
 ### 5.3.3 Events
 
@@ -1481,6 +1494,17 @@ ssd.fill_rect(0, 90, 15, 15, 3)  # Black
 refresh(ssd)
 ```
 Color values of 0 (white) to 3 (black) can explicitly be specified.
+
+### 5.3.6 Current consumption
+
+This was measured on a V2 display.
+* ~5mA while doing a full update.
+* ~1.2mA while running the micro-gui epaper.py demo. This performs continuous
+partial updates.
+* 92μA while inactive.
+* 92μA after running `.sleep`.
+Conclusion: there is no reason to call `.sleep` other than in preparation for a
+shutdown.
 
  ###### [Contents](./DRIVERS.md#contents)
 
