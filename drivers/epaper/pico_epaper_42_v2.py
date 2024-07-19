@@ -1,3 +1,5 @@
+# pico_epaper_42_v2.py
+
 # Materials used for discovery can be found here
 # https://www.waveshare.com/wiki/4.2inch_e-Paper_Module_Manual#Introduction
 # Note, at the time of writing this, none of the source materials have working
@@ -28,7 +30,11 @@
 # LIABILITY WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
-#
+
+# Waveshare URLs
+# Main page: https://www.waveshare.com/pico-epaper-4.2.htm
+# Wiki: https://www.waveshare.com/wiki/Pico-ePaper-4.2
+# Code: https://github.com/waveshareteam/Pico_ePaper_Code/blob/main/python/Pico-ePaper-4.2_V2.py
 
 from machine import Pin, SPI
 import framebuf
@@ -69,7 +75,6 @@ def _linv(dest: ptr32, source: ptr32, length: int):
 
 
 class EPD(framebuf.FrameBuffer):
-    MAXBLOCK = 25 # Max async blocking time in ms
     # A monochrome approach should be used for coding this. The rgb method ensures
     # nothing breaks if users specify colors.
     @staticmethod
@@ -81,15 +86,14 @@ class EPD(framebuf.FrameBuffer):
         self._busy_pin = Pin(_BUSY_PIN, Pin.IN, Pin.PULL_UP) if busy is None else busy
         self._cs = Pin(_CS_PIN, Pin.OUT) if cs is None else cs
         self._dc = Pin(_DC_PIN, Pin.OUT) if dc is None else dc
-        self._spi = (
-            SPI(1, sck=Pin(10), mosi=Pin(11), miso=Pin(28)) if spi is None else spi
-        )
+        self._spi = SPI(1, sck=Pin(10), mosi=Pin(11), miso=Pin(28)) if spi is None else spi
         self._spi.init(baudrate=4_000_000)
         # Busy flag: set immediately on .show(). Cleared when busy pin is logically false.
         self._busy = False
         # Async API
         self.updated = asyncio.Event()
         self.complete = asyncio.Event()
+        self.maxblock = 25
         # partial refresh
         self._partial = False
 
@@ -100,6 +104,7 @@ class EPD(framebuf.FrameBuffer):
         # Other public bound variable.
         # Special mode enables demos written for generic displays to run.
         self.demo_mode = False
+        self.blank_on_exit = True
 
         self._buf = bytearray(_EPD_HEIGHT * _BWIDTH)
         self._mvb = memoryview(self._buf)
@@ -130,7 +135,7 @@ class EPD(framebuf.FrameBuffer):
         self._spi.write(data)
         self._cs(1)
 
-    def display_on(self):
+    def _display_on(self):
         if self._partial:
             self._command(b"\x22")
             self._data(b"\xFF")
@@ -140,6 +145,7 @@ class EPD(framebuf.FrameBuffer):
             self._data(b"\xF7")
             self._command(b"\x20")
 
+    # Called by constructor. Application use is deprecated.
     def init(self):
         self.reset()  # hardware reset
 
@@ -147,8 +153,9 @@ class EPD(framebuf.FrameBuffer):
         self.wait_until_ready()
 
         self.set_full()
-        self.display_on()
+        self._display_on()
 
+    # Common API
     def set_full(self):
         self._partial = False
 
@@ -194,10 +201,15 @@ class EPD(framebuf.FrameBuffer):
         self._spi.write(buf)
         self._cs(1)
 
+    # Send the frame buffer. If running asyncio, return whenever MAXBLOCK ms elapses
+    # so that caller can yield to the scheduler.
+    # Returns no. of bytes outstanding.
     def _send_bytes(self):
         fbidx = 0  # Index into framebuf
         nbytes = len(self._ibuf)  # Bytes to send
         nleft = len(self._buf)  # Size of framebuf
+        asyn = asyncio_running()
+
         def inner():
             nonlocal fbidx
             nonlocal nbytes
@@ -208,20 +220,30 @@ class EPD(framebuf.FrameBuffer):
                 fbidx += nbytes  # Adjust for bytes already sent
                 nleft -= nbytes
                 nbytes = min(nbytes, nleft)
-                if time.ticks_diff(time.ticks_ms(), ts) > EPD.MAXBLOCK:
-                    return nbytes  # Probably not all done; quit and call again
+                if asyn and time.ticks_diff(time.ticks_ms(), ts) > self.maxblock:
+                    return nbytes  # Probably not all done; quit. Caller yields, calls again
             return 0  # All done
+
         return inner
 
-    # Specific method for micro-gui. Unsuitable EPD's lack this method. Micro-gui
-    # does not test for asyncio as this is guaranteed to be up.
-    async def do_refresh(self, split):
+    # micro-gui API; asyncio is running.
+    async def do_refresh(self, split):  # split = 5
         assert not self._busy, "Refresh while busy"
         if self._partial:
-            await self._as_show_partial()  # split=5
+            await self._as_show_partial()
         else:
-            await self._as_show_full()  # split=5
+            await self._as_show_full()
 
+    def shutdown(self, clear=False):
+        time.sleep(1)  # Empirically necessary (ugh)
+        self.fill(0)
+        self.set_full()
+        if clear or self.blank_on_exit:
+            self.show()
+        self.wait_until_ready()
+        self.sleep()
+
+    # nanogui API
     def show(self):
         if self._busy:
             raise RuntimeError("Cannot refresh: display is busy.")
@@ -229,6 +251,12 @@ class EPD(framebuf.FrameBuffer):
             self._show_partial()
         else:
             self._show_full()
+        if not self.demo_mode:
+            # Immediate return to avoid blocking the whole application.
+            # User should wait for ready before calling refresh()
+            return
+        self.wait_until_ready()
+        time.sleep_ms(2000)  # Demo mode: give time for user to see result
 
     def _show_full(self):
         self._busy = True  # Immediate busy flag. Pin goes low much later.
@@ -238,39 +266,29 @@ class EPD(framebuf.FrameBuffer):
             asyncio.create_task(self._as_show_full())
             return
 
+        # asyncio is not running, hence sb() will not time out.
         self._command(b"\x24")
         sb = self._send_bytes()  # Instantiate closure
-        while sb():
-            pass
+        sb()  # Run to completion
         self._command(b"\x26")
-        sb = self._send_bytes()  # Instantiate closure
-        while sb():
-            pass
+        sb = self._send_bytes()  # Create new instance
+        sb()
         self._busy = False
-
-        self.display_on()
-
-        if not self.demo_mode:
-            # Immediate return to avoid blocking the whole application.
-            # User should wait for ready before calling refresh()
-            return
-
-        self.wait_until_ready()
-        time.sleep_ms(2000)  # Demo mode: give time for user to see result
+        self._display_on()
 
     async def _as_show_full(self):
         self._command(b"\x24")
         sb = self._send_bytes()  # Instantiate closure
         while sb():
-            await asyncio.sleep_ms(0)
+            await asyncio.sleep_ms(0)  # Timed out. Yield and continue.
 
         self._command(b"\x26")
-        sb = self._send_bytes()  # Instantiate closure
+        sb = self._send_bytes()  # New closure instance
         while sb():
             await asyncio.sleep_ms(0)
 
         self.updated.set()
-        self.display_on()
+        self._display_on()
         while self._busy_pin():
             await asyncio.sleep_ms(0)
         self._busy = False
@@ -286,19 +304,9 @@ class EPD(framebuf.FrameBuffer):
 
         self._command(b"\x24")
         sb = self._send_bytes()  # Instantiate closure
-        while sb():
-            pass
+        sb()
         self._busy = False
-
-        self.display_on()
-
-        if not self.demo_mode:
-            # Immediate return to avoid blocking the whole application.
-            # User should wait for ready before calling refresh()
-            return
-
-        self.wait_until_ready()
-        time.sleep_ms(2000)  # Demo mode: give time for user to see result
+        self._display_on()
 
     async def _as_show_partial(self):
         self._command(b"\x24")
@@ -307,12 +315,13 @@ class EPD(framebuf.FrameBuffer):
             await asyncio.sleep_ms(0)
 
         self.updated.set()
-        self.display_on()
+        self._display_on()
         while self._busy_pin():
             await asyncio.sleep_ms(0)
         self._busy = False
         self.complete.set()
 
+    # nanogui API
     def wait_until_ready(self):
         while not self.ready():
             time.sleep_ms(100)

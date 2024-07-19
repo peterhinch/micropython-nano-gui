@@ -1379,9 +1379,9 @@ before issuing another refresh.
 
 ## 5.3 Waveshare 400x300 Pi Pico display
 
-This display has excellent support for partial updates which are fast, visually
-unobtrusive updates. They have the drawback of "ghosting" where the remnants of
-the previous image is visible. At any time a full update may be performed which
+This display has excellent support for partial updates which are fast and
+visually unobtrusive. They have the drawback of "ghosting" where remnants of the
+previous image are visible. At any time a full update may be performed which
 removes all trace of ghosting. This model of display has low levels of ghosting
 and thus is supported by micro-gui. The model supports hosts other than the Pico
 via a supplied cable.
@@ -1404,11 +1404,11 @@ All drivers have identical args and methods.
 
 The 4.2" displays support a Pi Pico or Pico W plugged into the rear of the
 unit. Alternatively it can be connected to any other host using the supplied
-cable. With a Pico variant the `color_setup` file is very simple:
+cable. With a Pico variant plugged in the `color_setup` file is very simple:
 ```python
 import machine
 import gc
-from drivers.epaper.pico_epaper_42 import EPD as SSD
+from drivers.epaper.pico_epaper_42_v2 import EPD as SSD  # V2 driver
 
 gc.collect()  # Precaution before instantiating framebuf.
 ssd = SSD()  # Create a display instance based on a Pico in socket.
@@ -1424,33 +1424,39 @@ following constructor args:
  * `rst=None` A `Pin` instance defined as `Pin.OUT`.
  * `busy=None` A `Pin` instance defined as `Pin.IN, Pin.PULL_UP`.
 
-The `asyn` arg has been removed: the driver now detects asynchronous use.
-
 ### 5.3.2 Public methods
 
-All methods are synchronous.
+All methods are synchronous. Common API (nanogui and microgui):
 
-* `init` No args. Issues a hardware reset and initialises the hardware. This
- is called by the constructor. It needs to explicitly be called to exit from a
- deep sleep.
- * `sleep` No args. Puts the display into deep sleep. `sleep` should be  called
- before a power down to avoid leaving the display in an abnormal state. See note
- on current consumption.
- * `ready` No args. After issuing a `refresh` the device will become busy for
- a period: `ready` status should be checked before issuing `refresh`.
- * `wait_until_ready` No args. Pause until the device is ready.
  * `set_partial()` Enable partial updates (does nothing on greyscale driver).
  * `set_full()` Restore normal update operation (null on greyscale driver).
 
-On the 1-bit driver, after issuing `set_partial()`, subsequent updates will be
-partial. Normal updates are restored by issuing `set_full()`. These methods
-should not be issued while an update is in progress.
+ On the 1-bit driver, after issuing `set_partial()`, subsequent updates will be
+ partial. Normal updates are restored by issuing `set_full()`. These methods
+ should not be issued while an update is in progress. In the case of synchronous
+ applications, issue `.wait_until_ready`. Asynchronous and microgui applications
+ should wait on the `rfsh_done` event.
+
+Nanogui API:
+
+ * `sleep` No args. Applications should call this before power down to ensure
+ the display is put into the correct state.
+ * `ready` No args. After issuing a `refresh` the device will become busy for
+ a period: `ready` status should be checked before issuing `refresh`.
+ * `wait_until_ready` No args. Pause until the device is ready. This should be
+ run before issuing `refresh` or `sleep`.
+ * `init` No args. Issues a hardware reset and initialises the hardware. This
+ is called by the constructor. It may be used to recover from a `sleep` state
+ but this is not recommended for V2 displays (see note on current consumption).
 
 ### 5.3.3 Events
 
 These provide synchronisation in asynchronous applications. They are only
 needed in more advanced asynchronous applications and their use is discussed in
-[EPD Asynchronous support](./DRIVERS.md#6-epd-asynchronous-support).
+[EPD Asynchronous support](./DRIVERS.md#6-epd-asynchronous-support). They are
+necessary in microgui applications to synchronise changes between partial and
+full refrresh modes. See
+[this demo](https://github.com/peterhinch/micropython-micro-gui/blob/main/gui/demos/epaper.py).
  * `updated` Set when framebuf has been copied to device. It is now safe to
  modify widgets without risk of display corruption.
  * `complete` Set when display update is complete. It is now safe to call
@@ -1465,9 +1471,13 @@ needed in more advanced asynchronous applications and their use is discussed in
  seconds to enable viewing. This enables generic nanogui demos to be run on an
  EPD.
 
- Class variable:
- * `MAXBLOCK = 25` Defines the maximum period (in ms) that an asynchronous
+ The following are intended for use in micro-gui applications:
+
+ * `maxblock=25` Defines the maximum period (in ms) that the asynchronous
  refresh can block before yielding to the scheduler.
+ * `blank_on_exit=True` On application shutdown by default the display is
+ cleared. Setting this `False` overrides this, leaving the display contents in
+ place.
 
 Note that in synchronous applications with `demo_mode=False`, `refresh` returns
 while the display is updating. Applications should issue `wait_until_ready`
@@ -1499,14 +1509,17 @@ Color values of 0 (white) to 3 (black) can explicitly be specified.
 
 ### 5.3.6 Current consumption
 
-This was measured on a V2 display.
+This was measured on a V2 display. The Waveshare driver has a `sleep` method
+which claims to put the device into a deep sleep mode. Their docs indicate a
+sleep current of 0.01μA. This was not borne out by measurement:
 * ~5mA while doing a full update.
 * ~1.2mA while running the micro-gui epaper.py demo. This performs continuous
 partial updates.
 * 92μA while inactive.
 * 92μA after running `.sleep`.
 Conclusion: there is no reason to call `.sleep` other than in preparation for a
-shutdown.
+shutdown, consequently the method is not provided. I believe the discrepancy is
+caused by the supply current of the level translator.
 
  ###### [Contents](./DRIVERS.md#contents)
 
