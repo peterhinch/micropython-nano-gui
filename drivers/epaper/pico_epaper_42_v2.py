@@ -34,6 +34,7 @@
 # Waveshare URLs
 # Main page: https://www.waveshare.com/pico-epaper-4.2.htm
 # Wiki: https://www.waveshare.com/wiki/Pico-ePaper-4.2
+# Another wiki: https://www.waveshare.com/wiki/4.2inch_e-Paper_Module_Manual#Introduction
 # Code: https://github.com/waveshareteam/Pico_ePaper_Code/blob/main/python/Pico-ePaper-4.2_V2.py
 
 from machine import Pin, SPI
@@ -58,7 +59,7 @@ _EPD_HEIGHT = const(300)
 
 _RST_PIN = 12
 # changed default to 7, as this can be confusing on pico -- pin 8 for SPI1 is the Rx, which overrides DC pin if miso is set to none
-_DC_PIN = 7
+_DC_PIN = 8
 _CS_PIN = 9
 _BUSY_PIN = 13
 

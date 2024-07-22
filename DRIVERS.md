@@ -1390,7 +1390,10 @@ Two versions of this display exist. They require different drivers. The type of
 a board may be distinguished as below, with the V2 board being the second
 image:  
 ![Image](images/V1_EPD.JPG)  
+V1 board.  
+
 ![Image](images/V2_EPD.JPG)  
+V2 board.
 
 There are two drivers for the V1 display:
  1. `pico_epaper_42.py` 1-bit black/white driver supports partial updates.
@@ -1413,6 +1416,11 @@ from drivers.epaper.pico_epaper_42_v2 import EPD as SSD  # V2 driver
 gc.collect()  # Precaution before instantiating framebuf.
 ssd = SSD()  # Create a display instance based on a Pico in socket.
 ```
+##### Frozen bytecode
+
+In testing the V2 driver failed when implemented as frozen bytecode. It worked
+when pre-compiled to a `.mpy` file. The reason for this is unclear.
+
 ### 5.3.1 Constructor args
 
 For other hosts the pins need to be specified in `color_setup.py` via the
