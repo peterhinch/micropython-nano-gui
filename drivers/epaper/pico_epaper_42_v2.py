@@ -57,8 +57,7 @@ _EPD_WIDTH = const(400)
 _BWIDTH = _EPD_WIDTH // 8
 _EPD_HEIGHT = const(300)
 
-_RST_PIN = 12
-# changed default to 7, as this can be confusing on pico -- pin 8 for SPI1 is the Rx, which overrides DC pin if miso is set to none
+_RST_PIN = 12  # Pin defaults match wiring of Pico socket
 _DC_PIN = 8
 _CS_PIN = 9
 _BUSY_PIN = 13
