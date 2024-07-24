@@ -227,7 +227,7 @@ class EPD(framebuf.FrameBuffer):
         return inner
 
     # micro-gui API; asyncio is running.
-    async def do_refresh(self, split):  # split = 5
+    async def do_refresh(self, split=0):  # split = 5
         assert not self._busy, "Refresh while busy"
         if self._partial:
             await self._as_show_partial()

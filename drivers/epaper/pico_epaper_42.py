@@ -257,7 +257,7 @@ class EPD(framebuf.FrameBuffer):
 
     # Specific method for micro-gui. Unsuitable EPD's lack this method. Micro-gui
     # does not test for asyncio as this is guaranteed to be up.
-    async def do_refresh(self, split):
+    async def do_refresh(self, split=0):
         assert not self._busy, "Refresh while busy"
         await self._as_show()  # split=5
 

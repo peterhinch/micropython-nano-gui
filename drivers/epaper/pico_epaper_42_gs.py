@@ -256,7 +256,7 @@ class EPD(framebuf.FrameBuffer):
         self._busy = False
         self.complete.set()
 
-    async def do_refresh(self, split):  # For micro-gui
+    async def do_refresh(self, split=0):  # For micro-gui
         assert not self._busy, "Refresh while busy"
         await self._as_show()  # split=5
 

@@ -1445,7 +1445,7 @@ All methods are synchronous. Common API (nanogui and microgui):
  applications, issue `.wait_until_ready`. Asynchronous and microgui applications
  should wait on the `rfsh_done` event.
 
-Nanogui API:
+Synchronous methods for nanogui API:
 
  * `sleep` No args. Applications should call this before power down to ensure
  the display is put into the correct state.
@@ -1457,12 +1457,28 @@ Nanogui API:
  is called by the constructor. It may be used to recover from a `sleep` state
  but this is not recommended for V2 displays (see note on current consumption).
 
+ Asynchronous method for use in nanogui code:
+
+ * `do_refresh(split=0)` The unused arg is for compatibility with the micro-gui
+core and is ignored. In asynchronous nano gui code, issuing
+ ```python
+ while not ssd.ready():
+    await asyncio.sleep_ms(0)
+await ssd.do_refresh()
+ ```
+ causes the contents of the `ssd` frame buffer to be transferred to the display.
+ The duration of `do_refresh` blocking is set by `ssd.maxblock`: if this period
+ would be exceeded, `do_refresh` will yield to the scheduler before resuming. It
+ is essential to ensure that the display is ready before initiating a refresh;
+ the `do_refresh` method returns before the physical refresh is complete. The
+ method should not be issued in micro-gui applications.
+
 ### 5.3.3 Events
 
 These provide synchronisation in asynchronous applications. They are only
 needed in more advanced asynchronous applications and their use is discussed in
 [EPD Asynchronous support](./DRIVERS.md#6-epd-asynchronous-support). They are
-necessary in microgui applications to synchronise changes between partial and
+necessary in micro-gui applications to synchronise changes between partial and
 full refrresh modes. See
 [this demo](https://github.com/peterhinch/micropython-micro-gui/blob/main/gui/demos/epaper.py).
  * `updated` Set when framebuf has been copied to device. It is now safe to
@@ -1479,13 +1495,13 @@ full refrresh modes. See
  seconds to enable viewing. This enables generic nanogui demos to be run on an
  EPD.
 
- The following are intended for use in micro-gui applications:
+ The following are primarily for use in micro-gui applications:
 
  * `maxblock=25` Defines the maximum period (in ms) that the asynchronous
  refresh can block before yielding to the scheduler.
  * `blank_on_exit=True` On application shutdown by default the display is
  cleared. Setting this `False` overrides this, leaving the display contents in
- place.
+ place (this is an instruction to micro-gui).
 
 Note that in synchronous applications with `demo_mode=False`, `refresh` returns
 while the display is updating. Applications should issue `wait_until_ready`
