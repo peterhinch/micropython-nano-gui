@@ -1399,9 +1399,9 @@ There are two drivers for the V1 display:
  1. `pico_epaper_42.py` 1-bit black/white driver supports partial updates.
  2. `pico_epaper_42_gs.py` 2-bit greyscale driver. No partial updates.
 
- Currently the V2 display has only a 1-bit driver, contributed by Michael
- Surdouski. It supports partial updates.
- 1. `pico_epaper_42_v2.py`
+ The V2 display has the following drivers, contributed by Michael Surdouski.
+ 1. `pico_epaper_42_v2.py` 1-bit black/white driver supports partial updates.
+ 2. `pico_epaper_42_v2_gs.py` 2-bit greyscale driver. No partial updates.
 
 All drivers have identical args and methods.
 
