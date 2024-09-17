@@ -31,7 +31,7 @@ access via the `Writer` and `CWriter` classes is documented
 # Contents
 
  1. [Introduction](./DRIVERS.md#1-introduction)  
-  1.1 [Color handling](./DRIVERS.md#11-color-handling)  
+  1.1 [Color handling](./DRIVERS.md#11-color-handling) On 4, 8 and 16 bit drivers.  
   1.2 [Installation](./DRIVERS.md#12-installation)
  2. [OLED displays](./DRIVERS.md#2-oled-displays)  
   2.1 [Drivers for SSD1351](./DRIVERS.md#21-drivers-for-ssd1351) Color OLEDs  
@@ -133,6 +133,13 @@ run in a visually identical manner under all drivers. This will apply to any
 application which uses the predefined colors. Differences become apparent when
 specifying custom colors. For detail see the main README
 [User defined colors](./README.md#311-user-defined-colors).
+
+For use in any of the supported GUIs, where the choice exists a 4-bit driver
+should normally be preferred to conserve RAM: all demo scripts will work with
+such a driver and results will be visually identical compared to the bigger
+drivers. Where images are to be displayed a 4-bit driver can show a monochrome
+image but color images require 8 or 16 bits. See
+[IMAGE_DISPLAY.md](./IMAGE_DISPLAY.md).
 
 ## 1.2 Installation
 
@@ -474,6 +481,9 @@ colors. The resultant buffer size for the Adafruit displays is 28800 bytes. See
 [Color handling](./DRIVERS.md#11-color-handling) for the implications of 4-bit
 color.
 
+An 8-bit driver is also provided. This may be used for rendering color images;
+for use with the GUIs, demos are visually identical with the 4-bit driver.
+
 [Tested display: Adafruit 1.3 inch](https://www.adafruit.com/product/4313). The
 Adafruit [1.54 inch](https://www.adafruit.com/product/3787) has identical
 resolution and uses the same CircuitPython driver so can be expected to work.
@@ -510,6 +520,20 @@ below. An example file for the Pi Pico is in `setup_examples/st7789_pico.py`.
  * `display=GENERIC` The `display` arg is an opaque type defining the display
  hardware. Current options (exported by the driver) are `GENERIC` for Adafruit
  displays and `TDISPLAY` for the TTGO board.
+
+ #### Method (4-bit driver only)
+
+ * `greyscale(gs=None)` Setting `gs=True` enables the screen to be used to show
+a full screen monochrome image. By default the frame buffer contents are
+interpreted as color values. In greyscale mode the contents are treated as
+greyscale  values. This mode persists until the method is called with
+`gs=False`. The method returns the current greyscale state. It is possible to
+superimpose widgets on an image, but the mapping of colors onto the greyscale
+may yield unexpected shades of grey. `WHITE` and `BLACK` work well. In
+[micro-gui](https://github.com/peterhinch/micropython-micro-gui) and
+[micropython-touch](https://github.com/peterhinch/micropython-touch) the
+`after_open` method should be used to render the image to the framebuf and to
+overlay any widgets.
 
 #### Constants exported by the driver
 
@@ -848,7 +872,7 @@ identical constructor args and method.
  * `mirror=False` If `True` a mirror-image is displayed
  * `init_spi=False` For shared SPI bus applications. See note below.
 
- #### Method
+ #### Method (4-bit driver only)
 
  * `greyscale(gs=None)` Setting `gs=True` enables the screen to be used to show
 a full screen monochrome image. By default the frame buffer contents are
@@ -857,10 +881,10 @@ greyscale  values. This mode persists until the method is called with
 `gs=False`. The method returns the current greyscale state. It is possible to
 superimpose widgets on an image, but the mapping of colors onto the greyscale
 may yield unexpected shades of grey. `WHITE` and `BLACK` work well. In
- [micro-gui](https://github.com/peterhinch/micropython-micro-gui) and
- [micropython-touch](https://github.com/peterhinch/micropython-touch) the
- `after_open` method should be used to render the image to the framebuf and to
- overlay any widgets.
+[micro-gui](https://github.com/peterhinch/micropython-micro-gui) and
+[micropython-touch](https://github.com/peterhinch/micropython-touch) the
+`after_open` method should be used to render the image to the framebuf and to
+overlay any widgets.
 
 #### Shared SPI bus
 

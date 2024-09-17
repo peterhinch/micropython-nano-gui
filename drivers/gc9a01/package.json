@@ -2,6 +2,7 @@
   "urls": [
     ["drivers/gc9a01/gc9a01.py", "github:peterhinch/micropython-nano-gui/drivers/gc9a01/gc9a01.py"],
     ["drivers/gc9a01/gc9a01_8_bit.py", "github:peterhinch/micropython-nano-gui/drivers/gc9a01/gc9a01_8_bit.py"],
+    ["drivers/gc9a01/gc9a01_16_bit.py", "github:peterhinch/micropython-nano-gui/drivers/gc9a01/gc9a01_16_bit.py"],
     ["drivers/boolpalette.py", "github:peterhinch/micropython-nano-gui/drivers/boolpalette.py"]
   ],
   "version": "0.1"
