@@ -410,31 +410,35 @@ soft SPI may be used but hard may be faster. See note on overclocking below.
  `height` and `width` values.
  * `width=320`
  * `usd=False` Upside down: set `True` to invert display.
- * `init_spi=False` This optional arg enables flexible options in configuring
- the SPI bus. The default assumes exclusive access to the bus. In this normal
- case, `color_setup.py` initialises it and the settings will be left in place.
- If the bus is shared with devices which require different settings, a callback
- function should be passed. It will be called prior to each SPI bus write. The
- callback will receive a single arg being the SPI bus instance. It will
- typically be a one-liner or lambda initialising the bus. A minimal example is
- this function:
-```python
-def spi_init(spi):
-    spi.init(baudrate=10_000_000)
-```
+ * `init_spi=False` Allow bus sharing. See note below.
 
-The ILI9341 class uses 4-bit color to conserve RAM. Even with this adaptation
-the buffer size is 37.5KiB which is too large for some platforms. On a Pyboard
-1.1 the `scale.py` demo ran with 34.5K free with no modules frozen, and with
-47K free with `gui` and contents frozen. An ESP32 with SPIRAM has been tested.
-On an ESP32 without SPIRAM, `nano-gui` runs but
+ #### Method (4-bit driver only)
+
+ * `greyscale(gs=None)` Setting `gs=True` enables the screen to be used to show
+ a full screen monochrome image. By default the frame buffer contents are
+ interpreted as color values. In greyscale mode the contents are treated as
+ greyscale  values. This mode persists until the method is called with
+ `gs=False`. The method returns the current greyscale state. It is possible to
+ superimpose widgets on an image, but the mapping of colors onto the greyscale
+ may yield unexpected shades of grey. `WHITE` and `BLACK` work well. In
+ [micro-gui](https://github.com/peterhinch/micropython-micro-gui) and
+ [micropython-touch](https://github.com/peterhinch/micropython-touch) the
+ `after_open` method should be used to render the image to the framebuf and to
+ overlay any widgets.
+
+The 4-bit driver uses four bits per pixel to conserve RAM. Even with this
+adaptation the buffer size is 37.5KiB which is too large for some platforms. On
+a Pyboard 1.1 the `scale.py` demo ran with 34.5K free with no modules frozen,
+and with 47K free with `gui` and contents frozen. An ESP32 with SPIRAM has been
+tested. On an ESP32 without SPIRAM, `nano-gui` runs but
 [micro-gui](https://github.com/peterhinch/micropython-micro-gui) requires
 frozen bytecode. The RP2 Pico runs both GUI's.
 
 See [Color handling](./DRIVERS.md#11-color-handling) for details of the
-implications of 4-bit color.
+implications of 4-bit color. The 8-bit driver enables color image display on
+platforms with sufficient RAM: see [IMAGE_DISPLAY.md](./IMAGE_DISPLAY.md).
 
-The driver uses the `micropython.viper` decorator. If your platform does not
+The drivers use the `micropython.viper` decorator. If your platform does not
 support this, the Viper code will need to be rewritten with a substantial hit
 to performance.
 
@@ -461,6 +465,20 @@ uses 40MHz. I have successfully run my display at 40MHz. My engineering
 training makes me baulk at exceeding datasheet limits but the choice is yours.
 I raised [this isse](https://github.com/adafruit/Adafruit_CircuitPython_ILI9341/issues/24).
 The response may be of interest.
+
+### The init_spi constructor arg
+
+This optional arg enables flexible options in configuring the SPI bus. The
+default assumes exclusive access to the bus. In this normal case,
+`color_setup.py` initialises it and the settings will be left in place. If the
+bus is shared with devices which require different settings, a callback function
+should be passed. It will be called prior to each SPI bus write. The callback
+will receive a single arg being the SPI bus instance. It will typically be a
+one-liner or lambda initialising the bus. A minimal example is this function:
+```python
+def spi_init(spi):
+   spi.init(baudrate=10_000_000)
+```
 
 #### Troubleshooting
 
@@ -1408,7 +1426,10 @@ visually unobtrusive. They have the drawback of "ghosting" where remnants of the
 previous image are visible. At any time a full update may be performed which
 removes all trace of ghosting. This model of display has low levels of ghosting
 and thus is supported by micro-gui. The model supports hosts other than the Pico
-via a supplied cable.
+via a supplied cable. Ghosting shows no sign of increasing with time: in a test
+one of these displays ran the micro-gui demo for over 1,000 hours. This performs
+partial updates only. The level of ghosting showed no sign of increasing with
+time.
 
 Two versions of this display exist. They require different drivers. The type of
 a board may be distinguished as below, with the V2 board being the second
