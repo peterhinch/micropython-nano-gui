@@ -60,6 +60,7 @@ class GC9A01(framebuf.FrameBuffer):
         self._cs = cs
         self._dc = dc
         self._rst = rst
+        self.lock_mode = False  # If set, user lock is passed to .do_refresh
         self.height = height  # Logical dimensions for GUIs
         self.width = width
         self._spi_init = init_spi
@@ -182,7 +183,16 @@ class GC9A01(framebuf.FrameBuffer):
             self._spi.write(lb)
         self._cs(1)
 
-    async def do_refresh(self, split=4):
+    def short_lock(self, v=None):
+        if v is not None:
+            self.lock_mode = v  # If set, user lock is passed to .do_refresh
+        return self.lock_mode
+
+    # nanogui apps typically call with no args. ugui and tgui pass split and
+    # may pass a Lock depending on lock_mode
+    async def do_refresh(self, split=4, elock=None):
+        if elock is None:
+            elock = asyncio.Lock()
         async with self._lock:
             lines, mod = divmod(self.height, split)  # Lines per segment
             if mod:
@@ -194,12 +204,13 @@ class GC9A01(framebuf.FrameBuffer):
             wd = self.width
             line = 0
             for _ in range(split):  # For each segment
-                if self._spi_init:  # A callback was passed
-                    self._spi_init(self._spi)  # Bus may be shared
-                self._cs(0)
-                for start in range(wd * line, wd * (line + lines), wd):  # For each line
-                    _lcopy(lb, buf[start:], wd)  # Copy and map colors
-                    self._spi.write(lb)
-                line += lines
-                self._cs(1)  # Allow other tasks to use bus
+                async with elock:
+                    if self._spi_init:  # A callback was passed
+                        self._spi_init(self._spi)  # Bus may be shared
+                    self._cs(0)
+                    for start in range(wd * line, wd * (line + lines), wd):  # For each line
+                        _lcopy(lb, buf[start:], wd)  # Copy and map colors
+                        self._spi.write(lb)
+                    line += lines
+                    self._cs(1)  # Allow other tasks to use bus
                 await asyncio.sleep_ms(0)

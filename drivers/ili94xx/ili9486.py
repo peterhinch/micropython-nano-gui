@@ -86,6 +86,7 @@ class ILI9486(framebuf.FrameBuffer):
         self._cs = cs
         self._dc = dc
         self._rst = rst
+        self.lock_mode = False  # If set, user lock is passed to .do_refresh
         self.height = height  # Logical dimensions for GUIs
         self.width = width
         self._long = max(height, width)  # Physical dimensions of screen and aspect ratio
@@ -180,7 +181,16 @@ class ILI9486(framebuf.FrameBuffer):
                 self._spi.write(lb)
         self._cs(1)
 
-    async def do_refresh(self, split=4):
+    def short_lock(self, v=None):
+        if v is not None:
+            self.lock_mode = v  # If set, user lock is passed to .do_refresh
+        return self.lock_mode
+
+    # nanogui apps typically call with no args. ugui and tgui pass split and
+    # may pass a Lock depending on lock_mode
+    async def do_refresh(self, split=4, elock=None):
+        if elock is None:
+            elock = asyncio.Lock()
         async with self._lock:
             lines, mod = divmod(self._long, split)  # Lines per segment
             if mod:
@@ -195,27 +205,29 @@ class ILI9486(framebuf.FrameBuffer):
                 wd = self.width // 2
                 line = 0
                 for _ in range(split):  # For each segment
-                    if self._spi_init:  # A callback was passed
-                        self._spi_init(self._spi)  # Bus may be shared
-                    self._cs(0)
-                    for start in range(wd * line, wd * (line + lines), wd):  # For each line
-                        _lcopy(lb, buf[start:], clut, wd, cm)  # Copy and map colors
-                        self._spi.write(lb)
-                    line += lines
-                    self._cs(1)  # Allow other tasks to use bus
+                    async with elock:
+                        if self._spi_init:  # A callback was passed
+                            self._spi_init(self._spi)  # Bus may be shared
+                        self._cs(0)
+                        for start in range(wd * line, wd * (line + lines), wd):  # For each line
+                            _lcopy(lb, buf[start:], clut, wd, cm)  # Copy and map colors
+                            self._spi.write(lb)
+                        line += lines
+                        self._cs(1)  # Allow other tasks to use bus
                     await asyncio.sleep_ms(0)
             else:  # Landscape: write sets of cols. lines is no. of cols per segment.
                 cargs = (self.height << 9) + (self.width << 18)  # Viper 4-arg limit
                 sc = self.width - 1  # Start and end columns
                 ec = sc - lines  # End column
                 for _ in range(split):  # For each segment
-                    if self._spi_init:  # A callback was passed
-                        self._spi_init(self._spi)  # Bus may be shared
-                    self._cs(0)
-                    for col in range(sc, ec, -1):  # For each column of landscape display
-                        _lscopy(lb, buf, clut, col + cargs, cm)  # Copy and map colors
-                        self._spi.write(lb)
-                    sc -= lines
-                    ec -= lines
-                    self._cs(1)  # Allow other tasks to use bus
+                    async with elock:
+                        if self._spi_init:  # A callback was passed
+                            self._spi_init(self._spi)  # Bus may be shared
+                        self._cs(0)
+                        for col in range(sc, ec, -1):  # For each column of landscape display
+                            _lscopy(lb, buf, clut, col + cargs, cm)  # Copy and map colors
+                            self._spi.write(lb)
+                        sc -= lines
+                        ec -= lines
+                        self._cs(1)  # Allow other tasks to use bus
                     await asyncio.sleep_ms(0)

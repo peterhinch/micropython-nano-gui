@@ -13,10 +13,10 @@ pdc = Pin(8, Pin.OUT, value=0)
 pcs = Pin(9, Pin.OUT, value=1)
 prst = Pin(15, Pin.OUT, value=1)
 pbl = Pin(13, Pin.OUT, value=1)
+cst = Pin(16, Pin.OUT, value=1)  # Initialise all CS\ pins: XPT2046
 
 gc.collect()  # Precaution before instantiating framebuf
 # Max baudrate produced by Pico is 31_250_000. ST7789 datasheet allows <= 62.5MHz.
-# Note non-standard MISO pin. This works, verified by SD card.
 spi = SPI(1, 33_000_000, sck=Pin(10), mosi=Pin(11), miso=Pin(12))
 
 # Define the display

@@ -79,6 +79,7 @@ class ST7789(framebuf.FrameBuffer):
         self._rst = rst  # Pins
         self._dc = dc
         self._cs = cs
+        self.lock_mode = False  # If set, user lock is passed to .do_refresh
         self.height = height  # Required by Writer class
         self.width = width
         self._offset = display[:2]  # display arg is (x, y, orientation)
@@ -224,8 +225,16 @@ class ST7789(framebuf.FrameBuffer):
         self._cs(1)
         # print(ticks_diff(ticks_us(), ts))
 
-    # Asynchronous refresh with support for reducing blocking time.
-    async def do_refresh(self, split=5):
+    def short_lock(self, v=None):
+        if v is not None:
+            self.lock_mode = v  # If set, user lock is passed to .do_refresh
+        return self.lock_mode
+
+    # nanogui apps typically call with no args. ugui and tgui pass split and
+    # may pass a Lock depending on lock_mode
+    async def do_refresh(self, split=4, elock=None):
+        if elock is None:
+            elock = asyncio.Lock()
         async with self._lock:
             lines, mod = divmod(self.height, split)  # Lines per segment
             if mod:
@@ -235,15 +244,16 @@ class ST7789(framebuf.FrameBuffer):
             buf = self.mvb
             line = 0
             for n in range(split):
-                if self._spi_init:  # A callback was passed
-                    self._spi_init(self._spi)  # Bus may be shared
-                self._dc(0)
-                self._cs(0)
-                self._spi.write(b"\x3c" if n else b"\x2c")  # RAMWR/Write memory continue
-                self._dc(1)
-                for start in range(wd * line, wd * (line + lines), wd):
-                    _lcopy(lb, buf[start:], wd)  # Copy and map colors
-                    self._spi.write(lb)
-                line += lines
-                self._cs(1)
+                async with elock:
+                    if self._spi_init:  # A callback was passed
+                        self._spi_init(self._spi)  # Bus may be shared
+                    self._dc(0)
+                    self._cs(0)
+                    self._spi.write(b"\x3c" if n else b"\x2c")  # RAMWR/Write memory continue
+                    self._dc(1)
+                    for start in range(wd * line, wd * (line + lines), wd):
+                        _lcopy(lb, buf[start:], wd)  # Copy and map colors
+                        self._spi.write(lb)
+                    line += lines
+                    self._cs(1)
                 await asyncio.sleep(0)
