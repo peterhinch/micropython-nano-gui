@@ -37,6 +37,8 @@
 # Another wiki: https://www.waveshare.com/wiki/4.2inch_e-Paper_Module_Manual#Introduction
 # Code: https://github.com/waveshareteam/Pico_ePaper_Code/blob/main/python/Pico-ePaper-4.2_V2.py
 
+# Chip appears to be SSD1683.
+
 from machine import Pin, SPI
 import framebuf
 import time

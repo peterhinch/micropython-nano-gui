@@ -28,7 +28,8 @@
 # LIABILITY WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
-#
+
+# Chip appears to be SSD1683.
 
 from machine import Pin, SPI
 import framebuf
@@ -55,7 +56,7 @@ _DC_PIN = const(8)
 _CS_PIN = const(9)
 _BUSY_PIN = const(13)
 
-_WHITE = 0xff  # white
+_WHITE = 0xFF  # white
 _LIGHT_GREY = 0xC0
 _DARK_GREY = 0x80  # gray
 _BLACK = 0x00  # Blackest
@@ -96,7 +97,7 @@ def _lmap(dest: ptr8, source: ptr8, pattern: int, length: int):
 
 
 class EPD(framebuf.FrameBuffer):
-    MAXBLOCK = 25 # Max async blocking time in ms
+    MAXBLOCK = 25  # Max async blocking time in ms
     # A monochrome approach should be used for coding this. The rgb method ensures
     # nothing breaks if users specify colors.
     @staticmethod
@@ -108,9 +109,7 @@ class EPD(framebuf.FrameBuffer):
         self._busy_pin = Pin(_BUSY_PIN, Pin.IN, Pin.PULL_UP) if busy is None else busy
         self._cs = Pin(_CS_PIN, Pin.OUT) if cs is None else cs
         self._dc = Pin(_DC_PIN, Pin.OUT) if dc is None else dc
-        self._spi = (
-            SPI(1, sck=Pin(10), mosi=Pin(11), miso=Pin(28)) if spi is None else spi
-        )
+        self._spi = SPI(1, sck=Pin(10), mosi=Pin(11), miso=Pin(28)) if spi is None else spi
         self._spi.init(baudrate=4_000_000)
         # Busy flag: set immediately on .show(). Cleared when busy pin is logically false.
         self._busy = False
@@ -216,7 +215,7 @@ class EPD(framebuf.FrameBuffer):
             time.sleep_ms(100)
 
     def set_partial(self):
-       pass
+        pass
 
     def set_full(self):
         pass
@@ -242,6 +241,7 @@ class EPD(framebuf.FrameBuffer):
             nbytes = len(self._ibuf)  # Bytes to send
             didx = nbytes * 2  # Increment of framebuf index
             nleft = len(self._buf)  # Size of framebuf
+
             def inner():
                 nonlocal fbidx
                 nonlocal nbytes
@@ -256,6 +256,7 @@ class EPD(framebuf.FrameBuffer):
                     if asyn and time.ticks_diff(time.ticks_ms(), ts) > EPD.MAXBLOCK:
                         return nbytes  # Probably not all done; quit and call again
                 return 0  # All done
+
             return inner
 
     async def _as_show(self):
