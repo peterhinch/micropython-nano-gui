@@ -1,7 +1,8 @@
 # pico_epaper_42_v2.py
 
 # Materials used for discovery can be found here
-# https://www.waveshare.com/wiki/4.2inch_e-Paper_Module_Manual#Introduction
+# Main page: https://www.waveshare.com/pico-epaper-4.2.htm
+# Wiki: https://www.waveshare.com/wiki/Pico-ePaper-4.2
 # Note, at the time of writing this, none of the source materials have working
 # code that works with partial refresh, as the C code has a bug and all the other
 # materials use that reference material as the source of truth.
@@ -34,6 +35,10 @@
 # Waveshare URLs
 # Main page: https://www.waveshare.com/pico-epaper-4.2.htm
 # Wiki: https://www.waveshare.com/wiki/Pico-ePaper-4.2
+# The warnings in the following seem to be needlessly alarmist. This display
+# was run for 2000 hours using partial refresh only, once per second, with no
+# evidence of deterioration. Ghosting was minimal, and entirely cleared with a full
+# refresh when the test was terminated.
 # Another wiki: https://www.waveshare.com/wiki/4.2inch_e-Paper_Module_Manual#Introduction
 # Code: https://github.com/waveshareteam/Pico_ePaper_Code/blob/main/python/Pico-ePaper-4.2_V2.py
 
