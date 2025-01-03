@@ -1,7 +1,7 @@
 # st7789_8bit.py Driver for ST7789 LCD displays for nano-gui
 
 # Released under the MIT License (MIT). See LICENSE.
-# Copyright (c) 2021-2024 Peter Hinch, Ihor Nehrutsa
+# Copyright (c) 2021-2025 Peter Hinch, Ihor Nehrutsa
 
 # Tested displays:
 # Adafruit 1.3" 240x240 Wide Angle TFT LCD Display with MicroSD - ST7789
@@ -36,6 +36,9 @@ PI_PICO_LCD_2 = (0, 0, 1)  # Waveshare Pico LCD 2 determined by Mike Wilson.
 DFR0995 = (34, 0, 0)  # DFR0995 Contributed by @EdgarKluge
 WAVESHARE_13 = (0, 0, 16)  # Waveshare 1.3" 240x240 LCD contributed by Aaron Mittelmeier
 ADAFRUIT_1_9 = (35, 0, PORTRAIT)  #  320x170 TFT https://www.adafruit.com/product/5394
+# Note a 5-tuple may be passed if colors are wrong. Extra values are boolean
+# bgr: True if color is BGR, False is RGB (default)
+# inv: True if color mode is inverted, False normal (default)
 
 
 @micropython.viper
@@ -46,8 +49,9 @@ def _lcopy(dest: ptr16, source: ptr8, length: int):
         c = source[n]
         # Source byte holds 8-bit rrrgggbb
         # source       rrrgggbb
-        # dest rrr00ggg000bb000
-        dest[n] = ((c & 0xE0) << 8) | ((c & 0x1C) << 6) | ((c & 0x03) << 3)
+        # dest rrr00ggg000bb000 is RGB565.
+        # dest 000bb000 rrr00ggg RGB565 with byte order reversed:
+        dest[n] = (c & 0xE0 | ((c & 0x1C) >> 2) | ((c & 0x03) << 11)) ^ 0xFFFF
         n += 1
         length -= 1
 
@@ -58,7 +62,7 @@ class ST7789(framebuf.FrameBuffer):
     # rrrgggbb. Converted to 16 bit on the fly.
     @staticmethod
     def rgb(r, g, b):
-        return ((r & 0xE0) | ((g >> 3) & 0x1C) | (b >> 6)) ^ 0xFFFF
+        return (r & 0xE0) | ((g >> 3) & 0x1C) | (b >> 6)
 
     # rst and cs are active low, SPI is mode 0
     def __init__(
@@ -94,7 +98,7 @@ class ST7789(framebuf.FrameBuffer):
         self.mvb = memoryview(buf)
         super().__init__(buf, width, height, self.mode)
         self._linebuf = bytearray(self.width * 2)  # 16 bit color out
-        self._init(disp_mode, orientation)
+        self._init(disp_mode, orientation, display[3:])
         self.show()
 
     # Hardware reset
@@ -128,7 +132,9 @@ class ST7789(framebuf.FrameBuffer):
     # Initialise the hardware. Blocks 163ms. Adafruit have various sleep delays
     # where I can find no requirement in the datasheet. I removed them with
     # other redundant code.
-    def _init(self, user_mode, orientation):
+    def _init(self, user_mode, orientation, cfg):
+        bgr = cfg[0] if len(cfg) else False  # Color mode BGR/RGB
+        inv = cfg[1] if len(cfg) else False
         self._hwreset()  # Hardware reset. Blocks 3ms
         if self._spi_init:  # A callback was passed
             self._spi_init(self._spi)  # Bus may be shared
@@ -139,7 +145,8 @@ class ST7789(framebuf.FrameBuffer):
         cmd(b"\x11")  # SLPOUT: exit sleep mode
         sleep_ms(10)  # Adafruit delay 500ms (datsheet 5ms)
         wcd(b"\x3a", b"\x55")  # _COLMOD 16 bit/pixel, 65Kbit color space
-        cmd(b"\x20")  # INVOFF Adafruit turn inversion on. This driver fixes .rgb
+        # INVOFF Adafruit turn inversion on. This driver fixes .rgb
+        cmd(b"\x21" if inv else b"\x20")
         cmd(b"\x13")  # NORON Normal display mode
 
         # Table maps user request onto hardware values. index values:
@@ -159,7 +166,7 @@ class ST7789(framebuf.FrameBuffer):
         # PORTRAIT = 0x20
         # REFLECT = 0x40
         # USD = 0x80
-        mode = (0x60, 0xE0, 0xA0, 0x20, 0, 0x40, 0xC0, 0x80)[user_mode]
+        mode = (0x60, 0xE0, 0xA0, 0x20, 0, 0x40, 0xC0, 0x80)[user_mode] | (0x08 if bgr else 0)
         # Set display window depending on mode, .height and .width.
         self.set_window(mode)
         wcd(b"\x36", int.to_bytes(mode, 1, "little"))

@@ -36,6 +36,9 @@ PI_PICO_LCD_2 = (0, 0, 1)  # Waveshare Pico LCD 2 determined by Mike Wilson.
 DFR0995 = (34, 0, 0)  # DFR0995 Contributed by @EdgarKluge
 WAVESHARE_13 = (0, 0, 16)  # Waveshare 1.3" 240x240 LCD contributed by Aaron Mittelmeier
 ADAFRUIT_1_9 = (35, 0, PORTRAIT)  #  320x170 TFT https://www.adafruit.com/product/5394
+# Note a 5-tuple may be passed if colors are wrong. Extra values are boolean
+# bgr: True if color is BGR, False is RGB (default)
+# inv: True if color mode is inverted, False normal (default)
 
 
 @micropython.viper
@@ -106,7 +109,7 @@ class ST7789(framebuf.FrameBuffer):
         self.mvb = memoryview(buf)
         super().__init__(buf, width, height, self.mode)
         self._linebuf = bytearray(self.width * 2)  # 16 bit color out
-        self._init(disp_mode, orientation)
+        self._init(disp_mode, orientation, display[3:])
         self.show()
 
     # Hardware reset
@@ -140,7 +143,9 @@ class ST7789(framebuf.FrameBuffer):
     # Initialise the hardware. Blocks 163ms. Adafruit have various sleep delays
     # where I can find no requirement in the datasheet. I removed them with
     # other redundant code.
-    def _init(self, user_mode, orientation):
+    def _init(self, user_mode, orientation, cfg):
+        bgr = cfg[0] if len(cfg) else False  # Color mode BGR/RGB
+        inv = cfg[1] if len(cfg) else False
         self._hwreset()  # Hardware reset. Blocks 3ms
         if self._spi_init:  # A callback was passed
             self._spi_init(self._spi)  # Bus may be shared
@@ -151,7 +156,8 @@ class ST7789(framebuf.FrameBuffer):
         cmd(b"\x11")  # SLPOUT: exit sleep mode
         sleep_ms(10)  # Adafruit delay 500ms (datsheet 5ms)
         wcd(b"\x3a", b"\x55")  # _COLMOD 16 bit/pixel, 65Kbit color space
-        cmd(b"\x20")  # INVOFF Adafruit turn inversion on. This driver fixes .rgb
+        # INVOFF Adafruit turn inversion on. This driver fixes .rgb
+        cmd(b"\x21" if inv else b"\x20")
         cmd(b"\x13")  # NORON Normal display mode
 
         # Table maps user request onto hardware values. index values:
@@ -171,7 +177,7 @@ class ST7789(framebuf.FrameBuffer):
         # PORTRAIT = 0x20
         # REFLECT = 0x40
         # USD = 0x80
-        mode = (0x60, 0xE0, 0xA0, 0x20, 0, 0x40, 0xC0, 0x80)[user_mode]
+        mode = (0x60, 0xE0, 0xA0, 0x20, 0, 0x40, 0xC0, 0x80)[user_mode] | (0x08 if bgr else 0)
         # Set display window depending on mode, .height and .width.
         self.set_window(mode)
         wcd(b"\x36", int.to_bytes(mode, 1, "little"))

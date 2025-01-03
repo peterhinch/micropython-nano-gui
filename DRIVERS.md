@@ -535,9 +535,14 @@ below. An example file for the Pi Pico is in `setup_examples/st7789_pico.py`.
  * `disp_mode=LANDSCAPE` This arg enables portrait mode and other
  configurations. See below.
  * `init_spi=False` For shared SPI bus applications. See note below.
- * `display=GENERIC` The `display` arg is an opaque type defining the display
- hardware. Current options (exported by the driver) are `GENERIC` for Adafruit
- displays and `TDISPLAY` for the TTGO board.
+ * `display=GENERIC` Defines the hardware variant.
+
+ The `display` arg is an opaque type defining the display hardware. Current
+ options (exported by the driver) are `GENERIC` for Adafruit displays,
+ `TDISPLAY` for the TTGO board, `PI_PICO_LCD_2`, `DFR0995`, `WAVESHARE_13` and
+ `ADAFRUIT_1_9`. These were contributed by users. See the driver code comments
+ for the names of the target hardware and acknowledgements of the contributors.
+
 
  #### Method (4-bit driver only)
 
