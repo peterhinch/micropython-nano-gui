@@ -42,6 +42,9 @@ class ILI9341(framebuf.FrameBuffer):
 
     # Transpose width & height for landscape mode
     def __init__(self, spi, cs, dc, rst, height=240, width=320, usd=False, init_spi=False):
+        """For more information see
+        https://github.com/peterhinch/micropython-nano-gui/blob/master/DRIVERS.md#32-drivers-for-ili9341
+        """
         self._spi = spi
         self._cs = cs
         self._dc = dc
