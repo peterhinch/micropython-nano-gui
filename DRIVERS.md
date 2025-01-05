@@ -491,16 +491,15 @@ constructor arg set `True`. Patch and testing provided by
 
 ## 3.3 Drivers for ST7789
 
-These displays tend to be physically small with a high pixel density. The chip
-supports up to 240x320 displays. The Adafruit units tested are 240x240. To keep
-the buffer size down, the driver uses 4-bit color with dynamic conversion to 16
-bit RGB565 at runtime. This uses a lookup table (LUT) enabling user defined
-colors. The resultant buffer size for the Adafruit displays is 28800 bytes. See
+The chip supports sizes up to 240x320 pixels. To keep the buffer size down, the
+normal driver uses 4-bit color with dynamic conversion to 16 bit RGB565 at
+runtime. This uses a lookup table (LUT) enabling user defined colors. The
+resultant buffer size for a 240x240 display is 28800 bytes. See
 [Color handling](./DRIVERS.md#11-color-handling) for the implications of 4-bit
 color.
 
 An 8-bit driver is also provided. This may be used for rendering color images;
-for use with the GUIs, demos are visually identical with the 4-bit driver.
+when used with the GUIs, demos are visually identical to the 4-bit driver.
 
 [Tested display: Adafruit 1.3 inch](https://www.adafruit.com/product/4313). The
 Adafruit [1.54 inch](https://www.adafruit.com/product/3787) has identical
@@ -533,16 +532,10 @@ below. An example file for the Pi Pico is in `setup_examples/st7789_pico.py`.
  aspect ratio.
  * `width=240`
  * `disp_mode=LANDSCAPE` This arg enables portrait mode and other
- configurations. See below.
+ configurations. See below for options exported by the driver.
  * `init_spi=False` For shared SPI bus applications. See note below.
- * `display=GENERIC` Defines the hardware variant.
-
- The `display` arg is an opaque type defining the display hardware. Current
- options (exported by the driver) are `GENERIC` for Adafruit displays,
- `TDISPLAY` for the TTGO board, `PI_PICO_LCD_2`, `DFR0995`, `WAVESHARE_13` and
- `ADAFRUIT_1_9`. These were contributed by users. See the driver code comments
- for the names of the target hardware and acknowledgements of the contributors.
-
+ * `display=GENERIC` Defines the hardware variant. See below for options
+ exported by the driver.
 
  #### Method (4-bit driver only)
 
@@ -572,12 +565,18 @@ Orientation (values for `disp_mode`):
 `USD` Upside down rendering.  
 `REFLECT` Mirror image rendering.  
 
-Display types (values for `display`):  
-`GENERIC` For Adafruit displays.  
-`TDISPLAY` For the TTGO T-Display and Waveshare Pico LCD.  
-`PI_PICO_LCD_2` Waveshare Pico LCD 2 determined by Mike Wilson.
-`DFR0995` DFR0995 Contributed by @EdgarKluge
-`WAVESHARE_13` Waveshare 1.3" 240x240 LCD contributed by Aaron Mittelmeier
+Display types. These are values for `display` constructor arg:
+* `GENERIC` Adafruit displays, Waveshare Pico Res Touch 2.8., 3.2" Cheap Yellow
+Display and others.
+* `TDISPLAY` TTGO t-display, Waveshare Pico LCD 1.14 inch.
+* `PI_PICO_LCD_2` Waveshare Pico LCD 2.
+* `DFR0995` DFRobot DFR0995 1.47".
+* `WAVESHARE_13` Waveshare Pico LCD 1.3" 240x240
+* `ADAFRUIT_1_9` Adafruit 5394 1.9" LCD 320x170
+
+These were contributed by users. See the
+[driver code](https://github.com/peterhinch/micropython-nano-gui/blob/master/drivers/st7789/st7789_4bit.py)
+comments for more details and acknowledgements of contributors.
 
 ### init_spi
 

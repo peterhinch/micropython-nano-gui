@@ -13,7 +13,7 @@ which is quick enough to [work with micro-gui][1z].
 ## Displays using drivers in this repo
 
 Size is diagonal in inches. C/M/GS color/1-bit monochrome/greyscale.  
-Displays with a touch overlay are denoted by T, K or R depending on the touch
+Displays with a touch overlay are denoted by T, K, R or S depending on the touch
 hardware. See [Touch Displays below](./DISPLAYS.md#touch-displays).  
 Width and height are pixels.  
 
@@ -37,6 +37,10 @@ Width and height are pixels.
 | 2.8C T | 320   |  240   | TFT   | [ST7789][5d]   | [Waveshare pico 2.8][10m]    | Display for Pi Pico. (Touch support).        |
 | 1.14C  | 240   |  135   | TFT   | [ST7789][5d]   | [Waveshare pico 1.14][11m]   | For Pi Pico. Buttons good for micro-gui.     |
 | 1.14C  | 240   |  135   | TFT   | [ST7789][5d]   | [Pimoroni pico 1.14][23m]    | For Pi Pico. Buttons good for micro-gui.     |
+| 1.47C  | 320   |  172   | TFT   | [ST7789][5d]   | [DFR0995][31m]               |                                              |
+| 1.3C   | 240   |  240   | TFT   | [ST7789][5d]   | [Waveshare Pico 1.3][32m]    |                                              |
+| 1.9C   | 320   |  170   | TFT   | [ST7789][5d]   | [Adafruit 5395][33m]         |                                              |
+| 3.2C S | 320   |  240   | TFT   | [ILI9341][6d]  | [ESP32-2432S024C][34m]       | Cheap yellow display 3.2" capacitive touch   |
 | 3.2C R | 320   |  240   | TFT   | [ILI9341][6d]  | [Adafruit 1743][12m]         | Big touch unit. eBay equivalents work here.  |
 | 3.5C T | 480   |  320   | TFT   | [ILI9486][12d] | [Waveshare Rpi 3.5 LCD][22m] | Pi HAT. Many pixels. Needs plenty of RAM.    |
 | 3.5C R | 480   |  320   | TFT   | [ILI9486][12d] | [Adafruit 3.5 LCD][24m]      | 3.5" HX8357D touch, notes as above.          |
@@ -105,14 +109,13 @@ simple. See [this doc](./DRIVERS.md#7-writing-device-drivers) for details.
 
 # Touch displays
 
-
-
 | Label | Controller    | Comments                                        |
 |:-----:|:--------------|:------------------------------------------------|
 | R     | [TSC2007][1t] | Resistive touch needs [external controller][1q] |
 | T     | [XPT2046][2t] | Resistive touch, XPT2046 controller.            |
 | K     | [FT6206][3t]  | Capacitive touch controller.                    |
 | Q     | [CST816S][4t] | Capacitive touch controller.                    |
+| S     | [CST820][5t]  | Capacitive touch controller.                    |
 
 # Links
 
@@ -174,11 +177,16 @@ simple. See [this doc](./DRIVERS.md#7-writing-device-drivers) for details.
 [28m]: https://www.adafruit.com/product/1947
 [29m]: https://www.waveshare.com/wiki/1.28inch_Touch_LCD
 [30m]: https://www.waveshare.com/wiki/RP2040-Touch-LCD-1.28
+[31m]: https://wiki.dfrobot.com/SKU_DFR0995_1.47inches_IPS_LCD_Display_Module
+[32m]: https://www.waveshare.com/pico-lcd-1.3.htm
+[33m]: https://www.adafruit.com/product/5394
+[34m]: https://www.amazon.co.uk/DIYmalls-ESP32-2432S024C-Capacitive-ESP-WROOM-32-Development/dp/B0CLGD2DG6
 
 [1t]: https://github.com/peterhinch/micropython-touch/blob/master/TOUCHPAD.md#tsc2007
 [2t]: https://github.com/peterhinch/micropython-touch/blob/master/TOUCHPAD.md#xpt2046
 [3t]: https://github.com/peterhinch/micropython-touch/blob/master/TOUCHPAD.md#ft6206-capacitive-controller
 [4t]: https://github.com/peterhinch/micropython-touch/blob/master/TOUCHPAD.md#cst816s-capacitive-controller
+[5t]: https://github.com/peterhinch/micropython-touch/blob/master/TOUCHPAD.md#cst820-capacitive-controller
 
 [1q]: https://www.adafruit.com/product/5423
 
