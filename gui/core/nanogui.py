@@ -15,6 +15,9 @@ import framebuf
 import gc
 import sys
 
+version_info = (1, 0, 0)  # pep-440-like version number using semantic version number
+__version__ = '.'.join(map(str, version_info))
+
 if sys.implementation.version < (1, 20, 0):
     raise OSError("Firmware V1.20 or later required.")
 
