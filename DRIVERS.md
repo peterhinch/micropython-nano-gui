@@ -411,6 +411,9 @@ soft SPI may be used but hard may be faster. See note on overclocking below.
  * `width=320`
  * `usd=False` Upside down: set `True` to invert display.
  * `init_spi=False` Allow bus sharing. See note below.
+ * `mod=None` Set to a number from 0 to 7 to correct garbled display on some
+ Chinese units.
+ * `bgr=False` If `True` use BGR color rendition in place of RGB.
 
  #### Method (4-bit driver only)
 

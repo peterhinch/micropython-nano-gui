@@ -51,7 +51,7 @@ class ILI9341(framebuf.FrameBuffer):
         width=320,
         usd=False,
         init_spi=False,
-        rot=False,
+        mod=None,
         bgr=False,
     ):
         """For more information see
@@ -93,17 +93,17 @@ class ILI9341(framebuf.FrameBuffer):
         self._wcd(b"\xc1", b"\x10")  # PWCTR2 Pwr ctrl 2
         self._wcd(b"\xc5", b"\x3E\x28")  # VMCTR1 VCOM ctrl 1
         self._wcd(b"\xc7", b"\x86")  # VMCTR2 VCOM ctrl 2
-        # (b'\x88', b'\xe8', b'\x48', b'\x28')[rotation // 90]
-        if (self.height > self.width) ^ rot:
-            if bgr:
-                self._wcd(b"\x36", b"\x40" if usd else b"\x80")  # MADCTL: BGR portrait mode
+        if mod is None:
+            if self.height > self.width:
+                v = 0x40 if usd else 0x80  # MADCTL: BGR portrait mode
             else:
-                self._wcd(b"\x36", b"\x48" if usd else b"\x88")  # MADCTL: RGB portrait mode
-        else:
-            if bgr:
-                self._wcd(b"\x36", b"\x20" if usd else b"\xe0")  # MADCTL: BGR landscape mode
-            else:
-                self._wcd(b"\x36", b"\x28" if usd else b"\xe8")  # MADCTL: RGB landscape mode
+                v = 0x20 if usd else 0xE0  # MADCTL: BGR landscape mode
+        else:  # Weird Chinese display
+            if not 0 <= mod <= 7:
+                raise ValueError("mod must be in range 0 to 7")
+            v = mod << 5
+        v = v if bgr else (v | 8)
+        self._wcd(b"\x36", int.to_bytes(v, 1, "big"))
         self._wcd(b"\x37", b"\x00")  # VSCRSADD Vertical scrolling start address
         self._wcd(b"\x3a", b"\x55")  # PIXFMT COLMOD: Pixel format 16 bits (MCU & interface)
         self._wcd(b"\xb1", b"\x00\x18")  # FRMCTR1 Frame rate ctrl
