@@ -41,7 +41,7 @@ class ILI9341(framebuf.FrameBuffer):
         return (r & 0xE0) | ((g >> 3) & 0x1C) | (b >> 6)
 
     # Transpose width & height for landscape mode
-    def __init__(self, spi, cs, dc, rst, height=240, width=320, usd=False, init_spi=False):
+    def __init__(self, spi, cs, dc, rst, height=240, width=320, usd=False, init_spi=False, rotated=False):
         """For more information see
         https://github.com/peterhinch/micropython-nano-gui/blob/master/DRIVERS.md#32-drivers-for-ili9341
         """
@@ -82,7 +82,7 @@ class ILI9341(framebuf.FrameBuffer):
         self._wcd(b"\xc5", b"\x3E\x28")  # VMCTR1 VCOM ctrl 1
         self._wcd(b"\xc7", b"\x86")  # VMCTR2 VCOM ctrl 2
         # (b'\x88', b'\xe8', b'\x48', b'\x28')[rotation // 90]
-        if height > width:
+        if not rotated:
             self._wcd(b"\x36", b"\x48" if usd else b"\x88")  # MADCTL: RGB portrait mode
         else:
             self._wcd(b"\x36", b"\x28" if usd else b"\xe8")  # MADCTL: RGB landscape mode
