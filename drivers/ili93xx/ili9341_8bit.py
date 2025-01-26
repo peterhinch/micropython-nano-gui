@@ -41,7 +41,19 @@ class ILI9341(framebuf.FrameBuffer):
         return (r & 0xE0) | ((g >> 3) & 0x1C) | (b >> 6)
 
     # Transpose width & height for landscape mode
-    def __init__(self, spi, cs, dc, rst, height=240, width=320, usd=False, init_spi=False):
+    def __init__(
+        self,
+        spi,
+        cs,
+        dc,
+        rst,
+        height=240,
+        width=320,
+        usd=False,
+        init_spi=False,
+        rot=False,
+        bgr=False,
+    ):
         """For more information see
         https://github.com/peterhinch/micropython-nano-gui/blob/master/DRIVERS.md#32-drivers-for-ili9341
         """
@@ -82,10 +94,16 @@ class ILI9341(framebuf.FrameBuffer):
         self._wcd(b"\xc5", b"\x3E\x28")  # VMCTR1 VCOM ctrl 1
         self._wcd(b"\xc7", b"\x86")  # VMCTR2 VCOM ctrl 2
         # (b'\x88', b'\xe8', b'\x48', b'\x28')[rotation // 90]
-        if height > width:
-            self._wcd(b"\x36", b"\x48" if usd else b"\x88")  # MADCTL: RGB portrait mode
+        if (self.height > self.width) ^ rot:
+            if bgr:
+                self._wcd(b"\x36", b"\x40" if usd else b"\x80")  # MADCTL: BGR portrait mode
+            else:
+                self._wcd(b"\x36", b"\x48" if usd else b"\x88")  # MADCTL: RGB portrait mode
         else:
-            self._wcd(b"\x36", b"\x28" if usd else b"\xe8")  # MADCTL: RGB landscape mode
+            if bgr:
+                self._wcd(b"\x36", b"\x20" if usd else b"\xe0")  # MADCTL: BGR landscape mode
+            else:
+                self._wcd(b"\x36", b"\x28" if usd else b"\xe8")  # MADCTL: RGB landscape mode
         self._wcd(b"\x37", b"\x00")  # VSCRSADD Vertical scrolling start address
         self._wcd(b"\x3a", b"\x55")  # PIXFMT COLMOD: Pixel format 16 bits (MCU & interface)
         self._wcd(b"\xb1", b"\x00\x18")  # FRMCTR1 Frame rate ctrl
