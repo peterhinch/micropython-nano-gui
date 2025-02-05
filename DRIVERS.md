@@ -39,12 +39,12 @@ access via the `Writer` and `CWriter` classes is documented
   2.3 [Drivers for SSD1327](./DRIVERS.md#23-drivers-for-ssd1327) Greyscale OLEDs  
  3. [Color TFT displays](./DRIVERS.md#3-color-tft-displays)  
   3.1 [Drivers for ST7735R](./DRIVERS.md#31-drivers-for-st7735r) Small TFTs  
-  3.2 [Drivers for ILI9341](./DRIVERS.md#32-drivers-for-ili9341) Large TFTs  
-  3.3 [Drivers for ST7789](./DRIVERS.md#33-drivers-for-st7789) Small high density TFTs  
-  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;3.3.1 [TTGO T Display](./DRIVERS.md#331-ttgo-t-display) Low cost ESP32 with integrated display  
-  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;3.3.2 [Waveshare Pico Res Touch](./DRIVERS.md#332-waveshare-pico-res-touch)  
-  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;3.3.3 [Waveshare Pico LCD 2](./DRIVERS.md#333-waveshare-pico-lcd-2)  
-  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;3.3.4 [Troubleshooting](./DRIVERS.md#334-troubleshooting)  
+  3.2 [Drivers for ST7789](./DRIVERS.md#32-drivers-for-st7789) Small high density TFTs  
+  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;3.2.1 [TTGO T Display](./DRIVERS.md#321-ttgo-t-display) Low cost ESP32 with integrated display  
+  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;3.2.2 [Waveshare Pico Res Touch](./DRIVERS.md#322-waveshare-pico-res-touch)  
+  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;3.2.3 [Waveshare Pico LCD 2](./DRIVERS.md#323-waveshare-pico-lcd-2)  
+  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;3.2.4 [Troubleshooting](./DRIVERS.md#324-troubleshooting)  
+  3.3 [Drivers for ILI9341](./DRIVERS.md#33-drivers-for-ili9341) Large TFTs  
   3.4 [Driver for ILI94xx](./DRIVERS.md#34-driver-for-ili94xx) Generic ILI94xx and HX8357D driver for large displays.  
   3.5 [Driver for gc9a01](./DRIVERS.md#35-driver-for-gc9a01) Round 240x240 displays.  
  4. [Drivers for sharp displays](./DRIVERS.md#4-drivers-for-sharp-displays) Large low power monochrome displays  
@@ -389,110 +389,7 @@ def spi_init(spi):
 
 ###### [Contents](./DRIVERS.md#contents)
 
-## 3.2 Drivers for ILI9341
-
-Adafruit make several displays using this chip, for example
-[this 3.2 inch unit](https://www.adafruit.com/product/1743). This display is
-large by microcontroller standards. See below for discussion of which hosts can
-be expected to work.
-
-The `color_setup.py` file should initialise the SPI bus with a baudrate of
-10_000_000. Args `polarity`, `phase`, `bits`, `firstbit` are defaults. Hard or
-soft SPI may be used but hard may be faster. See note on overclocking below.
-
-#### ILI9341 Constructor args:
- * `spi` An initialised SPI bus instance. The device can support clock rates of
- upto 10MHz.
- * `cs` An initialised output pin. Initial value should be 1.
- * `dc` An initialised output pin. Initial value should be 0.
- * `rst` An initialised output pin. Initial value should be 1.
- * `height=240` Display dimensions in pixels. For portrait mode exchange
- `height` and `width` values.
- * `width=320`
- * `usd=False` Upside down: set `True` to invert display.
- * `init_spi=False` Allow bus sharing. See note below.
- * `mod=None` Set to a number from 0 to 7 to correct garbled display on some
- Chinese units.
- * `bgr=False` If `True` use BGR color rendition in place of RGB.
-
- #### Method (4-bit driver only)
-
- * `greyscale(gs=None)` Setting `gs=True` enables the screen to be used to show
- a full screen monochrome image. By default the frame buffer contents are
- interpreted as color values. In greyscale mode the contents are treated as
- greyscale  values. This mode persists until the method is called with
- `gs=False`. The method returns the current greyscale state. It is possible to
- superimpose widgets on an image, but the mapping of colors onto the greyscale
- may yield unexpected shades of grey. `WHITE` and `BLACK` work well. In
- [micro-gui](https://github.com/peterhinch/micropython-micro-gui) and
- [micropython-touch](https://github.com/peterhinch/micropython-touch) the
- `after_open` method should be used to render the image to the framebuf and to
- overlay any widgets.
-
-The 4-bit driver uses four bits per pixel to conserve RAM. Even with this
-adaptation the buffer size is 37.5KiB which is too large for some platforms. On
-a Pyboard 1.1 the `scale.py` demo ran with 34.5K free with no modules frozen,
-and with 47K free with `gui` and contents frozen. An ESP32 with SPIRAM has been
-tested. On an ESP32 without SPIRAM, `nano-gui` runs but
-[micro-gui](https://github.com/peterhinch/micropython-micro-gui) requires
-frozen bytecode. The RP2 Pico runs both GUI's.
-
-See [Color handling](./DRIVERS.md#11-color-handling) for details of the
-implications of 4-bit color. The 8-bit driver enables color image display on
-platforms with sufficient RAM: see [IMAGE_DISPLAY.md](./IMAGE_DISPLAY.md).
-
-The drivers use the `micropython.viper` decorator. If your platform does not
-support this, the Viper code will need to be rewritten with a substantial hit
-to performance.
-
-#### Use with asyncio
-
-A full refresh blocks for ~200ms. If this is acceptable, no special precautions
-are required. However this period may be unacceptable for some `asyncio`
-applications. The driver provides an asynchronous `do_refresh(split=4)` method.
-If this is run the display will be refreshed, but will periodically yield to
-the scheduler enabling other tasks to run. This is documented
-[here](./ASYNC.md). [micro-gui](https://github.com/peterhinch/micropython-micro-gui)
-uses this automatically.
-
-Another option to reduce blocking is overclocking the SPI bus.
-
-#### Overclocking SPI
-
-The ILI9341 datasheet section 19.3.4 specifies a minimum clock cycle time of
-100ns for write cycles. It seems that every man and his dog overclocks this,
-even the normally conservative Adafruit
-[use 24MHz](https://learn.adafruit.com/adafruit-2-8-and-3-2-color-tft-touchscreen-breakout-v2/python-usage)
-and [rdagger](https://github.com/rdagger/micropython-ili9341/blob/master/demo_fonts.py)
-uses 40MHz. I have successfully run my display at 40MHz. My engineering
-training makes me baulk at exceeding datasheet limits but the choice is yours.
-I raised [this isse](https://github.com/adafruit/Adafruit_CircuitPython_ILI9341/issues/24).
-The response may be of interest.
-
-### The init_spi constructor arg
-
-This optional arg enables flexible options in configuring the SPI bus. The
-default assumes exclusive access to the bus. In this normal case,
-`color_setup.py` initialises it and the settings will be left in place. If the
-bus is shared with devices which require different settings, a callback function
-should be passed. It will be called prior to each SPI bus write. The callback
-will receive a single arg being the SPI bus instance. It will typically be a
-one-liner or lambda initialising the bus. A minimal example is this function:
-```python
-def spi_init(spi):
-   spi.init(baudrate=10_000_000)
-```
-
-#### Troubleshooting
-
-Some Chinese modules produce garbled displays. Please try the
-[ILI9486 driver](./DRIVERS.md#34-driver-for-ili94xx) with the `mirror`
-constructor arg set `True`. Patch and testing provided by
-[Abel Deuring](https://github.com/peterhinch/micropython-micro-gui/issues/25#issuecomment-1475329104).
-
-###### [Contents](./DRIVERS.md#contents)
-
-## 3.3 Drivers for ST7789
+## 3.2 Drivers for ST7789
 
 The chip supports sizes up to 240x320 pixels. To keep the buffer size down, the
 normal driver uses 4-bit color with dynamic conversion to 16 bit RGB565 at
@@ -640,7 +537,7 @@ At a 60MHz baudrate this equates to
 This suggests that about 80% of the latency results from the Python code. An
 option may be to overclock.
 
-### 3.3.1 TTGO T Display
+### 3.2.1 TTGO T Display
 
 Thanks to [Ihor Nehrutsa](https://github.com/IhorNehrutsa) who wrote much of
 the setup file for this device.
@@ -660,7 +557,7 @@ URL's. More in `st7789_ttgo.py`
 [Another MicroPython driver](https://github.com/jikegong/TTGO-Esp32-ST7789-Display-MicroPython/blob/2ed1816c41f25c8993038c35ef40b2efeb225dcc/st7789.py)  
 [Factory test (C)](https://github.com/Xinyuan-LilyGO/TTGO-T-Display/blob/master/TFT_eSPI/examples/FactoryTest/FactoryTest.ino)  
 
-### 3.3.2 Waveshare Pico Res Touch
+### 3.2.2 Waveshare Pico Res Touch
 
 This is a "plug and play" 2.8" color TFT for nano-gui and the Pi Pico. Users of
 micro-gui will need to find a way to connect pushbuttons, either using stacking
@@ -701,7 +598,7 @@ driver which may be found in the MicroPython source tree in
 `drivers/sdcard/sdcard.py`. I am not an expert on SD cards. Mine worked fine at
 31.25MHz but this may or may not be universally true.
 
-### 3.3.3 Waveshare Pico LCD 2
+### 3.2.3 Waveshare Pico LCD 2
 
 Support for this display resulted from a collaboration with Mike Wilson
 (@MikeTheGent).
@@ -728,12 +625,115 @@ pdc = Pin(8, Pin.OUT, value=0)
 ssd = SSD(spi, height=240, width=320, dc=pdc, cs=pcs, rst=prst, disp_mode=LANDSCAPE, display=PI_PICO_LCD_2)
 ```
 
-### 3.3.4 Troubleshooting
+### 3.2.4 Troubleshooting
 
 If your display shows garbage, check the following (I have seen both):
  * SPI baudrate too high for your physical layout.
  * `height` and `width` not matching the choice of `LANDSCAPE` or `PORTRAIT`
  display mode.
+
+###### [Contents](./DRIVERS.md#contents)
+
+## 3.3 Drivers for ILI9341
+
+Adafruit make several displays using this chip, for example
+[this 3.2 inch unit](https://www.adafruit.com/product/1743). This display is
+large by microcontroller standards. See below for discussion of which hosts can
+be expected to work.
+
+The `color_setup.py` file should initialise the SPI bus with a baudrate of
+10_000_000. Args `polarity`, `phase`, `bits`, `firstbit` are defaults. Hard or
+soft SPI may be used but hard may be faster. See note on overclocking below.
+
+#### ILI9341 Constructor args:
+ * `spi` An initialised SPI bus instance. The device can support clock rates of
+ upto 10MHz.
+ * `cs` An initialised output pin. Initial value should be 1.
+ * `dc` An initialised output pin. Initial value should be 0.
+ * `rst` An initialised output pin. Initial value should be 1.
+ * `height=240` Display dimensions in pixels. For portrait mode exchange
+ `height` and `width` values.
+ * `width=320`
+ * `usd=False` Upside down: set `True` to invert display.
+ * `init_spi=False` Allow bus sharing. See note below.
+ * `mod=None` Set to a number from 0 to 7 to correct garbled display on some
+ Chinese units.
+ * `bgr=False` If `True` use BGR color rendition in place of RGB.
+
+ #### Method (4-bit driver only)
+
+ * `greyscale(gs=None)` Setting `gs=True` enables the screen to be used to show
+ a full screen monochrome image. By default the frame buffer contents are
+ interpreted as color values. In greyscale mode the contents are treated as
+ greyscale  values. This mode persists until the method is called with
+ `gs=False`. The method returns the current greyscale state. It is possible to
+ superimpose widgets on an image, but the mapping of colors onto the greyscale
+ may yield unexpected shades of grey. `WHITE` and `BLACK` work well. In
+ [micro-gui](https://github.com/peterhinch/micropython-micro-gui) and
+ [micropython-touch](https://github.com/peterhinch/micropython-touch) the
+ `after_open` method should be used to render the image to the framebuf and to
+ overlay any widgets.
+
+The 4-bit driver uses four bits per pixel to conserve RAM. Even with this
+adaptation the buffer size is 37.5KiB which is too large for some platforms. On
+a Pyboard 1.1 the `scale.py` demo ran with 34.5K free with no modules frozen,
+and with 47K free with `gui` and contents frozen. An ESP32 with SPIRAM has been
+tested. On an ESP32 without SPIRAM, `nano-gui` runs but
+[micro-gui](https://github.com/peterhinch/micropython-micro-gui) requires
+frozen bytecode. The RP2 Pico runs both GUI's.
+
+See [Color handling](./DRIVERS.md#11-color-handling) for details of the
+implications of 4-bit color. The 8-bit driver enables color image display on
+platforms with sufficient RAM: see [IMAGE_DISPLAY.md](./IMAGE_DISPLAY.md).
+
+The drivers use the `micropython.viper` decorator. If your platform does not
+support this, the Viper code will need to be rewritten with a substantial hit
+to performance.
+
+#### Use with asyncio
+
+A full refresh blocks for ~200ms. If this is acceptable, no special precautions
+are required. However this period may be unacceptable for some `asyncio`
+applications. The driver provides an asynchronous `do_refresh(split=4)` method.
+If this is run the display will be refreshed, but will periodically yield to
+the scheduler enabling other tasks to run. This is documented
+[here](./ASYNC.md). [micro-gui](https://github.com/peterhinch/micropython-micro-gui)
+uses this automatically.
+
+Another option to reduce blocking is overclocking the SPI bus.
+
+#### Overclocking SPI
+
+The ILI9341 datasheet section 19.3.4 specifies a minimum clock cycle time of
+100ns for write cycles. It seems that every man and his dog overclocks this,
+even the normally conservative Adafruit
+[use 24MHz](https://learn.adafruit.com/adafruit-2-8-and-3-2-color-tft-touchscreen-breakout-v2/python-usage)
+and [rdagger](https://github.com/rdagger/micropython-ili9341/blob/master/demo_fonts.py)
+uses 40MHz. I have successfully run my display at 40MHz. My engineering
+training makes me baulk at exceeding datasheet limits but the choice is yours.
+I raised [this isse](https://github.com/adafruit/Adafruit_CircuitPython_ILI9341/issues/24).
+The response may be of interest.
+
+### The init_spi constructor arg
+
+This optional arg enables flexible options in configuring the SPI bus. The
+default assumes exclusive access to the bus. In this normal case,
+`color_setup.py` initialises it and the settings will be left in place. If the
+bus is shared with devices which require different settings, a callback function
+should be passed. It will be called prior to each SPI bus write. The callback
+will receive a single arg being the SPI bus instance. It will typically be a
+one-liner or lambda initialising the bus. A minimal example is this function:
+```python
+def spi_init(spi):
+   spi.init(baudrate=10_000_000)
+```
+
+#### Troubleshooting
+
+Some Chinese modules produce garbled displays. Please try the
+[ILI9486 driver](./DRIVERS.md#34-driver-for-ili94xx) with the `mirror`
+constructor arg set `True`. Patch and testing provided by
+[Abel Deuring](https://github.com/peterhinch/micropython-micro-gui/issues/25#issuecomment-1475329104).
 
 ###### [Contents](./DRIVERS.md#contents)
 
