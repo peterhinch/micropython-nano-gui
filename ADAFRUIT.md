@@ -58,14 +58,14 @@ i2c = machine.I2C(scl=pscl, sda=psda)
 
 # Adafruit - use of the onboard SD card
 
-If the SD card is to be used, the official `scdard.py` driver should be
+If the SD card is to be used, the official `sdcard.py` driver should be
 employed. This may be found
-[here](https://github.com/micropython/micropython/tree/master/drivers/sdcard).
+[here](https://github.com/micropython/micropython-lib/blob/master/micropython/drivers/storage/sdcard/sdcard.py).
 It is necessary to initialise the SPI bus before accessing the SD card. This is
 because the display drivers use a high baudrate unsupported by SD cards. Ensure
 applications do this before the first SD card access and before subsequent ones
 if the display has been refreshed. See
-[sdtest.py](https://github.com/micropython/micropython/blob/master/drivers/sdcard/sdtest.py).
+[sdtest.py](https://github.com/micropython/micropython-lib/blob/master/micropython/drivers/storage/sdcard/sdtest.py).
 
 # Notes on OLED displays
 
