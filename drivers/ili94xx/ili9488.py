@@ -53,27 +53,29 @@ def _lcopy_gs(dest: ptr8, source: ptr8, length: int) :
         
 # Portrait mode color
 @micropython.viper
-def _lcopy(dest: ptr8, source: ptr8, lut: ptr8, length: int) :
-    # rgb666 - 18bit/pixel
+def _lcopy(dest: ptr8, source: ptr8, lut: ptr16, length: int) :
+    # Convert lut rgb 565 to rgb666
     n: int = 0
     x: int = 0
     while x < length:
         c : uint = source[x]
-        p : uint = 3 * (c >> 4)    # current pixel
-        q : uint = 3 * (c & 0x0F)  # next pixel
+        p : uint = c >> 4  # current pixel
+        q = c & 0x0F  # next pixel
 
-        dest[n] = lut[p]
+        v : uint16 = lut[p]
+        dest[n] = (v & 0xF800) >> 8  # R
         n += 1
-        dest[n] = lut[p+1]
+        dest[n] = (v & 0x07E0) >> 3  # G
         n += 1
-        dest[n] = lut[p+2]
+        dest[n] = (v & 0x001F) << 3  # B
         n += 1
         
-        dest[n] = lut[q]
+        v = lut[q]
+        dest[n] = (v & 0xF800) >> 8  # R
         n += 1
-        dest[n] = lut[q+1]
+        dest[n] = (v & 0x07E0) >> 3  # G
         n += 1
-        dest[n] = lut[q+2]
+        dest[n] = (v & 0x001F) << 3  # B
         n += 1
         
         x += 1
@@ -104,46 +106,45 @@ def _lscopy_gs(dest: ptr8, source: ptr8, ch: int) :
 
 # FB is in landscape mode color, hence issue a column at a time to portrait mode hardware.
 @micropython.viper
-def _lscopy(dest: ptr8, source: ptr8, lut: ptr8, ch: int) :
+def _lscopy(dest: ptr8, source: ptr8, lut: ptr16, ch: int) :
+    # Convert lut rgb 565 to rgb666
     col = ch & 0x1FF  # Unpack (viper old 4 parameter limit)
     height = (ch >> 9) & 0x1FF
     wbytes = ch >> 19  # Width in bytes is width // 2
-    # rgb666 - 18bit/pixel
     n = 0
     clsb = col & 1
     idx = col >> 1  # 2 pixels per byte
     while height:
         if clsb:
-            c = 3 * (source[idx] & 0x0F)
+            c = source[idx] & 0x0F
         else:
-            c = 3 * (source[idx] >> 4)
-        dest[n] = lut[c]
-        n += 1 
-        dest[n] = lut[c+1]
-        n += 1 
-        dest[n] = lut[c+2]
-        n += 1 
+            c = source[idx] >> 4
+        v : uint16 = lut[c]
+        dest[n] = (v & 0xF800) >> 8  # R
+        n += 1
+        dest[n] = (v & 0x07E0) >> 3  # G
+        n += 1
+        dest[n] = (v & 0x001F) << 3  # B
+        n += 1
+
         idx += wbytes
         height -= 1
 
 
 class ILI9488(framebuf.FrameBuffer):
 
-    # A lookup table with 3 bytes per entry formatted for direct send to ILI9488
-    lut = bytearray(48)
+    lut = bytearray(32)
 
     COLOR_INVERT = 0
 
     # Convert r, g, b in range 0-255 to a 16 bit colour value
-    # LS byte goes into LUT offset 0, MS byte into offset 1
-    # Same mapping in linebuf so LS byte is shifted out 1st
-    # ILI9488 expects RGB order. 8 bit register writes require padding
+    # 5-6-5 format
+    #  byte order not swapped (compared to ili9486 driver).
     @classmethod
     def rgb(cls, r, g, b):
-        r_device = cls.COLOR_INVERT ^ (r & 0xfc)
-        g_device = cls.COLOR_INVERT ^ (g & 0xfc)
-        b_device = cls.COLOR_INVERT ^ (b & 0xfc)
-        return (r_device << 16) | (g_device << 8) | b_device
+        return cls.COLOR_INVERT ^ (
+            (r & 0xF8) << 8 | (g & 0xFC) << 3 | (b >> 3)
+        )
 
     # Transpose width & height for landscape mode
     def __init__(
@@ -233,7 +234,7 @@ class ILI9488(framebuf.FrameBuffer):
         self._wcmd(b"\x2c")  # WRITE_RAM
         self._dc(1)
         self._cs(0)
-        if self.width < self.height:  # Portrait 300 ms on ESP32 240MHz, 30MHz SPI clock
+        if self.width < self.height:  # Portrait 350 ms on ESP32 160 MHz, 26.6 MHz SPI clock
             wd = self.width // 2
             ht = self.height
             if cm :
@@ -244,7 +245,7 @@ class ILI9488(framebuf.FrameBuffer):
                 for start in range(0, wd * ht, wd):  # For each line
                     _lcopy(lb, buf[start:], clut, wd)  # Copy and map colors
                     self._spi.write(lb)
-        else:  # Landscape 330 ms on ESP32 240MHz, 30MHz SPI clock
+        else:  # Landscape 370 ms on ESP32 160 MHz, 26.6 MHz SPI clock
             width = self.width
             wd = width - 1
             cargs = (self.height << 9) + (width << 18)  # Viper 4-arg limit

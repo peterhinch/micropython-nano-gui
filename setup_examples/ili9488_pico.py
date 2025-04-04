@@ -8,16 +8,16 @@ from micropython import const
 # Modify these Pin assignments to match your hardware.
 
 # Simple GPIO's
-LCD_DC        = 'GPIO21'  # Pin 27
-LCD_RST       = 'GPIO22'  # Pin 29
-LCD_CS        = 'GPIO27'  # Pin 32
-LCD_BackLight = 'GPIO28'  # Pin 34
+LCD_DC        = const(21)  # PICO Pin 27
+LCD_RST       = const(22)  # PICO Pin 29
+LCD_CS        = const(27)  # PICO Pin 32
+LCD_BackLight = const(28)  # PICO Pin 34
 
 # SPI pins
 
-LCD_CLK       = 'GPIO18' # Pin 24 
-LCD_MOSI      = 'GPIO19' # Pin 25 
-LCD_MISO      = 'GPIO16' # Pin 21 
+LCD_CLK       = const(18) # PICO Pin 24 
+LCD_MOSI      = const(19) # PICO Pin 25 
+LCD_MISO      = const(16) # PICO Pin 21 
 
 from machine import Pin, SPI
 from drivers.ili94xx.ili9488 import ILI9488 as SSD

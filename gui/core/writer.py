@@ -263,23 +263,10 @@ class CWriter(Writer):
             return c
         if not 0 <= idx <= 15:
             raise ValueError('Color nos must be 0..15')
-
-        if len(ssd.lut) == 32 :
-            # ssd supports 2 byte color
-            x = idx << 1
-            ssd.lut[x] = c & 0xff
-            ssd.lut[x + 1] = c >> 8
-            return idx
-        elif len(ssd.lut) == 48 :
-            # ssd supports 3 byte color
-            x = idx * 3
-            ssd.lut[x]     = c >> 16
-            ssd.lut[x + 1] = (c >> 8) & 0xff
-            ssd.lut[x + 2] = c & 0xff
-            return idx
-        else :
-            raise TypeError("lut of %d bytes not supported" % (len(ssd.lut)))
-       
+        x = idx << 1
+        ssd.lut[x] = c & 0xff
+        ssd.lut[x + 1] = c >> 8
+        return idx
 
     def __init__(self, device, font, fgcolor=None, bgcolor=None, verbose=True):
         if not hasattr(device, 'palette'):
