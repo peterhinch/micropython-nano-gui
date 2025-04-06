@@ -45,7 +45,8 @@ access via the `Writer` and `CWriter` classes is documented
   &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;3.2.3 [Waveshare Pico LCD 2](./DRIVERS.md#323-waveshare-pico-lcd-2)  
   &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;3.2.4 [Troubleshooting](./DRIVERS.md#324-troubleshooting)  
   3.3 [Drivers for ILI9341](./DRIVERS.md#33-drivers-for-ili9341) Large TFTs  
-  3.4 [Driver for ILI94xx](./DRIVERS.md#34-driver-for-ili94xx) Generic ILI94xx and HX8357D driver for large displays.  
+  3.4 [Driver for ILI94xx](./DRIVERS.md#34-driver-for-ili94xx) ILI9486 and HX8357D driver for large displays.  
+  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;3.4.1 [Driver for ILI9488](./DRIVERS.md#341-driver-for-ili9488)  
   3.5 [Driver for gc9a01](./DRIVERS.md#35-driver-for-gc9a01) Round 240x240 displays.  
  4. [Drivers for sharp displays](./DRIVERS.md#4-drivers-for-sharp-displays) Large low power monochrome displays  
   4.1 [Display characteristics](./DRIVERS.md#41-display-characteristics)  
@@ -740,7 +741,8 @@ constructor arg set `True`. Patch and testing provided by
 ## 3.4 Driver for ILI94xx
 
 This was developed for the ILI9486 but its application is more wide ranging.
-In addition to ILI9486 these have been tested: ILI9341, ILI9488 and HX8357D.
+In addition to ILI9486, ILI9341 and HX8357D have been tested. ILI9488 is a
+special case: see [below](./DRIVERS.md#341-driver-for-ili9488).
 
 The ILI9486 supports displays of up to 480x320 pixels which is large by
 microcontroller standards. Even with 4-bit color the frame buffer requires
@@ -865,6 +867,26 @@ where possible. These defaults are common to a range of controllers.
 The driver is quite minimal. Drivers released by display manufacturers set up
 the controller to achieve precise color rendering. With a 4-bit palette these
 consume bytes with zero visual benefit.
+
+### 3.4.1 Driver for ILI9488
+
+This chip only supports RGB565 color when driven with a parallel interface. On
+SPI 18-bit RGB666 must be used, necessitating the transmission of three bytes
+for every pixel; a 50% performance penalty. With a maximum SPI baudrate of 20MHz
+this makes for slow refreshes. Some manufacturers (e.g. Waveshare) include an
+onboard serial to parallel converter. This allows SPI baudrates of up to 60MHz
+(Waveshare figure) with a further speed boost provided by the availability of
+RGB565. This may be accessed simply by using the ILI9486 driver.
+
+If unsure whether a given board has a converter, specify the ILI9486 driver and
+run the hardware test script. If the result is a blank screen, the ILI9488
+driver is required.
+
+The ILI9486 and ILI9488 drivers have identical API's.
+
+Thanks are due to Carl Pottle (cpottle9) for identifying this issue and
+submitting the device driver
+[background information](https://github.com/peterhinch/micropython-nano-gui/discussions/96).
 
 ## 3.5 Driver for gc9a01
 
