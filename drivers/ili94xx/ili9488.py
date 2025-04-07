@@ -6,14 +6,15 @@
 # Copyright (c) Peter Hinch 2022-2025
 # Released under the MIT license see LICENSE
 
-#
+# This driver, adapted from ILI9486, was contributed by Carl Pottle (cpottle9).
+
 # Note: If your hardware uses the ILI9488 parallel interface
 # you will likely be better off using the ili9486 driver.
 # It will send 2 bytes per pixel which will run faster.
 #
 # You must use this driver only when using the ILI9488 SPI
 # interface. It will send 3 bytes per pixel.
-#
+
 
 from time import sleep_ms
 import gc
@@ -24,15 +25,15 @@ from drivers.boolpalette import BoolPalette
 
 # Portrait mode greyscale
 @micropython.viper
-def _lcopy_gs(dest: ptr8, source: ptr8, length: int) :
+def _lcopy_gs(dest: ptr8, source: ptr8, length: int):
     # rgb666 - 18bit/pixel
     n: int = 0
     x: int = 0
     while x < length:
-        c : uint = source[x]
+        c: uint = source[x]
         # Store the index in the 4 high order bits
-        p : uint = c & 0xF0    # current pixel
-        q : uint = c << 4      # next pixel
+        p: uint = c & 0xF0  # current pixel
+        q: uint = c << 4  # next pixel
 
         dest[n] = p
         n += 1
@@ -40,36 +41,36 @@ def _lcopy_gs(dest: ptr8, source: ptr8, length: int) :
         n += 1
         dest[n] = p
         n += 1
-        
+
         dest[n] = q
         n += 1
         dest[n] = q
         n += 1
-        dest[n] = q 
+        dest[n] = q
         n += 1
-        
+
         x += 1
 
-        
+
 # Portrait mode color
 @micropython.viper
-def _lcopy(dest: ptr8, source: ptr8, lut: ptr16, length: int) :
+def _lcopy(dest: ptr8, source: ptr8, lut: ptr16, length: int):
     # Convert lut rgb 565 to rgb666
     n: int = 0
     x: int = 0
     while x < length:
-        c : uint = source[x]
-        p : uint = c >> 4  # current pixel
+        c: uint = source[x]
+        p: uint = c >> 4  # current pixel
         q = c & 0x0F  # next pixel
 
-        v : uint16 = lut[p]
+        v: uint16 = lut[p]
         dest[n] = (v & 0xF800) >> 8  # R
         n += 1
         dest[n] = (v & 0x07E0) >> 3  # G
         n += 1
         dest[n] = (v & 0x001F) << 3  # B
         n += 1
-        
+
         v = lut[q]
         dest[n] = (v & 0xF800) >> 8  # R
         n += 1
@@ -77,12 +78,13 @@ def _lcopy(dest: ptr8, source: ptr8, lut: ptr16, length: int) :
         n += 1
         dest[n] = (v & 0x001F) << 3  # B
         n += 1
-        
+
         x += 1
+
 
 # FB is in landscape mode greyscale
 @micropython.viper
-def _lscopy_gs(dest: ptr8, source: ptr8, ch: int) :
+def _lscopy_gs(dest: ptr8, source: ptr8, ch: int):
     col = ch & 0x1FF  # Unpack (viper old 4 parameter limit)
     height = (ch >> 9) & 0x1FF
     wbytes = ch >> 19  # Width in bytes is width // 2
@@ -91,22 +93,23 @@ def _lscopy_gs(dest: ptr8, source: ptr8, ch: int) :
     clsb = col & 1
     idx = col >> 1  # 2 pixels per byte
     while height:
-        if clsb :
+        if clsb:
             c = source[idx] << 4
-        else :
-            c = source[idx] & 0xf0
+        else:
+            c = source[idx] & 0xF0
         dest[n] = c
-        n += 1 
+        n += 1
         dest[n] = c
-        n += 1 
+        n += 1
         dest[n] = c
-        n += 1 
+        n += 1
         idx += wbytes
         height -= 1
 
+
 # FB is in landscape mode color, hence issue a column at a time to portrait mode hardware.
 @micropython.viper
-def _lscopy(dest: ptr8, source: ptr8, lut: ptr16, ch: int) :
+def _lscopy(dest: ptr8, source: ptr8, lut: ptr16, ch: int):
     # Convert lut rgb 565 to rgb666
     col = ch & 0x1FF  # Unpack (viper old 4 parameter limit)
     height = (ch >> 9) & 0x1FF
@@ -119,7 +122,7 @@ def _lscopy(dest: ptr8, source: ptr8, lut: ptr16, ch: int) :
             c = source[idx] & 0x0F
         else:
             c = source[idx] >> 4
-        v : uint16 = lut[c]
+        v: uint16 = lut[c]
         dest[n] = (v & 0xF800) >> 8  # R
         n += 1
         dest[n] = (v & 0x07E0) >> 3  # G
@@ -142,9 +145,7 @@ class ILI9488(framebuf.FrameBuffer):
     #  byte order not swapped (compared to ili9486 driver).
     @classmethod
     def rgb(cls, r, g, b):
-        return cls.COLOR_INVERT ^ (
-            (r & 0xF8) << 8 | (g & 0xFC) << 3 | (b >> 3)
-        )
+        return cls.COLOR_INVERT ^ ((r & 0xF8) << 8 | (g & 0xFC) << 3 | (b >> 3))
 
     # Transpose width & height for landscape mode
     def __init__(
@@ -237,11 +238,11 @@ class ILI9488(framebuf.FrameBuffer):
         if self.width < self.height:  # Portrait 350 ms on ESP32 160 MHz, 26.6 MHz SPI clock
             wd = self.width // 2
             ht = self.height
-            if cm :
+            if cm:
                 for start in range(0, wd * ht, wd):  # For each line
-                    _lcopy_gs(lb, buf[start:], wd)   # Copy greyscale
+                    _lcopy_gs(lb, buf[start:], wd)  # Copy greyscale
                     self._spi.write(lb)
-            else :
+            else:
                 for start in range(0, wd * ht, wd):  # For each line
                     _lcopy(lb, buf[start:], clut, wd)  # Copy and map colors
                     self._spi.write(lb)
@@ -249,15 +250,15 @@ class ILI9488(framebuf.FrameBuffer):
             width = self.width
             wd = width - 1
             cargs = (self.height << 9) + (width << 18)  # Viper 4-arg limit
-            if cm :
+            if cm:
                 for col in range(width):  # For each column of landscape display
                     _lscopy_gs(lb, buf, wd - col + cargs)  # Copy greyscale
                     self._spi.write(lb)
-            else :
+            else:
                 for col in range(width):  # For each column of landscape display
                     _lscopy(lb, buf, clut, wd - col + cargs)  # Copy and map colors
                     self._spi.write(lb)
-                
+
         self._cs(1)
 
     def short_lock(self, v=None):
@@ -289,11 +290,15 @@ class ILI9488(framebuf.FrameBuffer):
                             self._spi_init(self._spi)  # Bus may be shared
                         self._cs(0)
                         if cm:
-                            for start in range(wd * line, wd * (line + lines), wd):  # For each line
+                            for start in range(
+                                wd * line, wd * (line + lines), wd
+                            ):  # For each line
                                 _lcopy_gs(lb, buf[start:], wd)  # Copy and greyscale
                                 self._spi.write(lb)
-                        else :
-                            for start in range(wd * line, wd * (line + lines), wd):  # For each line
+                        else:
+                            for start in range(
+                                wd * line, wd * (line + lines), wd
+                            ):  # For each line
                                 _lcopy(lb, buf[start:], clut, wd)  # Copy and map colors
                                 self._spi.write(lb)
 
@@ -309,11 +314,11 @@ class ILI9488(framebuf.FrameBuffer):
                         if self._spi_init:  # A callback was passed
                             self._spi_init(self._spi)  # Bus may be shared
                         self._cs(0)
-                        if cm :
+                        if cm:
                             for col in range(sc, ec, -1):  # For each column of landscape display
                                 _lscopy_gs(lb, buf, col + cargs)  # Copy and map colors
                                 self._spi.write(lb)
-                        else :
+                        else:
                             for col in range(sc, ec, -1):  # For each column of landscape display
                                 _lscopy(lb, buf, clut, col + cargs)  # Copy and map colors
                                 self._spi.write(lb)
