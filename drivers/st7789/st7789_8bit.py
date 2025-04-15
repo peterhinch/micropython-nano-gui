@@ -70,7 +70,7 @@ class ST7789(framebuf.FrameBuffer):
         spi,
         cs,
         dc,
-        rst,
+        rst=None,
         height=240,
         width=240,
         disp_mode=LANDSCAPE,
@@ -103,13 +103,14 @@ class ST7789(framebuf.FrameBuffer):
 
     # Hardware reset
     def _hwreset(self):
-        self._dc(0)
-        self._rst(1)
-        sleep_ms(1)
-        self._rst(0)
-        sleep_ms(1)
-        self._rst(1)
-        sleep_ms(1)
+        if self._rst is not None:
+            self._dc(0)
+            self._rst(1)
+            sleep_ms(1)
+            self._rst(0)
+            sleep_ms(1)
+            self._rst(1)
+            sleep_ms(1)
 
     # Write a command, a bytes instance (in practice 1 byte).
     def _wcmd(self, buf):

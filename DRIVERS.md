@@ -427,7 +427,8 @@ below. An example file for the Pi Pico is in `setup_examples/st7789_pico.py`.
  electrical issues such as lead lengths, PCB layout and grounding.
  * `cs` An initialised output pin. Initial value should be 1.
  * `dc` An initialised output pin. Initial value should be 0.
- * `rst` An initialised output pin. Initial value should be 1.
+ * `rst=None` An initialised output pin with initial value 1. The default is for
+ vendors who do not provide an `rst` connection.
  * `height=240` Display dimensions in pixels. For portrait mode exchange
  `height` and `width` values: this ensures that `nano-gui` gets the correct
  aspect ratio.
