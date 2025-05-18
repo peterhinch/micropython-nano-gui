@@ -13,7 +13,7 @@ import gc
 from drivers.epaper.epd29_ssd1680 import EPD as SSD
 
 dc = Pin(4, Pin.OUT, value=0)
-rst_pin = 2
+rst_pin = 2  # Note reset pin is specified by ID number.
 cs = Pin(5, Pin.OUT, value=1)
 busy = Pin(15, Pin.IN)
 
