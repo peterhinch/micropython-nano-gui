@@ -131,7 +131,7 @@ simple. See [this doc](./DRIVERS.md#7-writing-device-drivers) for details.
 
 [1d]: https://github.com/peterhinch/micropython-nano-gui/blob/master/DRIVERS.md#22-drivers-for-ssd1331
 [2d]: https://github.com/peterhinch/micropython-nano-gui/blob/master/DRIVERS.md#21-drivers-for-ssd1351
-[3d]: https://github.com/micropython/micropython/blob/master/drivers/display/ssd1306.py
+[3d]: https://github.com/micropython/micropython-lib/blob/master/micropython/drivers/display/ssd1306/ssd1306.py
 [4d]: https://github.com/peterhinch/micropython-nano-gui/blob/master/DRIVERS.md#31-drivers-for-st7735r
 [5d]: https://github.com/peterhinch/micropython-nano-gui/blob/master/DRIVERS.md#33-drivers-for-st7789
 [6d]: https://github.com/peterhinch/micropython-nano-gui/blob/master/DRIVERS.md#32-drivers-for-ili9341
