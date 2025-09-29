@@ -25,9 +25,10 @@ epaper = hasattr(ssd, "wait_until_ready")
 if epaper and not hasattr(ssd, "set_partial"):
     raise OSError("ePaper display does not support partial update.")
 
+
 def test():
-    #rtc = RTC()
-    #rtc.datetime((2023, 3, 18, 5, 10, 0, 0, 0))
+    # rtc = RTC()
+    # rtc.datetime((2023, 3, 18, 5, 10, 0, 0, 0))
     wri = CWriter(ssd, font, GREEN, BLACK, verbose=False)
     wri.set_clip(True, True, False)  # Clip to screen, no wrap
     if epaper:
@@ -35,7 +36,7 @@ def test():
     refresh(ssd, True)
     if epaper:
         ssd.wait_until_ready()
-    ec = Clock(wri, 10, 10, 200, label=120, pointers=(CYAN, CYAN, None))
+    ec = Clock(wri, 10, 10, 100, label=100, pointers=(CYAN, CYAN, None))
     ec.value(t := time.localtime())  # Initial drawing
     refresh(ssd)
     if epaper:
@@ -46,6 +47,7 @@ def test():
     while True:
         t = time.localtime()
         if t[4] != mins:  # Minute has changed
+            print("update", t)
             mins = t[4]
             if epaper:
                 if mins == 0:  # Full refresh on the hour
@@ -56,8 +58,9 @@ def test():
             refresh(ssd)
             if epaper:
                 ssd.wait_until_ready()
-        #lightsleep(10_000)
+        # lightsleep(10_000)
         time.sleep(10)
+
 
 try:
     test()

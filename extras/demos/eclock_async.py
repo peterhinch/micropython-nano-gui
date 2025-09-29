@@ -33,7 +33,7 @@ async def test():
     refresh(ssd, True)
     if epaper:
         await ssd.complete.wait()
-    ec = EClock(wri, 10, 10, 200, fgcolor=WHITE, bgcolor=BLACK)
+    ec = EClock(wri, 10, 10, 100, fgcolor=WHITE, bgcolor=BLACK)
     ec.value(t := time.localtime())  # Initial drawing
     refresh(ssd)
     if epaper:
@@ -50,9 +50,11 @@ async def test():
                 else:
                     ssd.set_partial()
             ec.value(t)
+            print("rfsh")
             refresh(ssd)
             if epaper:
                 await ssd.complete.wait()
+            print("done")
         await asyncio.sleep(10)
 
 
