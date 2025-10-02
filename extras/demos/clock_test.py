@@ -36,7 +36,7 @@ def test():
     refresh(ssd, True)
     if epaper:
         ssd.wait_until_ready()
-    ec = Clock(wri, 10, 10, 100, label=100, pointers=(CYAN, CYAN, None))
+    ec = Clock(wri, 10, 10, 200, label=120, pointers=(CYAN, CYAN, None))
     ec.value(t := time.localtime())  # Initial drawing
     refresh(ssd)
     if epaper:
@@ -47,7 +47,6 @@ def test():
     while True:
         t = time.localtime()
         if t[4] != mins:  # Minute has changed
-            print("update", t)
             mins = t[4]
             if epaper:
                 if mins == 0:  # Full refresh on the hour

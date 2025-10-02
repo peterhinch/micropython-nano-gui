@@ -1,9 +1,10 @@
 # epd29_async.py Demo program for nano_gui on an Adafruit 2.9" flexible ePaper screen
 
 # Released under the MIT License (MIT). See LICENSE.
-# Copyright (c) 2020 Peter Hinch
+# Copyright (c) 2020-2025 Peter Hinch
+# Adapted to also run on Waveshare 2.13" display.
 
-# color_setup must set landcsape True, asyn True and must not set demo_mode
+# color_setup must set landcsape True and must not set demo_mode
 from cmath import exp, pi
 import asyncio
 from color_setup import ssd
@@ -19,7 +20,6 @@ from gui.widgets.dial import Dial, Pointer
 import gui.fonts.arial10 as arial10
 import gui.fonts.font6 as small
 
-# ssd._asyn = True  # HACK to make it config agnostic
 # Some ports don't support uos.urandom.
 # See https://github.com/peterhinch/micropython-samples/tree/master/random
 def xorshift64star(modulo, seed=0xF9AC6BA4):
@@ -41,7 +41,7 @@ async def compass(evt):
     v1 = 0 + 0.9j
     v2 = exp(0 - (pi / 6) * 1j)
     dial = Dial(
-        wri, 5, 5, height=75, ticks=12, bdcolor=None, label="Direction", style=Dial.COMPASS
+        wri, 2, 2, height=75, ticks=12, bdcolor=None, label="Direction", style=Dial.COMPASS
     )
     ptr = Pointer(dial)
     while True:
@@ -57,10 +57,10 @@ async def multi_fields(evt):
     nfields = []
     dy = small.height() + 10
     row = 2
-    col = 100
+    col = 85
     width = wri.stringlen("99.990")
     for txt in ("X:", "Y:", "Z:"):
-        Label(wri, row, col, txt)
+        # Label(wri, row, col, txt)
         nfields.append(Label(wri, row, col, width, bdcolor=None))  # Draw border
         row += dy
 
@@ -77,11 +77,11 @@ async def meter(evt):
     wri = Writer(ssd, arial10, verbose=False)
     wri.set_clip(False, False, False)
     row = 10
-    col = 170
+    col = 140
     args = {"height": 80, "width": 15, "divisions": 4, "style": Meter.BAR}
-    m0 = Meter(wri, row, col, legends=("0.0", "0.5", "1.0"), **args)
-    m1 = Meter(wri, row, col + 40, legends=("-1", "0", "+1"), **args)
-    m2 = Meter(wri, row, col + 80, legends=("-1", "0", "+1"), **args)
+    m0 = Meter(wri, row, col, legends=("-1", "0", "1"), **args)
+    m1 = Meter(wri, row, col + 35, legends=("-1", "0", "+1"), **args)
+    m2 = Meter(wri, row, col + 70, legends=("-1", "0", "+1"), **args)
     random = xorshift64star(2 ** 24 - 1)
     while True:
         steps = 10

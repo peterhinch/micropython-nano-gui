@@ -25,6 +25,8 @@
 # (with a loss of two pixels on the narrower dimension). This arose because FrameBuffer with one
 # bit per pixel mapping requires pixel dimensions that are divisible by 8
 # Debug print gated by DEBUG class variable.
+# Remove .updated method, replace with Event as per API.
+# Remove asyn constructor arg, use auto detection as per other drivers.
 
 import framebuf
 import uasyncio as asyncio
@@ -38,6 +40,14 @@ _CS_PIN = 9
 _BUSY_PIN = 13
 
 
+def asyncio_running():
+    try:
+        _ = asyncio.current_task()
+    except:
+        return False
+    return True
+
+
 class EPD(framebuf.FrameBuffer):
     DEBUG = False  # Suppress printing.
 
@@ -47,26 +57,23 @@ class EPD(framebuf.FrameBuffer):
     def rgb(r, g, b):
         return int((r > 127) or (g > 127) or (b > 127))
 
-    def __init__(
-        self, spi=None, cs=None, dc=None, rst=None, busy=None, landscape=True, asyn=False
-    ):
+    def __init__(self, spi=None, cs=None, dc=None, rst=None, busy=None, landscape=True):
         self._rst = Pin(_RST_PIN, Pin.OUT) if rst is None else rst
         self._busy = Pin(_BUSY_PIN, Pin.IN, Pin.PULL_UP) if busy is None else busy
         self._cs = Pin(_CS_PIN, Pin.OUT) if cs is None else cs
         self._dc = Pin(_DC_PIN, Pin.OUT) if dc is None else dc
         self._spi = SPI(1, sck=Pin(10), mosi=Pin(11), miso=Pin(28)) if spi is None else spi
-        self._spi.init(baudrate=10_000_000)  # Datasheet limit 10MHz
+        self._spi.init(baudrate=4_000_000)
         self._lsc = landscape
-        self._asyn = asyn
         self._as_busy = False  # Set immediately on start of task. Cleared when busy pin is logically false (physically 1).
-        self._updated = asyncio.Event()
+        self.updated = asyncio.Event()
         self.complete = asyncio.Event()
         # Public bound variables required by nanogui. Physical display 250x122
         # Short axis must be an integer no. of bytes (120 vs 122).
         self.width = 250 if landscape else 120
         self.height = 120 if landscape else 250
         self.demo_mode = False  # Special mode enables demos to run
-        self._buffer = bytearray(self.height * self.width // 8)  # 4_000 bytes
+        self._buffer = bytearray(self.height * self.width // 8)  # 3_750 bytes
         self._mvb = memoryview(self._buffer)
         mode = framebuf.MONO_VLSB if landscape else framebuf.MONO_HLSB
         self.palette = BoolPalette(mode)  # Enable CWriter.
@@ -150,10 +157,6 @@ class EPD(framebuf.FrameBuffer):
         while not self.ready():
             await asyncio.sleep_ms(100)
 
-    # Pause until framebuf has been copied to device.
-    async def updated(self):
-        await self._updated.wait()
-
     # For polling in asynchronous code. Just checks pin state.
     # 1 == busy.
     def ready(self):
@@ -203,8 +206,8 @@ class EPD(framebuf.FrameBuffer):
                     await asyncio.sleep_ms(0)
                     t = ticks_ms()
 
-        self._updated.set()  # framebuf has now been copied to the device
-        self._updated.clear()
+        self.updated.set()  # framebuf has now been copied to the device
+        self.updated.clear()
         EPD.DEBUG and print("async full refresh")
         cmd(b"\x22", b"\xF7")  # DISPLAY_REFRESH
         cmd(b"\x20")
@@ -216,11 +219,11 @@ class EPD(framebuf.FrameBuffer):
 
     # draw the current frame memory. Blocking time ~180ms
     def show(self, buf1=bytearray(1)):
-        if self._asyn:
+        if asyncio_running():
             if self._as_busy:
                 raise RuntimeError("Cannot refresh: display is busy.")
             self._as_busy = True
-            self._updated.clear()
+            self.updated.clear()
             self.complete.clear()
             asyncio.create_task(self._as_show())
             return

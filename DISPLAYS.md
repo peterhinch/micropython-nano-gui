@@ -45,6 +45,7 @@ Width and height are pixels.
 | 3.5C T | 480   |  320   | TFT   | [ILI9486][12d] | [Waveshare Rpi 3.5 LCD][22m] | Pi HAT. Many pixels. Needs plenty of RAM.    |
 | 3.5C R | 480   |  320   | TFT   | [ILI9486][12d] | [Adafruit 3.5 LCD][24m]      | 3.5" HX8357D touch, notes as above.          |
 | 3.5C T | 480   |  320   | TFT   | [ILI9486][12d] | [Waveshare Pico 3.5][25m]    | 3.5" Pico ILI9488 (touch).                   |
+| 2.13M  | 250   |  120   | eInk  | [SSD1680][18d] | [Waveshare Pico 2.13][35m]   | Mono ePaper display, Pico plugs in rear.     |
 | 2.9M   | 296   |  128   | eInk  | [UC8151D][7d]  | [Adafruit 4262][13m]         | Flexible ePaper display.                     |
 | 2.9M   | 296   |  128   | eInk  | [UC8151D][7d]  | [Adafruit 4777][15m]         | FeatherWing ePaper display.                  |
 | 2.9M   | 296   |  128   | eInk  | [SSD1680][15d] | [WeAct Studio ePaper][26m]   | WeAct Studio ePaper display.                 |
@@ -146,6 +147,7 @@ simple. See [this doc](./DRIVERS.md#7-writing-device-drivers) for details.
 [15d]: https://github.com/peterhinch/micropython-nano-gui/blob/master/DRIVERS.md#54-weact-studio-ssd1680-eink-displays
 [16d]: https://github.com/peterhinch/micropython-nano-gui/blob/master/drivers/st7567s/st7567s.py
 [17d]: https://github.com/peterhinch/micropython-nano-gui/blob/master/drivers/gc9a01/gc9a01.py
+[18d]: https://github.com/peterhinch/micropython-nano-gui/blob/master/DRIVERS.md#55-waveshare-pico-2.13-eink-display
 
 [1m]: https://www.adafruit.com/product/684
 [2m]: https://www.adafruit.com/product/1673
@@ -181,6 +183,7 @@ simple. See [this doc](./DRIVERS.md#7-writing-device-drivers) for details.
 [32m]: https://www.waveshare.com/pico-lcd-1.3.htm
 [33m]: https://www.adafruit.com/product/5394
 [34m]: https://www.amazon.co.uk/DIYmalls-ESP32-2432S024C-Capacitive-ESP-WROOM-32-Development/dp/B0CLGD2DG6
+[35m]: https://www.waveshare.com/pico-epaper-2.13.htm
 
 [1t]: https://github.com/peterhinch/micropython-touch/blob/master/TOUCHPAD.md#tsc2007
 [2t]: https://github.com/peterhinch/micropython-touch/blob/master/TOUCHPAD.md#xpt2046

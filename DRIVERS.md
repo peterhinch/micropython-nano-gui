@@ -79,6 +79,11 @@ access via the `Writer` and `CWriter` classes is documented
   &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;5.3.4 [Public bound variables](./DRIVERS.md#534-public-bound-variables)  
   &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;5.3.5 [The Greyscale Driver](./DRIVERS.md#535-the-greyscale-driver)  
   &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;5.3.6 [Current consumption](./DRIVERS.md#536-current-consumption)  
+  5.4 [WeAct Studio SSD1680 eInk Displays](./DRIVERS.md#54-weact-studio-ssd1680-eink-displays)  
+  5.5 [Waveshare Pico 2.13 eInk Display](./DRIVERS.md#55-waveshare-pico-2.13-eink-display)  
+  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;5.5.2 [Public methods](./DRIVERS.md#552-public-methods)  
+  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;5.5.3 [Events](./DRIVERS.md#553-events)  
+  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;5.5.4 [Public bound variables](./DRIVERS.md#554-public-bound-variables)  
  6. [EPD Asynchronous support](./DRIVERS.md#6-epd-asynchronous-support)  
  7. [Writing device drivers](./DRIVERS.md#7-writing-device-drivers)  
  8. [Links](./DRIVERS.md#8-links)  
@@ -1629,12 +1634,75 @@ The driver supports the WeAct Studio SSD1680 2.9 inch 296*128 pixel
 [SSD1680 driver](https://github.com/WeActStudio/WeActStudio.EpaperModule/blob/master/Doc/SSD1680.pdf).
 
 This display lacks many features when compared to the ones from Waveshare,
-two important examples are fast refresh and partial refresh. The big pro however is the price,
-it costs half the money of the Waveshare 2.9in alternative.
+two important examples are fast refresh and partial refresh. However it is about
+half the price of the Waveshare 2.9in alternative.
 
 The driver is cross platform and supports landscape or portrait mode. To keep
 the buffer size down (to 4736 bytes) there is no greyscale support. It should
-be noted that WeAct Studio product page suggests to not update the display more frequently than every 180s.
+be noted that WeAct Studio product page suggests to not update the display more
+frequently than every 180s.
+
+## 5.5 Waveshare Pico 2.13 eInk Display
+
+The Pico or Pico 2 plugs into the rear of this display. There is no support for
+partial updates or greyscales. Note that the physical display size is 250x122
+pixels however the driver is limited to 250x120. The driver supports V4
+hardware. According to Waveshare documentation V3 hardware should also work. A
+typical `color_setup.py` comprises:
+```py
+import gc
+from drivers.epaper.pico_epaper_213_v4 import EPD as SSD
+
+# Precaution before instantiating framebuf
+gc.collect()
+# Create a display instance using default pin numbers.
+ssd = SSD(landscape=True)  # Or False for portrait display.
+# ssd.demo_mode=True
+```
+The `demo_mode` option allows demos written for generic displays to run by
+imposing a two second delay after each display refresh: this allows updates to
+be seen. Applications should not use this mode, controlling refresh frequency
+according to the application requirements.
+
+### 5.5.1 Constructor Args
+
+* `spi=None` An SPI bus instance defined with default args.
+* `cs=None` A `Pin` instance defined as `Pin.OUT`.
+* `dc=None` A `Pin` instance defined as `Pin.OUT`.
+* `rst=None` A `Pin` instance defined as `Pin.OUT`.
+* `busy=None` A `Pin` instance defined as `Pin.IN, Pin.PULL_UP`.
+* `landscape=True` Set `False` for portrait mode.
+
+### 5.5.2 Public Methods
+
+* `sleep` No args. Applications should call this before power down to ensure
+the display is put into the correct state.
+* `ready` No args. After issuing a `refresh` the device will become busy for
+a period: `ready` status should be checked before issuing `refresh`.
+* `wait_until_ready` No args. Pause until the device is ready. This should be
+run before issuing `refresh` or `sleep`.
+* `init` No args. Issues a hardware reset and initialises the hardware. This
+is called by the constructor. It may be used to recover from a `sleep` state
+but this is not recommended for V2 displays (see note on current consumption).
+
+### 5.5.3 Events
+
+These provide synchronisation in asynchronous applications. They are only
+needed in more advanced asynchronous applications and their use is discussed in
+[EPD Asynchronous support](./DRIVERS.md#6-epd-asynchronous-support).
+ * `updated` Set when framebuf has been copied to device. It is now safe to
+ modify widgets without risk of display corruption.
+ * `complete` Set when display update is complete. It is now safe to call
+ `ssd.refresh()`.
+
+ ### 5.3.4 Public bound variables
+
+  * `height` Integer. Height in pixels. Treat as read-only.
+  * `width` Integer. Width in pixels. Treat as read-only.
+  * `demo_mode=False` Boolean. If set `True` after instantiating, `refresh()`
+  will block until display update is complete, and then for a further two
+  seconds to enable viewing. This enables generic nanogui demos to be run on an
+  EPD.
 
 # 6. EPD Asynchronous support
 
