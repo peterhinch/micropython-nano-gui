@@ -1,7 +1,7 @@
-# epd29_sync.py Demo of synchronous code on 2.9" EPD display
+# epd21_sync.py Demo of synchronous code on 2.13" EPD display
 
 # Released under the MIT License (MIT). See LICENSE.
-# Copyright (c) 2020 Peter Hinch
+# Copyright (c) 2025 Peter Hinch
 
 # color_setup must set landcsape True and must not set demo_mode
 
@@ -26,7 +26,7 @@ wri_large.set_clip(False, False, False)
 
 # 296*128
 def graph():
-    row, col, ht, wd = 5, 140, 75, 150
+    row, col, ht, wd = 2, 115, 75, 130
 
     def populate():
         x = -0.998
@@ -45,7 +45,7 @@ def graph():
 
 def compass():
     dial = Dial(
-        wri, 5, 5, height=75, ticks=12, bdcolor=None, label="Direction", style=Dial.COMPASS
+        wri, 2, 2, height=75, ticks=12, bdcolor=None, label="Direction", style=Dial.COMPASS
     )
     ptr = Pointer(dial)
     ptr.value(1 + 1j)
@@ -54,13 +54,13 @@ def compass():
 def meter():
     m = Meter(
         wri,
-        5,
-        100,
+        2,
+        85,
         height=75,
         divisions=4,
         label="Peak",
         style=Meter.BAR,
-        legends=("0", "50", "100"),
+        legends=("0", "5", "10"),
     )
     m.value(0.72)
 

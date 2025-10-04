@@ -1645,9 +1645,10 @@ frequently than every 180s.
 ## 5.5 Waveshare Pico 2.13 eInk Display
 
 The Pico or Pico 2 plugs into the rear of this display. There is no support for
-partial updates or greyscales. Note that the physical display size is 250x122
+partial updates or greyscales. The lack of partial support means that it is
+suitable for nano-gui only. Note that the physical display size is 250x122
 pixels however the driver is limited to 250x120. The driver supports V4
-hardware. According to Waveshare documentation V3 hardware should also work. A
+hardware; according to Waveshare documentation V3 hardware should also work. A
 typical `color_setup.py` comprises:
 ```py
 import gc
@@ -1664,7 +1665,14 @@ imposing a two second delay after each display refresh: this allows updates to
 be seen. Applications should not use this mode, controlling refresh frequency
 according to the application requirements.
 
+The following demos work with this display (not using `demo_mode`):  
+`epd29_async.py` Runs continuously showing changing values.  
+`epd21_sync` A synchronous demo, displays an image and quits.
+
 ### 5.5.1 Constructor Args
+
+The `None` defaults map onto the pinout of the Pico adaptor. The args are
+provided to enable use with non-Pico hosts.
 
 * `spi=None` An SPI bus instance defined with default args.
 * `cs=None` A `Pin` instance defined as `Pin.OUT`.
@@ -1676,7 +1684,7 @@ according to the application requirements.
 ### 5.5.2 Public Methods
 
 * `sleep` No args. Applications should call this before power down to ensure
-the display is put into the correct state.
+the display is put into the correct state. It powers the display down.
 * `ready` No args. After issuing a `refresh` the device will become busy for
 a period: `ready` status should be checked before issuing `refresh`.
 * `wait_until_ready` No args. Pause until the device is ready. This should be
@@ -1703,6 +1711,7 @@ needed in more advanced asynchronous applications and their use is discussed in
   will block until display update is complete, and then for a further two
   seconds to enable viewing. This enables generic nanogui demos to be run on an
   EPD.
+  * `verbose=False` Set `True` to enable print statements.
 
 # 6. EPD Asynchronous support
 
@@ -1867,7 +1876,7 @@ assembler for this mapping.
 ### 7.4.1 8 to 16 bit mapping
 
 An example of hardware that does not support 8 bit color is the SSD1351. See
-[this driver1](https://github.com/peterhinch/micropython-nano-gui/blob/master/drivers/ssd1351/ssd1351_generic.py).
+[this driver](https://github.com/peterhinch/micropython-nano-gui/blob/master/drivers/ssd1351/ssd1351_generic.py).
 This uses `framebuf.GS8` to store 8 bit color in `rrrgggbb` format. The `.show`
 method converts these to 16-bit values at run time.
 

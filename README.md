@@ -303,8 +303,9 @@ Demos for larger displays.
 
 Demos for ePaper displays:
  * `epd_async.py` Demo of asynchronous code on an eInk display. Needs a large display.
- * `epd29_sync.py` Demo for Adafruit 2.9" eInk display: emulates a seismograph.
- * `epd29_async.py` Asynchronous demo for Adafruit 2.9" eInk display.
+ * `epd21_sync.py` For Pico-ePpaper-2.13 or bigger. Displays an image and quits.
+ * `epd29_sync.py` Demo for Adafruit 2.9" eInk display: shows a "seismograph" image.
+ * `epd29_async.py` Asynchronous demo for Adafruit 2.9" or Waveshare 2.13".
  * `epd29_lowpower.py` Micropower demo for Adafruit 2.9" eInk display. This doc
  [Micropower use](./DRIVERS.md#715-micropower-use) should be read before
  attempting to run this.

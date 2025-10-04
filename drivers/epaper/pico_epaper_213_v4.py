@@ -49,8 +49,6 @@ def asyncio_running():
 
 
 class EPD(framebuf.FrameBuffer):
-    DEBUG = False  # Suppress printing.
-
     # A monochrome approach should be used for coding this. The rgb method ensures
     # nothing breaks if users specify colors.
     @staticmethod
@@ -73,6 +71,7 @@ class EPD(framebuf.FrameBuffer):
         self.width = 250 if landscape else 120
         self.height = 120 if landscape else 250
         self.demo_mode = False  # Special mode enables demos to run
+        self.verbose = False
         self._buffer = bytearray(self.height * self.width // 8)  # 3_750 bytes
         self._mvb = memoryview(self._buffer)
         mode = framebuf.MONO_VLSB if landscape else framebuf.MONO_HLSB
@@ -142,7 +141,7 @@ class EPD(framebuf.FrameBuffer):
         self._command(b"\x18")  # Read built-in temperature sensor
         self._data(b"\x80")
         self.wait_until_ready()
-        EPD.DEBUG and print("Init Done.")
+        self.verbose and print("Init Done.")
 
     def wait_until_ready(self):
         sleep_ms(50)
@@ -150,7 +149,7 @@ class EPD(framebuf.FrameBuffer):
         while not self.ready():
             sleep_ms(100)
         dt = ticks_diff(ticks_ms(), t)
-        EPD.DEBUG and print("wait_until_ready {}ms {:5.1f}mins".format(dt, dt / 60_000))
+        self.verbose and print("wait_until_ready {}ms {:5.1f}mins".format(dt, dt / 60_000))
 
     async def wait(self):
         await asyncio.sleep_ms(0)  # Ensure tasks run that might make it unready
@@ -166,10 +165,9 @@ class EPD(framebuf.FrameBuffer):
         mvb = self._mvb
         send = self._spi.write
         cmd = self._command
-        EPD.DEBUG and print("as_show")
+        self.verbose and print("as_show")
 
         cmd(b"\x24")
-
         self._dc(1)
         # Necessary to deassert CS after each byte otherwise display does not
         # clear down correctly
@@ -208,7 +206,7 @@ class EPD(framebuf.FrameBuffer):
 
         self.updated.set()  # framebuf has now been copied to the device
         self.updated.clear()
-        EPD.DEBUG and print("async full refresh")
+        self.verbose and print("async full refresh")
         cmd(b"\x22", b"\xF7")  # DISPLAY_REFRESH
         cmd(b"\x20")
         await asyncio.sleep(1)
@@ -264,11 +262,11 @@ class EPD(framebuf.FrameBuffer):
                     send(b"\xFF")
                 self._cs(1)
 
-        EPD.DEBUG and print("sync full refresh")
+        self.verbose and print("sync full refresh")
         cmd(b"\x22", b"\xF7")  # DISPLAY_REFRESH
         cmd(b"\x20")
         te = ticks_us()
-        EPD.DEBUG and print("show time", ticks_diff(te, t) // 1000, "ms")
+        self.verbose and print("show time", ticks_diff(te, t) // 1000, "ms")
         if not self.demo_mode:
             # Immediate return to avoid blocking the whole application.
             # User should wait for ready before calling refresh()
