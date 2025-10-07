@@ -1785,26 +1785,38 @@ per hour (on the half-hour) a full update is performed.
 
 # 7. Writing device drivers
 
-Device drivers capable of supporting `nanogui` can be extremely simple: see
-`drivers/sharp/sharp.py` for a minimal example. It should be noted that the
-supplied device drivers are designed purely to support nanogui. To conserve RAM
-they provide no functionality beyond the transfer of an external frame buffer
-to the device. This transfer typically takes a few tens of milliseconds. While
-visually instant, this period constitutes latency between an event occurring
-and a consequent display update. This may be unacceptable in applications such
-as games. In such cases the `FrameBuffer` approach is inappropriate. Many
-driver chips support graphics primitives in hardware; drivers using these
-capabilities will be faster than those provided here and may often be found
-using a forum search.
+Device drivers in this repository support `nanogui`. If the display hardware is
+suitable they can also support `microgui` and `micropython-touch` with the
+addition of a single asynchronous method. Drivers are cross platform. Drivers
+supporting a range of display technologies are provided. Because `microgui` and
+`micropython-touch` enable user input, for a responsive user experience a
+display must be capable of fast refresh. This rules out ePaper units unless they
+offer a good partial update facility.
+
+A driver comprises a class which is instantiated in the GUI's setup file
+(`color_setup.py` in the case of `nanogui`).
 
 ## 7.1 The basics
 
-For a driver to support `nanogui` it must be subclassed from
-`framebuf.FrameBuffer` and provide `height` and `width` bound variables being
-the display size in pixels. This, and a `show` method, are all that is required
-for monochrome drivers. If a monochrome display driver must be "color
-compatible" - i.e. to run code written for color displays (such as the demo
-scripts) please read on.
+The driver class must be subclassed from `framebuf.FrameBuffer`. The constructor
+args vary between drivers but typically include:
+Mandatory:  
+* Interface details. These should consist of initialised instances such as `Pin`
+and `SPI` instances.
+* Height and width in pixels.
+Optional:  
+* Means of specifying orientation e.g. landscape/portrait, upside-down, reflect.
+* Means of bus-sharing.
+* Hardware-specific options.
+
+ The class instance must provide `height` and `width` bound variables being the
+ display size in pixels in the orientation specified to the constructor.
+
+A `show` method which refreshes the display from the `FrameBuffer` contents is
+all that is required for monochrome drivers. It is recommended that monochrome
+driver are "color compatible". This enables it to run code written for color
+displays such as the demo scripts which would otherwise fail with an
+"Incompatible device driver" exception.
 
 ## 7.2 Color and color compatible drivers
 
@@ -1812,9 +1824,7 @@ These include color drivers, monochrome drivers that must run color code and
 greyscale drivers where a color value maps onto a monochrome pixel brightness.
 
 Some additional boilerplate code is required for such drivers to enable them
-to render monochrome object such as glyphs. To enable a monochrome driver to
-run code written for color displays it too should incorporate this code.
-Otherise the script will fail with an "Incompatible device driver" exception.
+to render monochrome object such as glyphs.
 ```python
 from drivers.boolpalette import BoolPalette
 # In the constructor:
@@ -1827,7 +1837,7 @@ driver must convert this to a format used by the hardware. In normal drivers
 the `FrameBuffer` stores values in a form compatible with the hardware.
 Conversion from RGB888 to the format in the `FrameBuffer` is done by a static
 `rgb` method. In the case of a monochrome display, any color with high
-brightness is mapped to white with:
+brightness is mapped to white with (e.g.):
 ```python
     @staticmethod
     def rgb(r, g, b):
@@ -1844,7 +1854,7 @@ space:
 ```python
     @staticmethod
     def rgb(r, g, b):
-        return (r + g + b) // 48  # Mean bightness scaled to fit 4 bits
+        return (r + g + b) // 48  # Mean brightness scaled to fit 4 bits
 ```
 The above, plus a `show` method, describes a driver where the values stored in
 the frame buffer match the color values expected by the hardware. This is
@@ -1858,7 +1868,9 @@ expansion occurring at runtime. Such drivers are described as mapped drivers.
 
 Refresh must be handled by a `show` method taking no arguments; when called,
 the contents of the buffer underlying the `FrameBuffer` must be output to the
-hardware.
+hardware. This synchronous method should be optimised for speed. In the case of
+ePaper displays enhancements for asynchronous support should be considered (see
+below).
 
 ## 7.4 Mapped drivers
 
@@ -1870,8 +1882,7 @@ In some cases this can result in a need for a large `FrameBuffer`, either
 because the hardware can only accept 16 bit color values or because the
 display has a large number of pixels. In these cases the `FrameBuffer` uses
 a mode for 8 bit or 4 bit color with mapping taking place on the fly in the
-`.show` method. To maximise update speed consider using native, viper or
-assembler for this mapping.
+`.show` method. To maximise update speed consider using viper for this mapping.
 
 ### 7.4.1 8 to 16 bit mapping
 
@@ -1928,7 +1939,7 @@ refresh(ssd, True)  # Initialise and clear display.
 # ssd.wait_until_ready()
 ssd.fill(0)
 ssd.line(0, 0, ssd.width - 1, ssd.height - 1, GREEN)  # Green diagonal corner-to-corner
-ssd.rect(0, 0, 15, 15, RED)  # Red square at top left
+ssd.rect(0, 0, 15, 15, RED, True)  # Filled red square at top left
 ssd.rect(ssd.width -15, ssd.height -15, 15, 15, BLUE)  # Blue square at bottom right
 ssd.show()
 ```
@@ -1937,22 +1948,63 @@ If this produces correct output the GUI's can be expected to work.
 Authors of device drivers are encouraged to raise an issue or PR so that the
 library can be extended.
 
-## 7.6 Reducing blocking time in show
+## 7.6 Supporting micro-gui and micropython-touch
 
-This is available for `micro-gui` only. The blocking time of the `.show` method
-is reduced by splitting it into segments and yielding to the scheduler after
-each segment. It is handled transparently by the GUI. It consists of providing
-an asynchronous `do_refresh` method taking an integer `split` arg. See
+This amounts to providing a single additional asynchronous method, `do_refresh`.
+Unlike `nano-gui` these GUI's perform refresh automatically as an `asyncio`
+task. This requires the driver to have a method conforming to this pattern:
+```py
+async def do_refresh(self, split: int=some_default, elock: Lock=None)
+```
+The aim of `split` is to reduce blocking and ensure a responsive system. The GUI
+passes a value which is an integer divisor of the display height in lines. The
+`do_refresh` method calculates the number of lines in a segment. For each
+segment it outputs those lines and yields to the scheduler. If refresh is fast
+(say < 50ms) a driver might ignore this arg. A default value should be provided.
+This allows nanogui code to simply `await ssd,do_refresh()`.
+
+The `do_refresh` method requires a bound `Lock` to prevent creation of
+concurrent instances. Some applications use explicit locking. In such cases the
+GUI passes an additional `Lock` in `elock`; otherwise a dummy `Lock` is
+instantiated. The following is the pattern for a `do_refresh` method:
+```py
+async def do_refresh(self, split=4, elock=None):
+    if elock is None:
+        elock = asyncio.Lock()  # Dummy lock
+    async with self._lock:  # Ensure only one concurrent instance of this task
+        lines, mod = divmod(self.height, split)  # Lines per segment
+        if mod:  # nanogui user has called this with an invalid arg
+            raise ValueError("Invalid do_refresh arg.")
+        # Hardware-dependent setup code omitted
+        line = 0
+        for _ in range(split):  # For each segment
+            async with elock:  # Honour a micro or touch gui user lock
+                # Optional code for bus sharing
+                if self._spi_init:  # A callback was passed
+                    self._spi_init(self._spi)  # Bus may be shared
+                # Copy a segment's lines to the hardware
+                line += lines
+            await asyncio.sleep_ms(0)
+```
+#### Bus sharing
+
+Support for sharing the SPI bus is optional. However it can be necessary. A case
+in point was a touch display whose hardware shares the SPI bus between touch
+controller and display controller. These had radically different clock speed
+requirements.
+
+The constructor accepts an optional `spi_init` arg which is a function which
+accepts a bus as input and re-initialises it for display controller use. See
 [the ili9341 driver](https://github.com/peterhinch/micropython-nano-gui/blob/master/drivers/ili93xx/ili9341.py)
-for an example. The GUI will pass a `split` value which is a divisor of the
-number of lines in the display. The `do_refresh` method calculates the number
-of lines in each segment. For each segment it outputs those lines and yields
-to the scheduler.
+for the full text of this code.
 
 ## 7.7 ePaper drivers
 
-These are not supported by `micro-gui` owing to their very slow refresh time.
-They are supported by `Witer`, `CWriter` and `nano-gui`.
+Most are not supported by `micro-gui` owing to their very slow refresh time.
+All are supported by `Writer`, `CWriter` and `nano-gui`. At the time of writing
+only one display is supported by `micro-gui`: this is the Waveshare Pico ePaper
+4.2" unit. This is suitable because of its very effective partial display mode.
+It is hoped that other suitable displays will emerge.
 
 Owing to the long refresh periods some synchronisation is necessary. This
 comprises `ready` and `wait_until_ready` methods. The `ready` method
@@ -1962,14 +2014,50 @@ is all that is required for synchronous applications. The `.show.` method calls
 `wait_until_ready` at the end, removing the need for explicit synchronisation
 in the application. The cost is that display refresh blocks for a long period.
 
+### 7.7.1 Asyncio support
+
 For applications using asynchronous code this blocking is usually unacceptable.
-It can be restricted to a single task, with others, able to continue running by
-adding two asynchronous methods, `.wait` and `.updated`. The `.wait` method is
-an asynchronous version of `.wait_until_ready`. The `.updated` method is issued
-after a `refresh` has been issued and pauses until the physical refresh is
-complete. After a `refresh` applications should avoid changing the frame buffer
-contents until `.updated` has returned. They should wait on `.wait` before
-issuing `.refresh`.
+Providing asyncio support greatly improves the usability of a driver. To do this
+a driver should detect the fact that asyncio is running:
+```py
+def asyncio_running():
+    try:
+        _ = asyncio.current_task()
+    except:
+        return False
+    return True
+```
+There should be two bound `Event` instances:
+* `.updated` The driver sets this when the data has been copied to the device.
+* `.complete` This is set when the physical refresh of the display has completed
+and the hardware is ready.
+
+The purpose of `.updated` is to allow the application to modify the contents of
+the frame buffer while a physical redraw is in progress. Without this interlock
+display corruption might occur.
+
+The `.show` method should check `asyncio_running`. If `False` it operates in
+normal blocking mode, otherwise it launches a task to perform background refresh.
+It is the responsibility of the application to ensure that multiple concurrent
+instances of the task do not occur. The driver should maintain a `self._busy`
+flag, set when the task is launched and cleared when the task completes. An
+exception should be thrown if `.show()` is called when `.busy` is set.
+
+The background refresh task should yield periodically to limit the duration of
+blocking (`await asyncio.sleep_ms(0)`). As a rule of thumb in applications which
+process human interactions blocking should be limited to 50-100ms.
+
+### 7.7.2 Micro-gui and touch support
+
+This is predicated on the display having a usable partial mode with minimal
+ghosting. The following methods are required:
+* `async def do_refresh(self, split, elock)` See [para 7.6](./DRIVERS.md#76-supporting-micro-gui-and-micropython-touch).
+* `def set_full(self)` Subsequent refreshes will be full.
+* `def set_partial(self)` Subsequent refreshes will be partial.
+
+It is essential that it is possible to enter and leave partial mode in this way:
+applications using partial mode should do a full refresh occasionally to
+eliminate any ghosting.
 
 ###### [Contents](./DRIVERS.md#contents)
 

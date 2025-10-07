@@ -40,7 +40,7 @@ def graph():
     curve2 = Curve(g, None, populate())
     Label(wri, row + ht + 5, col - 10, "-2.0  t: secs")
     Label(wri, row + ht + 5, col - 8 + int(wd // 2), "0.0")
-    Label(wri, row + ht + 5, col - 10 + wd, "2.0")
+    Label(wri, row + ht + 5, col - 15 + wd, "2.0")
 
 
 def compass():
@@ -54,9 +54,9 @@ def compass():
 def meter():
     m = Meter(
         wri,
-        2,
+        5,
         85,
-        height=75,
+        height=72,
         divisions=4,
         label="Peak",
         style=Meter.BAR,
@@ -66,16 +66,16 @@ def meter():
 
 
 def labels():
-    row = 100
+    row = 95
     col = 0
     Label(wri_large, row, col, "Seismograph")
-    col = 140
+    row = 94
+    col = 120
     Label(wri, row, col + 0, "Event time")
-    Label(wri, row, col + 60, "01:35", bdcolor=None)
-    Label(wri, row, col + 95, "UTC")
-    row = 115
+    Label(wri, row, col + 52, "01:35 UTC")
+    row += 15
     Label(wri, row, col + 0, "Event date")
-    Label(wri, row, col + 60, "6th Jan 2021", bdcolor=None)
+    Label(wri, row, col + 52, "06/01/2025")
 
 
 def main():

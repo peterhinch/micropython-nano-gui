@@ -151,11 +151,6 @@ class EPD(framebuf.FrameBuffer):
         dt = ticks_diff(ticks_ms(), t)
         self.verbose and print("wait_until_ready {}ms {:5.1f}mins".format(dt, dt / 60_000))
 
-    async def wait(self):
-        await asyncio.sleep_ms(0)  # Ensure tasks run that might make it unready
-        while not self.ready():
-            await asyncio.sleep_ms(100)
-
     # For polling in asynchronous code. Just checks pin state.
     # 1 == busy.
     def ready(self):
