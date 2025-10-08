@@ -80,7 +80,7 @@ access via the `Writer` and `CWriter` classes is documented
   &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;5.3.5 [The Greyscale Driver](./DRIVERS.md#535-the-greyscale-driver)  
   &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;5.3.6 [Current consumption](./DRIVERS.md#536-current-consumption)  
   5.4 [WeAct Studio SSD1680 eInk Displays](./DRIVERS.md#54-weact-studio-ssd1680-eink-displays)  
-  5.5 [Waveshare Pico 2.13 eInk Display](./DRIVERS.md#55-waveshare-pico-2.13-eink-display)  
+  5.5 [Waveshare Pico 2.13 eInk Display](./DRIVERS.md#55-waveshare-pico-2_13-eink-display)  
   &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;5.5.2 [Public methods](./DRIVERS.md#552-public-methods)  
   &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;5.5.3 [Events](./DRIVERS.md#553-events)  
   &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;5.5.4 [Public bound variables](./DRIVERS.md#554-public-bound-variables)  
@@ -1642,7 +1642,7 @@ the buffer size down (to 4736 bytes) there is no greyscale support. It should
 be noted that WeAct Studio product page suggests to not update the display more
 frequently than every 180s.
 
-## 5.5 Waveshare Pico 2.13 eInk Display
+## 5.5 Waveshare Pico 2_13 eInk Display
 
 The Pico or Pico 2 plugs into the rear of this display. There is no support for
 partial updates or greyscales. The lack of partial support means that it is
@@ -2009,10 +2009,11 @@ It is hoped that other suitable displays will emerge.
 Owing to the long refresh periods some synchronisation is necessary. This
 comprises `ready` and `wait_until_ready` methods. The `ready` method
 immediately returns a `bool` indicating if the hardware can accept data. The
-`wait_until_ready` method blocks until the device is ready to accept data. This
-is all that is required for synchronous applications. The `.show.` method calls
-`wait_until_ready` at the end, removing the need for explicit synchronisation
-in the application. The cost is that display refresh blocks for a long period.
+`wait_until_ready` method blocks until the device is ready to accept data - i.e.
+the physical refresh is complete. The `.show` method terminates when data has
+been copied to the device. At this point physical refresh is in progress: the
+user can determine when refresh is complete with `.ready` or `.wait_until_ready`
+methods.
 
 ### 7.7.1 Asyncio support
 
@@ -2045,7 +2046,44 @@ exception should be thrown if `.show()` is called when `.busy` is set.
 
 The background refresh task should yield periodically to limit the duration of
 blocking (`await asyncio.sleep_ms(0)`). As a rule of thumb in applications which
-process human interactions blocking should be limited to 50-100ms.
+process human interactions blocking should be limited to 50-100ms. The following
+illustrates an outline of a `show` routine for ePaper:
+```py
+def show(self):
+    if self._busy:
+        raise RuntimeError("Cannot refresh: display is busy.")
+    self._show()
+    # Immediate return unless in demo mode
+    if self.demo_mode:
+        self.wait_until_ready()  # Rather hacky way to run standard demos on ePpaper
+        time.sleep_ms(2000)  # Demo mode: give time for user to see result
+
+def _show(self):
+    self._busy = True  # Immediate busy flag. Pin goes low much later.
+    if asyncio_running():
+        self.updated.clear()
+        self.complete.clear()
+        asyncio.create_task(self._as_show())
+        return
+
+    # asyncio not running, send the framebuffer contents to the hardware.
+    # Send is complete.
+    self._busy = False  # Immediate return
+    # .ready does not return True until hardware refresh is complete
+
+async def _as_show(self):
+    # If blocking is too long, send data in segments
+    while framebuf_not_fully_copied:
+        # Copy some of the data
+        await asyncio.sleep_ms(0)  # Yield and continue.
+
+    self.updated.set()  # Indicate that hardware contains the full buffer
+    # Wait until actual image update is complete
+    while self._busy_pin():
+        await asyncio.sleep_ms(0)  # Let other tasks run
+    self._busy = False
+    self.complete.set()
+```
 
 ### 7.7.2 Micro-gui and touch support
 
