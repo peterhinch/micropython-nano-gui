@@ -1806,6 +1806,9 @@ interfaces:
 3. A driver that also supports `microgui` and `micropython-touch`.
 4. ePaper displays have special requirements owing to their long update times.
 
+Authors of device drivers are encouraged to raise an issue or PR so that the
+library can be extended.
+
 ## 7.1 Common requirements - all drivers
 
 #### Constructor
@@ -1834,7 +1837,7 @@ Optional args:
 
 ## 7.2 nanogui compatible drivers
 
-The GUIs achieve hardware independence by using 24 bit color (RGB888). The
+GUI applications use 24 bit color (RGB888) regardless of display hardware. The
 driver must convert this to the format used by the frame buffer. This format may
 correspond with one acceptable to the hardware. In some cases the driver
 designer may choose a different format, with frame buffer contents being mapped
@@ -1863,7 +1866,7 @@ space:
         return (r + g + b) // 48  # Mean brightness scaled to fit 4 bits
 ```
 Some additional boilerplate code is required for GUI compatibility. Its purpose
-is to render in a chosen color 1-bit monochrome object such as glyphs.
+is to render in a chosen color 1-bit monochrome objects such as glyphs.
 ```python
 from drivers.boolpalette import BoolPalette
 # In the constructor:
@@ -1885,22 +1888,22 @@ driver. The usual purpose of mapping is to reduce `framebuf` RAM use.
 
 ## 7.2.2 Mapped drivers
 
-Typically these use an 8-bit `framebuf` to store RGB332 where hardware does not
-support this. The driver expands it to RGB565 in `.show`. The GUIs have special
-provision for more extreme RAM saving, using a 4-bit `framebuf` and expanding it
-to RGB565 or RGB666 via a lookup table (LUT): in this case the `framebuf` stores
-an index to the LUT (see 4 to N bit mapping below).
+Typical usage is where hardware expects 16-bit or bigger data, but this would
+result in an excessively large frame buffer. If an 8-bit frame buffer is
+acceptable the driver stores RGB332, expanding it to RGB565 in `.show`. RAM
+saving can be taken further by using a 4-bit `framebuf` and expanding it to
+RGB565 or RGB666 via a lookup table (LUT): in this case the `framebuf` stores an
+index to the LUT (see 4 to N bit mapping below).
 
 ### 7.2.2.1 8 to 16 bit mapping
 
 An example of hardware that does not support 8 bit color is the SSD1351. See
 [this driver](https://github.com/peterhinch/micropython-nano-gui/blob/master/drivers/ssd1351/ssd1351_generic.py).
 This uses `framebuf.GS8` to store 8 bit color in `rrrgggbb` format. The `.show`
-method converts these to 16-bit values at run time.
-
-In this case the `FrameBuffer` uses `framebuf.GS8` to store colors in RGB332
-format. The `rgb` static method converts 24 bit `r, g, b` colors to RGB332. The
-`.show` method converts from RGB332 to RGB565 and outputs the data.
+method converts these to 16-bit values at run time. The `FrameBuffer` uses
+`framebuf.GS8` to store colors in RGB332 format. The `rgb` static method
+converts 24 bit `r, g, b` colors to RGB332. The `.show` method converts from
+RGB332 to RGB565 and outputs the data.
 
 ### 7.2.2.2 4 to N bit mapping
 
@@ -1921,8 +1924,9 @@ as
 [ILI9341](https://github.com/peterhinch/micropython-nano-gui/blob/master/drivers/ili93xx/ili9341.py).
 
 In this case the `rgb` static method converts 24 bit `r, g, b` colors to RGB565
-used to populate the LUT. Most displays can handle RGB565. In cases where they
-cannot, `.show` converts the RGB565 in the LUT to that required by the hardware
+used to populate the LUT (the way in which this occurs is transparent to the
+driver). Most displays can handle RGB565. In cases where they cannot, `.show`
+converts the RGB565 in the LUT to that required by the hardware
 [e.g. ILI9488](https://github.com/peterhinch/micropython-nano-gui/blob/master/drivers/ili94xx/ili9488.py)
 which requires RGB666.
 
@@ -1945,20 +1949,18 @@ from color_setup import ssd  # Create a display instance
 from gui.core.colors import RED, BLUE, GREEN
 from gui.core.nanogui import refresh
 refresh(ssd, True)  # Initialise and clear display.
-# Uncomment for ePaper displays
-# ssd.wait_until_ready()
+if hasattr(ssd, "wait_until_ready"):  # Slow display - ePaper
+    ssd.wait_until_ready()
 ssd.fill(0)
 ssd.line(0, 0, ssd.width - 1, ssd.height - 1, GREEN)  # Green diagonal corner-to-corner
 ssd.rect(0, 0, 15, 15, RED, True)  # Filled red square at top left
 ssd.rect(ssd.width -15, ssd.height -15, 15, 15, BLUE)  # Blue square at bottom right
 ssd.show()
 ```
-If this produces correct output the GUI's can be expected to work.
+If this produces correct output (at all supported orientations) the GUI's can be
+expected to work.
 
-Authors of device drivers are encouraged to raise an issue or PR so that the
-library can be extended.
-
-## 7.6 Supporting micro-gui and micropython-touch
+## 7.4 Supporting micro-gui and micropython-touch
 
 This amounts to providing a single additional asynchronous method, `do_refresh`.
 Unlike `nano-gui` these GUI's perform refresh automatically as an `asyncio`
@@ -1973,14 +1975,14 @@ transferring the entire framebuffer to the hardware.
 The GUI passes a value in `split` which is an integer divisor of the display
 height in lines. The `do_refresh` method calculates the number of lines in a
 segment. For each segment it outputs those lines and yields to the scheduler. A
-default value should be provided, allowing  nanogui code to issue
+default value should be provided, allowing asynchronous nanogui code to issue
 `await ssd.do_refresh()`.
 
 The `do_refresh` method requires the class to have a bound `Lock` (`self._lock`)
 to prevent creation of concurrent instances. Some applications use explicit
 locking. In such cases the GUI passes an additional `Lock` in `elock`; otherwise
-a dummy `Lock` isinstantiated. The following is the pattern for a `do_refresh`
-method:
+the driver instantiates a dummy `Lock`. The following is the pattern for a
+`do_refresh` method:
 ```py
 async def do_refresh(self, split=4, elock=None):
     if elock is None:
@@ -2012,7 +2014,7 @@ accepts a bus as input and re-initialises it for display controller use. See
 [the ili9341 driver](https://github.com/peterhinch/micropython-nano-gui/blob/master/drivers/ili93xx/ili9341.py)
 for the full text of this code.
 
-## 7.7 ePaper drivers
+## 7.5 ePaper drivers
 
 These are characterised by long times (seconds) to perform a full refresh. This
 necessitates some synchronisation. The following levels of support may be
@@ -2026,9 +2028,11 @@ then continues in the background. Two bound `Event` objects `.updated` and
 Micro-gui support is contingent on the display having a fast and effective
 partial update mode. Touch support would require this plus (obviously) a touch
 overlay. At the time of writing only one display has a good enough partial mode
-to be supported by `micro-gui`: this is the Waveshare Pico ePaper 4.2" unit.
+to be supported by `micro-gui`: this is the
+[Waveshare Pico ePaper 4.2](https://www.waveshare.com/pico-epaper-4.2.htm) unit
+which also supports hosts other than the Pico.
 
-### 7.7.1 Minimal support
+### 7.5.1 Minimal support
 
 The `.show` method terminates when data has been copied to the device. At this
 point physical refresh is in progress: the user can determine when refresh is
@@ -2061,7 +2065,7 @@ def show(self):
 ```
 At the end of `.show()` the display remains busy while physical refresh occurs.
 
-### 7.7.2 Asyncio support
+### 7.5.2 Asyncio support
 
 The aim here is to simplify application design and to obviate the need for using
 the blocking `wait_until_ready()` method. To do this a driver should detect the
@@ -2074,6 +2078,11 @@ def asyncio_running():
         return False
     return True
 ```
+The constructor should create a bound variable:  
+* `demo_mode = False`
+This may be set in the setup file to enable standard asynchronous demos to run
+on ePaper. The result is visually poor, with regular full updates.  
+
 There should be two bound `Event` instances:
 * `.updated` The driver sets this when the data has been copied to the device.
 * `.complete` This is set when the physical refresh of the display has completed
@@ -2131,7 +2140,7 @@ async def _as_show(self):
     self.complete.set()
 ```
 
-### 7.7.3 Micro-gui and touch support
+### 7.5.3 Micro-gui and touch support
 
 This is predicated on the display having a usable partial mode with minimal
 ghosting. The following methods are required:
@@ -2139,9 +2148,9 @@ ghosting. The following methods are required:
 * `def set_full(self)` Subsequent refreshes will be full.
 * `def set_partial(self)` Subsequent refreshes will be partial.
 
-It is essential that it is possible to enter and leave partial mode in this way:
+The driver must provide for entering and leaving partial mode in this way:
 applications using partial mode should do a full refresh occasionally to
-eliminate any ghosting.
+eliminate any ghosting. Setting the mode in the constructor is invalid.
 
 ###### [Contents](./DRIVERS.md#contents)
 
