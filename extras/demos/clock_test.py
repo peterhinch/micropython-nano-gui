@@ -36,7 +36,8 @@ def test():
     refresh(ssd, True)
     if epaper:
         ssd.wait_until_ready()
-    ec = Clock(wri, 10, 10, 200, label=120, pointers=(CYAN, CYAN, None))
+    size = min(ssd.height, ssd.width)
+    ec = Clock(wri, 5, 5, size - 30, label=120, pointers=(CYAN, CYAN, None))
     ec.value(t := time.localtime())  # Initial drawing
     refresh(ssd)
     if epaper:

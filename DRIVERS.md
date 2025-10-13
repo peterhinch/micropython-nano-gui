@@ -1547,10 +1547,9 @@ core and is ignored. In asynchronous nano gui code, issuing
 await ssd.do_refresh()
  ```
  causes the contents of the `ssd` frame buffer to be transferred to the display.
- The duration of `do_refresh` blocking is set by `ssd.maxblock`: if this period
- would be exceeded, `do_refresh` will yield to the scheduler before resuming. It
- is essential to ensure that the display is ready before initiating a refresh;
- the `do_refresh` method returns before the physical refresh is complete. The
+ The duration of `do_refresh` blocking is limited to 20ms. It is essential to
+ ensure that the display is ready before initiating a refresh; the `do_refresh`
+ method returns before the physical refresh is complete. The
  method should not be issued in micro-gui applications.
 
 ### 5.3.3 Events
@@ -1644,12 +1643,14 @@ frequently than every 180s.
 
 ## 5.5 Waveshare Pico 2_13 eInk Display
 
-The Pico or Pico 2 plugs into the rear of this display. There is no support for
-partial updates or greyscales. The lack of partial support means that it is
-suitable for nano-gui only. Note that the physical display size is 250x122
-pixels however the driver is limited to 250x120. The driver supports V4
-hardware; according to Waveshare documentation V3 hardware should also work. A
-typical `color_setup.py` comprises:
+The Pico or Pico 2 plugs into the rear of this display. Display is 1-bit
+monochrome. Partial updates are supported. There is negligible ghosting, however
+each time a partial update is issued, pre-existing black areas grey slightly. It
+is therefore wise to issue a full update fairly regularly. Wit that proviso it
+will work with micro-gui. Note that while the physical display size is 250x122
+pixels the driver is limited to 250x120. The driver supports V4 hardware;
+according to Waveshare documentation V3 hardware should also work. A typical
+`color_setup.py` comprises:
 ```py
 import gc
 from drivers.epaper.pico_epaper_213_v4 import EPD as SSD
@@ -1690,8 +1691,15 @@ a period: `ready` status should be checked before issuing `refresh`.
 * `wait_until_ready` No args. Pause until the device is ready. This should be
 run before issuing `refresh` or `sleep`.
 * `init` No args. Issues a hardware reset and initialises the hardware. This
-is called by the constructor. It may be used to recover from a `sleep` state
-but this is not recommended for V2 displays (see note on current consumption).
+may be used to recover from a `sleep` state.
+* `set_partial()` Enable partial updates (does nothing on greyscale driver).
+* `set_full()` Restore normal update operation.
+
+After issuing `set_partial()`, subsequent updates will be partial. Normal
+updates are restored by issuing `set_full()`. These methods should not be issued
+while an update is in progress. In the case of synchronous applications, issue
+`.wait_until_ready`. Asynchronous and microgui applications should wait on the
+`complete` event.
 
 ### 5.5.3 Events
 
@@ -1979,14 +1987,58 @@ default value should be provided, allowing asynchronous nanogui code to issue
 `await ssd.do_refresh()`.
 
 The `do_refresh` method requires the class to have a bound `Lock` (`self._lock`)
-to prevent creation of concurrent instances. Some applications use explicit
-locking. In such cases the GUI passes an additional `Lock` in `elock`; otherwise
-the driver instantiates a dummy `Lock`. The following is the pattern for a
-`do_refresh` method:
+to prevent creation of concurrent instances by nanogui application code.
+
+This is the pattern for `do_refresh` where `split` is used:
+```py
+async def do_refresh(self, split=4, elock=None):
+    async with self._lock:  # Ensure only one concurrent instance of this task
+        lines, mod = divmod(self.height, split)  # Lines per segment
+        if mod:  # nanogui user has called this with an invalid arg
+            raise ValueError("Invalid do_refresh arg.")
+        # Hardware-dependent setup code omitted
+        line = 0
+        for _ in range(split):  # For each segment
+            # *** Copy a segment's lines to the hardware ***
+            line += lines
+            await asyncio.sleep_ms(0)
+```
+
+### 7.4.2 Enhanced asyncio support
+
+This is an optional driver enhancement which enables high performance asyncio
+applications to have fine control of locking. A user-accessible Lock is provided
+to enable refresh to be paused: this is `Screen.rfsh_lock`. By default the
+screen refresh task will hold this `Lock` for the entire duration of a refresh.
+Alternatively the `Lock` can be held for the duration of the update of one
+segment, enabling faster scheduling of demanding tasks.
+
+To implement this, the driver needs a bound variable `.lock_mode`. The
+constructor has:
+```py
+    self.lock_mode = False
+```
+and a method provides user access to this
+```py
+def short_lock(self, v=None):
+    if v is not None:
+        self.lock_mode = v  # If set, user lock is passed to .do_refresh
+    return self.lock_mode
+```
+When the GUI performs a refresh, it checks that `ssd.lock_mode` exists: if so,
+and it is `True`, `Screen.rfsh_lock` is passed to `do_refresh` via `elock`
+which then locks each segment. In all other cases the entire refresh is locked
+in a way which is transparent to the driver.
+
+Note that in drivers lacking this enhanced support, `elock` will never be
+passed.
+
+The following is the pattern for an enhanced `do_refresh` method, including bus
+sharing:
 ```py
 async def do_refresh(self, split=4, elock=None):
     if elock is None:
-        elock = asyncio.Lock()  # Dummy lock
+        elock = asyncio.Lock()  # Dummy lock. Lazy way of dealing with `None`.
     async with self._lock:  # Ensure only one concurrent instance of this task
         lines, mod = divmod(self.height, split)  # Lines per segment
         if mod:  # nanogui user has called this with an invalid arg
@@ -2002,7 +2054,7 @@ async def do_refresh(self, split=4, elock=None):
                 line += lines
             await asyncio.sleep_ms(0)
 ```
-#### Bus sharing
+### 7.4.3 Bus sharing
 
 Support for sharing the SPI bus is optional. However it can be necessary. A case
 in point was a touch display whose hardware shares the SPI bus between touch

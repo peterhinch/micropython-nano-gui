@@ -30,7 +30,7 @@
 
 import framebuf
 import uasyncio as asyncio
-from time import sleep_ms, ticks_ms, ticks_us, ticks_diff
+from time import sleep_ms, ticks_ms, ticks_diff
 from machine import Pin, SPI
 from drivers.boolpalette import BoolPalette
 
@@ -66,18 +66,19 @@ class EPD(framebuf.FrameBuffer):
         self._as_busy = False  # Set immediately on start of task. Cleared when busy pin is logically false (physically 1).
         self.updated = asyncio.Event()
         self.complete = asyncio.Event()
+        # partial refresh
+        self._partial = False
         # Public bound variables required by nanogui. Physical display 250x122
         # Short axis must be an integer no. of bytes (120 vs 122).
         self.width = 250 if landscape else 120
         self.height = 120 if landscape else 250
         self.demo_mode = False  # Special mode enables demos to run
-        self.verbose = False
         self._buffer = bytearray(self.height * self.width // 8)  # 3_750 bytes
         self._mvb = memoryview(self._buffer)
         mode = framebuf.MONO_VLSB if landscape else framebuf.MONO_HLSB
         self.palette = BoolPalette(mode)  # Enable CWriter.
         super().__init__(self._buffer, self.width, self.height, mode)
-        self.init()
+        self.init(False)  # Full refresh mode
 
     def _command(self, command, data=None):
         self._dc(0)
@@ -95,18 +96,15 @@ class EPD(framebuf.FrameBuffer):
             self._spi.write(buf1)
             self._cs(1)
 
-    def init(self):
-        # Hardware reset
+    # init may be called from user code to recover from sleep
+    def init(self, partial=False):  # Hardware reset, common setup
+        self._partial = partial
         self._rst(1)
-        sleep_ms(20)
+        sleep_ms(2)
         self._rst(0)
-        sleep_ms(5)
+        sleep_ms(2)
         self._rst(1)
-        sleep_ms(20)
-        # Initialisation
-
-        self.wait_until_ready()
-        self._command(b"\x12")  # SWRESET
+        sleep_ms(1)
         self.wait_until_ready()
 
         self._command(b"\x01")  # Driver output control
@@ -117,7 +115,7 @@ class EPD(framebuf.FrameBuffer):
         self._command(b"\x11")  # data entry mode
         self._data(b"\x03")
 
-        self._command(b"\x44")
+        self._command(b"\x44")  # Set window
         self._data(b"\x00")
         self._data(b"\x0F")
         self._command(b"\x45")
@@ -125,15 +123,13 @@ class EPD(framebuf.FrameBuffer):
         self._data(b"\x00")
         self._data(b"\xF9")
         self._data(b"\x00")
-        self._command(b"\x4E")
+        self._command(b"\x4E")  # Set cursor
         self._data(b"\x00")
         self._command(b"\x4F")
         self._data(b"\x00")
         self._data(b"\x00")
-
         self._command(b"\x3C")  # BorderWaveform
-        self._data(b"\x05")
-
+        self._data(b"\x80" if partial else b"\x05")
         self._command(b"\x21")  # Display update control
         self._data(b"\x00")
         self._data(b"\x80")
@@ -141,26 +137,35 @@ class EPD(framebuf.FrameBuffer):
         self._command(b"\x18")  # Read built-in temperature sensor
         self._data(b"\x80")
         self.wait_until_ready()
-        self.verbose and print("Init Done.")
+
+    def set_full(self):
+        if self._partial:
+            self.init(False)
+
+    def set_partial(self):
+        if not self._partial:
+            self.wait_until_ready()
+            self.init(True)
+            self.show()  # Seems to be necessry to avoid ghosting
 
     def wait_until_ready(self):
-        sleep_ms(50)
-        t = ticks_ms()
         while not self.ready():
             sleep_ms(100)
-        dt = ticks_diff(ticks_ms(), t)
-        self.verbose and print("wait_until_ready {}ms {:5.1f}mins".format(dt, dt / 60_000))
 
     # For polling in asynchronous code. Just checks pin state.
     # 1 == busy.
     def ready(self):
         return not (self._as_busy or (self._busy() == 1))  # 1 == busy
 
+    # micro-gui API; asyncio is running.
+    async def do_refresh(self, split=0):
+        assert not self._busy, "Refresh while busy"
+        await self._as_showl()
+
     async def _as_show(self, buf1=bytearray(1)):
         mvb = self._mvb
         send = self._spi.write
         cmd = self._command
-        self.verbose and print("as_show")
 
         cmd(b"\x24")
         self._dc(1)
@@ -201,8 +206,8 @@ class EPD(framebuf.FrameBuffer):
 
         self.updated.set()  # framebuf has now been copied to the device
         self.updated.clear()
-        self.verbose and print("async full refresh")
-        cmd(b"\x22", b"\xF7")  # DISPLAY_REFRESH
+        cmnd = b"\xFF" if self._partial else b"\xF7"
+        cmd(b"\x22", cmnd)  # Turn on display (partial/full)
         cmd(b"\x20")
         await asyncio.sleep(1)
         while self._busy() == 1:
@@ -220,7 +225,6 @@ class EPD(framebuf.FrameBuffer):
             self.complete.clear()
             asyncio.create_task(self._as_show())
             return
-        t = ticks_us()
         mvb = self._mvb
         send = self._spi.write
         cmd = self._command
@@ -257,11 +261,10 @@ class EPD(framebuf.FrameBuffer):
                     send(b"\xFF")
                 self._cs(1)
 
-        self.verbose and print("sync full refresh")
-        cmd(b"\x22", b"\xF7")  # DISPLAY_REFRESH
+        cmnd = b"\xFF" if self._partial else b"\xF7"
+        cmd(b"\x22", cmnd)  # Turn on display (partial/full)
         cmd(b"\x20")
-        te = ticks_us()
-        self.verbose and print("show time", ticks_diff(te, t) // 1000, "ms")
+
         if not self.demo_mode:
             # Immediate return to avoid blocking the whole application.
             # User should wait for ready before calling refresh()

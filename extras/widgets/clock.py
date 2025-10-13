@@ -1,12 +1,13 @@
 # clock.py Analog clock widget for nanogui
 
 # Released under the MIT License (MIT). See LICENSE.
-# Copyright (c) 2023 Peter Hinch
+# Copyright (c) 2023-2025 Peter Hinch
 
 from gui.core.nanogui import DObject
 from gui.widgets.dial import Dial, Pointer
 from gui.core.colors import *
 from cmath import rect, pi
+
 
 class Clock(DObject):
     def __init__(
