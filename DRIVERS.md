@@ -1644,12 +1644,10 @@ frequently than every 180s.
 ## 5.5 Waveshare Pico 2_13 eInk Display
 
 The Pico or Pico 2 plugs into the rear of this display. Display is 1-bit
-monochrome. Partial updates are supported. There is negligible ghosting, however
-each time a partial update is issued, pre-existing black areas grey slightly. It
-is therefore wise to issue a full update fairly regularly. Wit that proviso it
-will work with micro-gui. Note that while the physical display size is 250x122
-pixels the driver is limited to 250x120. The driver supports V4 hardware;
-according to Waveshare documentation V3 hardware should also work. A typical
+monochrome. Partial updates are supported. Note that while the physical display
+size is 250x122 pixels the driver is limited to 250x120. The driver supports V4
+hardware; according to Waveshare documentation V3 hardware should also work. A
+typical
 `color_setup.py` comprises:
 ```py
 import gc
@@ -1692,14 +1690,14 @@ a period: `ready` status should be checked before issuing `refresh`.
 run before issuing `refresh` or `sleep`.
 * `init` No args. Issues a hardware reset and initialises the hardware. This
 may be used to recover from a `sleep` state.
-* `set_partial()` Enable partial updates (does nothing on greyscale driver).
+* `set_partial()` Enable partial updates.
 * `set_full()` Restore normal update operation.
 
 After issuing `set_partial()`, subsequent updates will be partial. Normal
 updates are restored by issuing `set_full()`. These methods should not be issued
 while an update is in progress. In the case of synchronous applications, issue
-`.wait_until_ready`. Asynchronous and microgui applications should wait on the
-`complete` event.
+`.wait_until_ready`. Asynchronous applications should wait on the `complete`
+event.
 
 ### 5.5.3 Events
 
@@ -1720,6 +1718,16 @@ needed in more advanced asynchronous applications and their use is discussed in
   seconds to enable viewing. This enables generic nanogui demos to be run on an
   EPD.
   * `verbose=False` Set `True` to enable print statements.
+
+### 5.3.5 Partial Updates
+
+While these work well, the way they are achieved (based on Waveshare's C driver)
+is radical. Each partial update briefly (2ms) asserts the hardware reset. No
+other means of achieving a usable partial update was found. According to the
+schematic the `rst` signal interrupts the power supply to the display.
+
+For this reason use with micro-gui is not recommended; micro-gui performs
+continuous background refreshes.
 
 # 6. EPD Asynchronous support
 

@@ -24,9 +24,13 @@
 # Mis-registration where logical display size exceeded physical device boundary fixed
 # (with a loss of two pixels on the narrower dimension). This arose because FrameBuffer with one
 # bit per pixel mapping requires pixel dimensions that are divisible by 8
-# Debug print gated by DEBUG class variable.
 # Remove .updated method, replace with Event as per API.
 # Remove asyn constructor arg, use auto detection as per other drivers.
+# Remove debug prints.
+# Add partial update gleaned from the C driver
+# https://github.com/waveshareteam/Pico_ePaper_Code/blob/main/c/lib/e-Paper/EPD_2in13_V4.c
+
+# See DRIVERS.md for warning about partial mode and micro-gui
 
 import framebuf
 import uasyncio as asyncio
@@ -160,6 +164,8 @@ class EPD(framebuf.FrameBuffer):
     # micro-gui API; asyncio is running.
     async def do_refresh(self, split=0):
         assert not self._busy, "Refresh while busy"
+        if self._partial:
+            self.init(True)  # Blocks 7ms on Pico 2
         await self._as_showl()
 
     async def _as_show(self, buf1=bytearray(1)):
@@ -217,6 +223,8 @@ class EPD(framebuf.FrameBuffer):
 
     # draw the current frame memory. Blocking time ~180ms
     def show(self, buf1=bytearray(1)):
+        if self._partial:  # Needs re-initialising including hardware reset
+            self.init(True)  # otherwise blacks fade with each call.
         if asyncio_running():
             if self._as_busy:
                 raise RuntimeError("Cannot refresh: display is busy.")
