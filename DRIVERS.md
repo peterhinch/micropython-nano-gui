@@ -80,7 +80,7 @@ access via the `Writer` and `CWriter` classes is documented
   &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;5.3.5 [The Greyscale Driver](./DRIVERS.md#535-the-greyscale-driver)  
   &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;5.3.6 [Current consumption](./DRIVERS.md#536-current-consumption)  
   5.4 [WeAct Studio SSD1680 eInk Displays](./DRIVERS.md#54-weact-studio-ssd1680-eink-displays)  
-  5.5 [Waveshare Pico 2.13 eInk Display](./DRIVERS.md#55-waveshare-pico-2_13-eink-display)  
+  5.5 [Waveshare Pico 2.13 eInk Display](./DRIVERS.md#55-waveshare-pico-2_13-eink-display) Also Pico 2.9" model.  
   &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;5.5.2 [Public methods](./DRIVERS.md#552-public-methods)  
   &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;5.5.3 [Events](./DRIVERS.md#553-events)  
   &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;5.5.4 [Public bound variables](./DRIVERS.md#554-public-bound-variables)  
@@ -1643,6 +1643,8 @@ frequently than every 180s.
 
 ## 5.5 Waveshare Pico 2_13 eInk Display
 
+Also Pico 2.9" display, which also supports other hosts via a supplied cable.
+
 The Pico or Pico 2 plugs into the rear of this display. Display is 1-bit
 monochrome. Partial updates are supported. Note that while the physical display
 size is 250x122 pixels the driver is limited to 250x120. The driver supports V4
@@ -1651,7 +1653,10 @@ typical
 `color_setup.py` comprises:
 ```py
 import gc
+# 2.13" display
 from drivers.epaper.pico_epaper_213_v4 import EPD as SSD
+# 2.9" display
+#from drivers.epaper.pico_epaper_29 import EPD as SSD
 
 # Precaution before instantiating framebuf
 gc.collect()
@@ -1721,6 +1726,8 @@ needed in more advanced asynchronous applications and their use is discussed in
 
 ### 5.3.5 Partial Updates
 
+#### 2.13" display
+
 While these work well, the way they are achieved (based on Waveshare's C driver)
 is radical. Each partial update briefly (2ms) asserts the hardware reset. No
 other means of achieving a usable partial update was found. According to the
@@ -1728,6 +1735,11 @@ schematic the `rst` signal interrupts the power supply to the display.
 
 For this reason use with micro-gui is not recommended; micro-gui performs
 continuous background refreshes.
+
+#### 2.9" display
+
+Partial updates work with some visible ghosting. The driver does not interrupt
+the power supply.
 
 # 6. EPD Asynchronous support
 

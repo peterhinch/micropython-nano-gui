@@ -2,7 +2,7 @@
 
 # Released under the MIT License (MIT). See LICENSE.
 # Copyright (c) 2020-2025 Peter Hinch
-# Adapted to also run on Waveshare 2.13" display.
+# Adapted to also run on Waveshare 2.13" and 2.9" displays.
 
 # color_setup must set landcsape True and must not set demo_mode
 from cmath import exp, pi
@@ -100,9 +100,12 @@ async def main():
     asyncio.create_task(meter(evt))
     asyncio.create_task(multi_fields(evt))
     asyncio.create_task(compass(evt))
+    refresh(ssd)  # For some reason compass isn't drawn until 2nd refresh.
+    if hasattr(ssd, "set_partial"):
+        await ssd.complete.wait()  # Do before mode change
+        ssd.set_partial()
     while True:
-        # Normal procedure before refresh, but 10s sleep should mean it always returns immediately
-        await ssd.complete.wait()
+        await ssd.complete.wait()  # Do before any refresh
         refresh(ssd)  # Launches ._as_show()
         await ssd.updated.wait()
         # Content has now been shifted out so coros can update
@@ -112,9 +115,10 @@ async def main():
         await asyncio.sleep(10)  # Allow for slow refresh
 
 
-tstr = """Test of asynchronous code updating the EPD. This should
-not be run for long periods as the EPD should not be updated more
-frequently than every 180s.
+tstr = """Test of asynchronous code updating the EPD.
+
+On the Adafruit display this should not be run for long periods. Adafruit caution
+that the EPD should not be updated more frequently than every 180s.
 """
 
 print(tstr)
