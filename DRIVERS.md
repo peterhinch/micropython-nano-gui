@@ -1522,8 +1522,10 @@ All methods are synchronous. Common API (nanogui and microgui):
  On the 1-bit driver, after issuing `set_partial()`, subsequent updates will be
  partial. Normal updates are restored by issuing `set_full()`. These methods
  should not be issued while an update is in progress. In the case of synchronous
- applications, issue `.wait_until_ready`. Asynchronous and microgui applications
- should wait on the `rfsh_done` event.
+ applications, issue `.wait_until_ready`. Asynchronous nanogui applications
+ should check `.ready` and wait on the `complete` Event. Microgui applications
+ should honour the `Screen.rfsh_lock` lock - see
+ [docs](https://github.com/peterhinch/micropython-micro-gui/blob/main/README.md#10-epaper-displays).
 
 Synchronous methods for nanogui API:
 
@@ -2026,12 +2028,13 @@ async def do_refresh(self, split=4, elock=None):
 
 ### 7.4.2 Enhanced asyncio support
 
-This is an optional driver enhancement which enables high performance asyncio
-applications to have fine control of locking. A user-accessible Lock is provided
-to enable refresh to be paused: this is `Screen.rfsh_lock`. By default the
-screen refresh task will hold this `Lock` for the entire duration of a refresh.
-Alternatively the `Lock` can be held for the duration of the update of one
-segment, enabling faster scheduling of demanding tasks.
+This is an optional driver enhancement for non-ePaper displays which enables
+high performance asyncio applications to have fine control of locking. A
+user-accessible Lock is provided to enable refresh to be paused: this is
+`Screen.rfsh_lock`. By default the screen refresh task will hold this `Lock` for
+the entire duration of a refresh. Alternatively the `Lock` can be held for the
+duration of the update of one segment, enabling faster scheduling of demanding
+tasks.
 
 To implement this, the driver needs a bound variable `.lock_mode`. The
 constructor has:

@@ -161,6 +161,12 @@ class EPD(framebuf.FrameBuffer):
     def ready(self):
         return not (self._as_busy or (self._busy() == 1))  # 1 == busy
 
+    # micro-gui API; asyncio is running.
+    async def do_refresh(self, split=0):
+        while not self.ready():
+            await asyncio.sleep_ms(100)
+        await self._as_show()
+
     # Async applications should pause on ready() before mode changes to avoid blocking
     def set_full(self):
         if self._partial:

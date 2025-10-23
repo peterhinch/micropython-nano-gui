@@ -58,7 +58,7 @@ display.
   &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;2.1.3 [Fonts](./README.md#213-fonts)  
   &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;2.1.4 [Hardware setup examples](./README.md#214-hardware-setup-examples)  
   2.2 [Dependencies](./README.md#21-dependencies)  
-  2.3 [Verifying hardware configuration](./README.md#23-verifying-hardware-configuration)  
+  2.3 [Verifying hardware configuration](./README.md#23-verifying-hardware-configuration) Please check hardware first!  
  3. [The nanogui module](./README.md#3-the-nanogui-module)  
   3.1 [Application Initialisation](./README.md#31-application-initialisation) Initial setup and refresh method.  
   &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;3.1.1 [User defined colors](./README.md#311-user-defined-colors)  
@@ -410,6 +410,7 @@ ssd.line(0, 0, ssd.width - 1, ssd.height - 1, GREEN)  # Green diagonal corner-to
 ssd.rect(0, 0, 15, 15, RED, True)  # Red square at top left filled for monochrome
 ssd.rect(ssd.width -15, ssd.height -15, 15, 15, BLUE)  # Blue square at bottom right
 refresh(ssd)
+
 ```
 For round displays please see
 [Appendix 2 Round displays](./README.md#appendix-2-round-displays) for a
