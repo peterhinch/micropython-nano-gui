@@ -1,6 +1,6 @@
 {
   "urls": [
-    ["drivers/st7567s/st7567s.py", "github:peterhinch/micropython-nano-gui/drivers/st7567s/st7567s.pyy"],
+    ["drivers/st7567s/st7567s.py", "github:peterhinch/micropython-nano-gui/drivers/st7567s/st7567s.py"],
     ["drivers/boolpalette.py", "github:peterhinch/micropython-nano-gui/drivers/boolpalette.py"]
   ],
   "version": "0.1"
