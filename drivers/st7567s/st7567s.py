@@ -6,7 +6,7 @@
 # https://github.com/peterhinch/micropython-nano-gui/pull/57
 
 from micropython import const
-from gui.drivers.boolpalette import BoolPalette
+from drivers.boolpalette import BoolPalette
 from time import sleep_ms
 import framebuf
 
