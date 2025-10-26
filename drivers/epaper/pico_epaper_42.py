@@ -259,6 +259,8 @@ class EPD(framebuf.FrameBuffer):
     # does not test for asyncio as this is guaranteed to be up.
     async def do_refresh(self, split=0):
         assert not self._busy, "Refresh while busy"
+        self.updated.clear()  # Applications can access Event instances
+        self.complete.clear()
         await self._as_show()  # split=5
 
     def show(self):  # nanogui

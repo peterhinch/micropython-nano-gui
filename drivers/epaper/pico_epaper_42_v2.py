@@ -236,6 +236,8 @@ class EPD(framebuf.FrameBuffer):
     # micro-gui API; asyncio is running.
     async def do_refresh(self, split=0):  # split = 5
         assert not self._busy, "Refresh while busy"
+        self.updated.clear()  # Applications can access Event instances
+        self.complete.clear()
         if self._partial:
             await self._as_show_partial()
         else:

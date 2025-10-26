@@ -258,6 +258,8 @@ class EPD(framebuf.FrameBuffer):
 
     async def do_refresh(self, split=0):  # For micro-gui
         assert not self._busy, "Refresh while busy"
+        self.updated.clear()  # Applications can access Event instances
+        self.complete.clear()
         await self._as_show()  # split=5
 
     def show(self):  # nanogui

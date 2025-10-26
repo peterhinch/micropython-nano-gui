@@ -163,6 +163,8 @@ class EPD(framebuf.FrameBuffer):
 
     # micro-gui API; asyncio is running.
     async def do_refresh(self, split=0):
+        self.updated.clear()  # Applications can access Event instances
+        self.complete.clear()
         while not self.ready():
             await asyncio.sleep_ms(100)
         await self._as_show()

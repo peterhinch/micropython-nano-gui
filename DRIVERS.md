@@ -2227,6 +2227,9 @@ The driver must provide for entering and leaving partial mode in this way:
 applications using partial mode should do a full refresh occasionally to
 eliminate any ghosting. Setting the mode in the constructor is invalid.
 
+The `do_refresh` method should clear the `.complete` Event at the start and set
+it immediately prior to exit (when the hardware has signalled completion).
+
 ###### [Contents](./DRIVERS.md#contents)
 
 # 8. Links
