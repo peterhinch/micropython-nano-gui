@@ -72,6 +72,7 @@ display.
   or compass style display of one or more pointers.  
   3.6 [Scale class](./README.md#36-scale-class) Linear display with wide dynamic range.  
   3.7 [Class Textbox](./README.md#37-class-textbox) Scrolling text display.  
+  3.8 [Drawing primitives](./README.md#38-drawing-primitives) Drawing on the screen.  
  4. [ESP8266](./README.md#4-esp8266) This can work. Contains information on
  minimising the RAM and flash footprints of the GUI.  
 [Appendix 1 Freezing bytecode](./README.md#appendix-1-freezing-bytecode) Optional way to save RAM.  
@@ -948,6 +949,21 @@ the fastest way is to perform a single `append`. Text may contain newline
 If text is regularly appended to a `Textbox` its buffer grows, using RAM. The
 value of `ntrim` sets a limit to the number of lines which are retained, with
 the oldest (topmost) being discarded as required.
+
+###### [Contents](./README.md#contents)
+
+## 3.8 Drawing primitives
+
+The `ssd` object imported from `color_setup` is subclassed from
+`framebuf.FrameBuffer` consequently all its methods may be used by applications.
+These are documented in official docs
+[here](https://docs.micropython.org/en/latest/library/framebuf.html). These
+enable arbitrary shapes to be drawn alongside text and widgets. Thus
+```py
+ssd.rect(10, 10, 30, 30, RED, True)
+```
+will produce a red filled rectangle. Note that `FrameBuffer` uses x, y
+coordinates (col, row) rather than the (row, col) convention used in the GUI.
 
 ###### [Contents](./README.md#contents)
 
