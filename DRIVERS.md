@@ -876,19 +876,22 @@ consume bytes with zero visual benefit.
 
 ### 3.4.1 Driver for ILI9488
 
-This chip only supports RGB565 color when driven with a parallel interface. On
-SPI 18-bit RGB666 must be used, necessitating the transmission of three bytes
-for every pixel; a 50% performance penalty. With a maximum SPI baudrate of 20MHz
-this makes for slow refreshes. Some manufacturers (e.g. Waveshare) include an
-onboard serial to parallel converter. This allows SPI baudrates of up to 60MHz
-(Waveshare figure) with a further speed boost provided by the availability of
-RGB565. This may be accessed simply by using the ILI9486 driver.
+Boards using ILI9488 come in two hardware variants:
+* The SPI interface connects directly to the ILI9488 chip (native SPI).
+* SPI is converted to parallel before connecting to the chip.
 
-If unsure whether a given board has a converter, specify the ILI9486 driver and
-run the hardware test script. If the result is a blank screen, the ILI9488
-driver is required.
+In the first case, the ILI9488 driver must be used. In the second, the ILI9486
+driver is essential. The ILI9486 and ILI9488 drivers have identical API's. If
+unsure whether a given board has a converter, specify the ILI9486 driver and run
+the hardware test script. If the result is a blank screen, the ILI9488 driver is
+required.
 
-The ILI9486 and ILI9488 drivers have identical API's.
+Waveshare in particular adopt the parallel approach: it enables SPI baudrates of
+up to 60MHz (Waveshare figure). This contrasts with native SPI's 20MHz max. The
+chip only supports RGB565 color when driven with a parallel interface. Native
+SPI supports only 18-bit RGB666, necessitating the transmission of three bytes
+for every pixel; a 50% performance penalty. Consequently the Waveshare approach
+offers a substantial speed benefit.
 
 Thanks are due to Carl Pottle (cpottle9) for identifying this issue and
 submitting the device driver
