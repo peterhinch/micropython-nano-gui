@@ -4,6 +4,7 @@
 
 # Released under the MIT License (MIT). See LICENSE.
 # Copyright (c) 2026 chnyangjie
+# See https://github.com/peterhinch/micropython-micro-gui/pull/63
 
 from time import sleep_ms
 import gc
@@ -47,7 +48,7 @@ class ST7305(framebuf.FrameBuffer):
     # Convert r, g, b in range 0-255 to monochrome (0 or 1)
     @staticmethod
     def rgb(r, g, b):
-        return 1 if (r + g + b) > 384 else 0  # 0 = black, 1 = white
+        return int((r > 127) or (g > 127) or (b > 127))
 
     def __init__(
         self, spi, cs, dc, rst=None, height=300, width=400, orientation=LANDSCAPE, init_spi=False
