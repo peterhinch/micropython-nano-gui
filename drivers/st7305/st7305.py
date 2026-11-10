@@ -189,29 +189,6 @@ class ST7305(framebuf.FrameBuffer):
         self._spi.write(self._hwbuf)
         self._cs(1)
 
-    def short_lock(self, v=None):
-        return False
 
-    async def do_refresh(self, split=4, elock=None):
-        if elock is None:
-            elock = asyncio.Lock()
-        if self._spi_init:
-            self._spi_init(self._spi)
-        self._remap()
-        bytes_per_line = (self.width * self.height) // 8
-        lines, mod = divmod(self.height, split)
-        if mod:
-            raise ValueError("Invalid do_refresh arg.")
-        for n in range(split):
-            async with elock:
-                self._dc(0)
-                self._cs(0)
-                self._spi.write(b"\x2c")
-                self._dc(1)
-                self._spi.write(
-                    self._hwbuf[
-                        n * lines * (self.width // 8) : (n + 1) * lines * (self.width // 8)
-                    ]
-                )
-                self._cs(1)
-            await asyncio.sleep(0)
+# An asynchronous refresh is not required because synchronous refresh at 10MHz only
+# takes 12ms: 400*300 = 120,000 bits @ 100ns per bit -> 12ms.
