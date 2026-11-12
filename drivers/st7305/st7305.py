@@ -5,43 +5,21 @@
 # Released under the MIT License (MIT). See LICENSE.
 # Copyright (c) 2026 chnyangjie
 # See https://github.com/peterhinch/micropython-micro-gui/pull/63
+# Modifications/bugfixes:
+# _remap_buf replaced by vertical mapping and _convert: easier to understand and
+# substantially faster. Code courtesy
+# https://github.com/mattytrentini/MicroPython_ST7305_RLCD/blob/main/st7305_rlcd.py
+# An asynchronous refresh is not required because synchronous refresh at 10MHz only
+# takes 12ms: 400*300 = 120,000 bits @ 100ns per bit -> 12ms.
+# rgb() fixed to work with demos. Display inversion removed.
 
-from time import sleep_ms
+# NOTE: only works with 400x300 landscape display.
+
+from time import sleep_ms  # , ticks_ms, ticks_diff
 import gc
 import framebuf
-import asyncio
 import micropython
 from drivers.boolpalette import BoolPalette
-
-LANDSCAPE = 0
-PORTRAIT = 1
-
-
-@micropython.viper
-def _remap_buf(hw: ptr8, buf: ptr8, W: int, H: int):
-    hw_len = (W * H) // 8
-    for i in range(hw_len):
-        hw[i] = 0xFF
-    H4 = H >> 2
-    for x in range(0, W, 2):
-        base_col = x >> 1
-        for block in range(0, H, 4):
-            idx = base_col * H4 + (block >> 2)
-            if idx >= hw_len:
-                continue
-            byte = 0xFF
-            for dy in range(4):
-                y = (H - 1) - (block + dy)
-                if y >= H:
-                    continue
-                pos = y * W + x
-                if (buf[pos >> 3] >> (7 - (pos & 7))) & 1:
-                    byte &= ~(1 << (7 - (dy << 1)))
-                if x + 1 < W:
-                    pos = y * W + x + 1
-                    if (buf[pos >> 3] >> (7 - (pos & 7))) & 1:
-                        byte &= ~(1 << (6 - (dy << 1)))
-            hw[idx] = byte
 
 
 class ST7305(framebuf.FrameBuffer):
@@ -50,29 +28,24 @@ class ST7305(framebuf.FrameBuffer):
     def rgb(r, g, b):
         return int((r > 127) or (g > 127) or (b > 127))
 
-    def __init__(
-        self, spi, cs, dc, rst=None, height=300, width=400, orientation=LANDSCAPE, init_spi=False
-    ):
+    def __init__(self, spi, cs, dc, rst=None, height=300, width=400, init_spi=False):
         self._spi = spi
         self._rst = rst
         self._dc = dc
         self._cs = cs
+        assert height == 300 and width == 400, "Sizes other than 300h by 400w unsupprted."
         self.height = height
         self.width = width
-        self._orientation = orientation
         self._spi_init = init_spi
-
-        # Use MONO_HLSB format for framebuf (matching user's reference)
-        mode = framebuf.MONO_HLSB
+        mode = framebuf.MONO_VLSB
         self.palette = BoolPalette(mode)
+        # MONO_VLSB stores 8 vertical pixels per byte. The last 4 rows of
+        # each column are padding; the panel buffer has no such padding.
         gc.collect()
-        buf = bytearray((width * height) // 8)
-        self._mvb = memoryview(buf)
-        super().__init__(buf, width, height, mode)
-
+        self._buf = bytearray(width * ((height + 7) // 8))
         # Hardware buffer for ST7305's special 2x4 layout
-        self._hwbuf = bytearray((width * height) // 8)
-
+        self._hwbuf = bytearray(width * height // 8)
+        super().__init__(self._buf, width, height, mode)
         self._init()
         self.show()
 
@@ -92,15 +65,15 @@ class ST7305(framebuf.FrameBuffer):
         self._spi.write(buf)
         self._cs(1)
 
-    def _wcd(self, c, d):
-        self._dc(0)
-        self._cs(0)
-        self._spi.write(c)
-        self._cs(1)
+    def _wdata(self, data):
         self._dc(1)
         self._cs(0)
-        self._spi.write(d)
+        self._spi.write(data)
         self._cs(1)
+
+    def _wcd(self, c, d):
+        self._wcmd(c)
+        self._wdata(d)
 
     def _init(self):
         self._hwreset()
@@ -151,7 +124,7 @@ class ST7305(framebuf.FrameBuffer):
         # Panel Setting
         wcd(b"\xb8", b"\x29")
         # Display Inversion On
-        cmd(b"\x21")
+        # cmd(b"\x21")
         # Column Address Set (0x12 to 0x2A)
         wcd(b"\x2a", b"\x12\x2a")
         # Row Address Set (0x00 to 0xC7)
@@ -165,30 +138,31 @@ class ST7305(framebuf.FrameBuffer):
         # Display On
         cmd(b"\x29")
 
-    def _remap(self):
-        _remap_buf(self._hwbuf, self._mvb, self.width, self.height)
-
-    def _wdata(self, data):
-        self._dc(1)
-        self._cs(0)
-        self._spi.write(data)
-        self._cs(1)
+    @micropython.viper
+    def _convert(self):
+        source = ptr8(self._buf)
+        target = ptr8(self._hwbuf)
+        for x in range(0, 400, 2):
+            offset = (x >> 1) * 75
+            for block in range(75):
+                # Waveshare's landscape layout stores 2 x 4 pixels per byte,
+                # in bottom-to-top order; MONO_VLSB is top-to-bottom.
+                y = 299 - (block << 2)
+                index = (y >> 3) * 400 + x
+                shift = y & 4
+                left = source[index] >> shift
+                right = source[index + 1] >> shift
+                pixel = ((left & 8) << 4) | ((right & 8) << 3)
+                pixel |= ((left & 4) << 3) | ((right & 4) << 2)
+                pixel |= ((left & 2) << 2) | ((right & 2) << 1)
+                pixel |= ((left & 1) << 1) | (right & 1)
+                target[offset + block] = pixel
 
     def show(self):
-        self._remap()
+        self._convert()  # 12ms (cf _remap_buf @ 41ms)
         if self._spi_init:
             self._spi_init(self._spi)
-        self._wcmd(b"\x2a")  # Column Address Set
-        self._wdata(b"\x12\x2a")
-        self._wcmd(b"\x2b")  # Row Address Set
-        self._wdata(b"\x00\xc7")
-        self._dc(0)
-        self._cs(0)
-        self._spi.write(b"\x2c")  # RAMWR
-        self._dc(1)
-        self._spi.write(self._hwbuf)
-        self._cs(1)
-
-
-# An asynchronous refresh is not required because synchronous refresh at 10MHz only
-# takes 12ms: 400*300 = 120,000 bits @ 100ns per bit -> 12ms.
+        self._wcd(b"\x2a", b"\x12\x2a")  # Column Address Set
+        self._wcd(b"\x2b", b"\x00\xc7")  # Row Address Set
+        self._wcmd(b"\x2c")  # RAMWR
+        self._wdata(self._hwbuf)  # 12.5ms measured
