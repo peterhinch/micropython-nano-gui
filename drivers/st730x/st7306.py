@@ -1,5 +1,5 @@
-# st7305.py Driver for ST7305 LCD displays for nano-gui
-# ST7305 is a 1-bit monochrome reflective LCD controller (400x300)
+# st7306.py Driver for ST7306 LCD displays for nano-gui and microgui
+# ST7306 is a 1-bit monochrome reflective LCD controller (400x300)
 # Reference: https://github.com/waveshareteam/ESP32-S3-RLCD-4.2
 
 # Released under the MIT License (MIT). See LICENSE.
@@ -22,7 +22,7 @@ import micropython
 from drivers.boolpalette import BoolPalette
 
 
-class ST7305(framebuf.FrameBuffer):
+class ST7306(framebuf.FrameBuffer):
     # Convert r, g, b in range 0-255 to monochrome (0 or 1)
     @staticmethod
     def rgb(r, g, b):
@@ -33,6 +33,7 @@ class ST7305(framebuf.FrameBuffer):
         self._rst = rst
         self._dc = dc
         self._cs = cs
+        # Retain height end width args for possible portrait mode
         assert height == 300 and width == 400, "Sizes other than 300h by 400w unsupprted."
         self.height = height
         self.width = width
@@ -43,7 +44,7 @@ class ST7305(framebuf.FrameBuffer):
         # each column are padding; the panel buffer has no such padding.
         gc.collect()
         self._buf = bytearray(width * ((height + 7) // 8))
-        # Hardware buffer for ST7305's special 2x4 layout
+        # Hardware buffer for ST7306's special 2x4 layout
         self._hwbuf = bytearray(width * height // 8)
         super().__init__(self._buf, width, height, mode)
         self._init()

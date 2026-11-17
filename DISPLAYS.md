@@ -52,7 +52,7 @@ Width and height are pixels.
 | 2.9M   | 296   |  128   | eInk  | [UC8151D][7d]  | [Adafruit 4777][15m]         | FeatherWing ePaper display.                  |
 | 2.9M   | 296   |  128   | eInk  | [SSD1680][15d] | [WeAct Studio ePaper][26m]   | WeAct Studio ePaper display.                 |
 | 4.2M   | 400   |  300   | eInk  | [WS][10d]      | [Waveshare pico 4.2][19m]    | Pico plugs in, others via cable [see][1z].   |
-| 4.2M   | 400   |  300   | RLCD  | [ST7305][19d]  | [W'sh ESP32-S3-RLCD-4.2][38m]| Reflective mono display, faster than eInk.   |
+| 4.2M   | 400   |  300   | RLCD  | [ST7306][19d]  | [W'sh ESP32-S3-RLCD-4.2][38m]| Reflective mono display, faster than eInk.   |
 | 2.7M   | 274   |  176   | eInk  | [HAT][8d]      | [Waveshare HAT][14m]         | HAT designed for Raspberry Pi, repurposed.   |
 | 2.7M   | 400   |  240   | Sharp | [Sharp][9d]    | [Adafruit 4694][16m]         | Micropower monochrome display.               |
 | 1.3M   | 168   |  144   | Sharp | [Sharp][9d]    | [Adafruit 3502][17m]         | Ditto.                                       |
@@ -152,7 +152,7 @@ simple. See [this doc](./DRIVERS.md#7-writing-device-drivers) for details.
 [16d]: https://github.com/peterhinch/micropython-nano-gui/blob/master/drivers/st7567s/st7567s.py
 [17d]: https://github.com/peterhinch/micropython-nano-gui/blob/master/drivers/gc9a01/gc9a01.py
 [18d]: https://github.com/peterhinch/micropython-nano-gui/blob/master/DRIVERS.md#55-waveshare-pico-2.13-eink-display
-[19d]: https://github.com/peterhinch/micropython-nano-gui/blob/master/drivers/st7305/st7305.py
+[19d]: https://github.com/peterhinch/micropython-nano-gui/blob/master/drivers/st730x/st7306.py
 
 [1m]: https://www.adafruit.com/product/684
 [2m]: https://www.adafruit.com/product/1673
