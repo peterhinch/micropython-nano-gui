@@ -15,7 +15,7 @@
 
 # NOTE: only works with 400x300 landscape display.
 
-from time import sleep_ms, ticks_us, ticks_diff
+from time import sleep_ms, ticks_us, ticks_diff, ticks_ms
 import gc
 import framebuf
 import micropython
@@ -50,8 +50,8 @@ class ST7306(framebuf.FrameBuffer):
         self._tbuf = bytearray(75)
         # Buffer for portrait mode
         if not self._landscape:
-            self._hwbuf = bytearray(width * height // 8)
-            print("Portrait mode not yet implemented")
+            self._pbuf = bytearray(height * ((width + 7) // 8))
+            self._pfbuf = framebuf.FrameBuffer(self._pbuf, 400, 300, mode)
         super().__init__(self._buf, width, height, mode)
         self._init()
         self.show()
@@ -144,6 +144,15 @@ class ST7306(framebuf.FrameBuffer):
         # Display On
         cmd(b"\x29")
 
+    @micropython.native
+    def _remap(self):  # 800ms
+        t = ticks_ms()
+        dest = self._pfbuf  # Landscape mode frame buffer
+        for x in range(self.width):  # 300
+            for y in range(self.height):  # 400
+                dest.pixel(y, 300 - x, self.pixel(x, y))
+        print(ticks_diff(ticks_ms(), t))
+
     # Timings writing to buffer: 8.8ms Matt Trentini: 12ms chnyangjie: 41ms.
     # As written with output included: 25ms
     # Source must be a landscape mode buffer in MONO_VLSB format
@@ -182,6 +191,9 @@ class ST7306(framebuf.FrameBuffer):
             self._spi.write(self._tbuf)
 
     def show(self):
+        buf = self._buf if self._landscape else self._pbuf
+        if not self._landscape:
+            self._remap()
         if self._spi_init:
             self._spi_init(self._spi)
         self._wcd(b"\x2a", b"\x12\x2a")  # Column Address Set
@@ -189,5 +201,5 @@ class ST7306(framebuf.FrameBuffer):
         self._wcmd(b"\x2c")  # RAMWR
         self._dc(1)
         self._cs(0)
-        self._send(self._buf)  # 33ms @10MHz 25ms @ 30MHz nominal
+        self._send(buf)  # 33ms @10MHz 25ms @ 30MHz nominal
         self._cs(1)
