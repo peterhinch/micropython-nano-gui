@@ -15,7 +15,7 @@
 
 # NOTE: only works with 400x300 landscape display.
 
-from time import sleep_ms  # , ticks_ms, ticks_diff
+from time import sleep_ms, ticks_us, ticks_diff
 import gc
 import framebuf
 import micropython
@@ -34,9 +34,12 @@ class ST7306(framebuf.FrameBuffer):
         self._dc = dc
         self._cs = cs
         # Retain height end width args for possible portrait mode
-        assert height == 300 and width == 400, "Sizes other than 300h by 400w unsupprted."
+        assert (
+            min(height, width) == 300 and max(height, width) == 400
+        ), "Sizes other than 300 by 400 unsupprted."
         self.height = height
         self.width = width
+        self._landscape = width > height
         self._spi_init = init_spi
         mode = framebuf.MONO_VLSB
         self.palette = BoolPalette(mode)
@@ -44,8 +47,11 @@ class ST7306(framebuf.FrameBuffer):
         # each column are padding; the panel buffer has no such padding.
         gc.collect()
         self._buf = bytearray(width * ((height + 7) // 8))
-        # Hardware buffer for ST7306's special 2x4 layout
-        self._hwbuf = bytearray(width * height // 8)
+        self._tbuf = bytearray(75)
+        # Buffer for portrait mode
+        if not self._landscape:
+            self._hwbuf = bytearray(width * height // 8)
+            print("Portrait mode not yet implemented")
         super().__init__(self._buf, width, height, mode)
         self._init()
         self.show()
@@ -60,21 +66,18 @@ class ST7306(framebuf.FrameBuffer):
             self._rst(1)
             sleep_ms(50)
 
-    def _wcmd(self, buf):
+    def _wcmd(self, buf):  # Write a command
         self._dc(0)
         self._cs(0)
         self._spi.write(buf)
         self._cs(1)
 
-    def _wdata(self, data):
+    def _wcd(self, c, d):  # Write command and data
+        self._wcmd(c)
         self._dc(1)
         self._cs(0)
-        self._spi.write(data)
+        self._spi.write(d)
         self._cs(1)
-
-    def _wcd(self, c, d):
-        self._wcmd(c)
-        self._wdata(d)
 
     def _init(self):
         self._hwreset()
@@ -116,8 +119,10 @@ class ST7306(framebuf.FrameBuffer):
         sleep_ms(200)
         # Source Voltage Select
         wcd(b"\xc9", b"\x00")
-        # Memory Data Access Control (MX=1, DO=1)
+        # Memory Data Access Control (MX=1, DO=1)  MV (D5) should support rotation
+        # https://github.com/waveshareteam/ESP32-S3-Touch-RLCD-4.2C/blob/3ed69c4769c864ab9e930f4604e3acb9d109435d/examples/factory/components/esp_rlcd_st7306/esp_rlcd_st7306.c#L270
         wcd(b"\x36", b"\x48")
+        # wcd(b"\x36", b"\x08")  Does not give clean inversion
         # Data Format Select - 1-bit monochrome mode
         wcd(b"\x3a", b"\x11")
         # Gamma Mode Setting - Monochrome mode
@@ -139,31 +144,50 @@ class ST7306(framebuf.FrameBuffer):
         # Display On
         cmd(b"\x29")
 
+    # Timings writing to buffer: 8.8ms Matt Trentini: 12ms chnyangjie: 41ms.
+    # As written with output included: 25ms
+    # Source must be a landscape mode buffer in MONO_VLSB format
     @micropython.viper
-    def _convert(self):
-        source = ptr8(self._buf)
-        target = ptr8(self._hwbuf)
-        for x in range(0, 400, 2):
-            offset = (x >> 1) * 75
-            for block in range(75):
-                # Waveshare's landscape layout stores 2 x 4 pixels per byte,
-                # in bottom-to-top order; MONO_VLSB is top-to-bottom.
-                y = 299 - (block << 2)
+    def _send(self, source: ptr8):
+        tbuf = ptr8(self._tbuf)  # Temporary output buffer
+        for x in range(0, 400, 2):  # Columns are processed two at a time
+            n = -1
+            for y in range(299, -1, -8):  # Vertical mapping: 8 rows per byte
                 index = (y >> 3) * 400 + x
-                shift = y & 4
-                left = source[index] >> shift
-                right = source[index + 1] >> shift
-                pixel = ((left & 8) << 4) | ((right & 8) << 3)
-                pixel |= ((left & 4) << 3) | ((right & 4) << 2)
-                pixel |= ((left & 2) << 2) | ((right & 2) << 1)
-                pixel |= ((left & 1) << 1) | (right & 1)
-                target[offset + block] = pixel
+                if y < 299:  # On 1st pass ignore the high order nibble (padding)
+                    left = source[index] >> 4
+                    right = source[index + 1] >> 4
+                    tbuf[(n := n + 1)] = (
+                        ((left & 8) << 4)
+                        | ((right & 8) << 3)
+                        | ((left & 4) << 3)
+                        | ((right & 4) << 2)
+                        | ((left & 2) << 2)
+                        | ((right & 2) << 1)
+                        | ((left & 1) << 1)
+                        | (right & 1)
+                    )
+                left = source[index]  # Prepare low order nibble
+                right = source[index + 1]
+                tbuf[(n := n + 1)] = (
+                    ((left & 8) << 4)
+                    | ((right & 8) << 3)
+                    | ((left & 4) << 3)
+                    | ((right & 4) << 2)
+                    | ((left & 2) << 2)
+                    | ((right & 2) << 1)
+                    | ((left & 1) << 1)
+                    | (right & 1)
+                )
+            self._spi.write(self._tbuf)
 
     def show(self):
-        self._convert()  # 12ms (cf _remap_buf @ 41ms)
         if self._spi_init:
             self._spi_init(self._spi)
         self._wcd(b"\x2a", b"\x12\x2a")  # Column Address Set
         self._wcd(b"\x2b", b"\x00\xc7")  # Row Address Set
         self._wcmd(b"\x2c")  # RAMWR
-        self._wdata(self._hwbuf)  # 12.5ms measured
+        self._dc(1)
+        self._cs(0)
+        self._send(self._buf)  # 33ms @10MHz 25ms @ 30MHz nominal
+        self._cs(1)
