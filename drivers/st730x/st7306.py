@@ -1,21 +1,21 @@
-# st7306.py Driver for ST7306 LCD displays for nano-gui and microgui
-# ST7306 is a 1-bit monochrome reflective LCD controller (400x300)
+# st7306.py Driver for ST7306 400x300 monochrome LCD displays for nano-gui and microgui.
+# Waveshare ESP32-S3-RLCD-4.2
 # Reference: https://github.com/waveshareteam/ESP32-S3-RLCD-4.2
 
 # Released under the MIT License (MIT). See LICENSE.
-# Copyright (c) 2026 chnyangjie
-# See https://github.com/peterhinch/micropython-micro-gui/pull/63
-# Modifications/bugfixes:
-# _remap_buf replaced by vertical mapping and _convert: easier to understand and
-# substantially faster. Code courtesy
+# Copyright (c) 2026 chnyangjie, Peter Hinch
+
+# This code is from multiple sources.
+# Original chnyangjie PR: https://github.com/peterhinch/micropython-micro-gui/pull/63
+# Faster more efficient buffer handling using vertical mapping from Matt Trentini
 # https://github.com/mattytrentini/MicroPython_ST7305_RLCD/blob/main/st7305_rlcd.py
-# An asynchronous refresh is not required because synchronous refresh at 10MHz only
-# takes 12ms: 400*300 = 120,000 bits @ 100ns per bit -> 12ms.
-# rgb() fixed to work with demos. Display inversion removed.
+# Further efficiency gains, removal of 15,000 byte buffer in landscape mode, addition
+# of portrait mode by Peter Hinch.
 
-# NOTE: only works with 400x300 landscape display.
+# For portrait mode set height=400, width=300.
+# neg arg: produce a black-on-white display (photograph negative).
 
-from time import sleep_ms, ticks_us, ticks_diff, ticks_ms
+from time import sleep_ms
 import gc
 import framebuf
 import micropython
@@ -28,15 +28,13 @@ class ST7306(framebuf.FrameBuffer):
     def rgb(r, g, b):
         return int((r > 127) or (g > 127) or (b > 127))
 
-    def __init__(self, spi, cs, dc, rst=None, height=300, width=400, init_spi=False):
+    def __init__(self, spi, cs, dc, rst=None, height=300, width=400, neg=False, init_spi=False):
         self._spi = spi
         self._rst = rst
         self._dc = dc
         self._cs = cs
-        # Retain height end width args for possible portrait mode
-        assert (
-            min(height, width) == 300 and max(height, width) == 400
-        ), "Sizes other than 300 by 400 unsupprted."
+        sz = (min(height, width), max(height, width))
+        assert sz == (300, 400), "Sizes other than 300 by 400 unsupprted."
         self.height = height
         self.width = width
         self._landscape = width > height
@@ -47,13 +45,14 @@ class ST7306(framebuf.FrameBuffer):
         # each column are padding; the panel buffer has no such padding.
         gc.collect()
         self._buf = bytearray(width * ((height + 7) // 8))
+        # Temporary output buffer. Size of 75 (bytes per x iteration) simplifies code.
         self._tbuf = bytearray(75)
         # Buffer for portrait mode
         if not self._landscape:
             self._pbuf = bytearray(height * ((width + 7) // 8))
             self._pfbuf = framebuf.FrameBuffer(self._pbuf, 400, 300, mode)
         super().__init__(self._buf, width, height, mode)
-        self._init()
+        self._init(neg)
         self.show()
 
     def _hwreset(self):
@@ -79,7 +78,7 @@ class ST7306(framebuf.FrameBuffer):
         self._spi.write(d)
         self._cs(1)
 
-    def _init(self):
+    def _init(self, neg):
         self._hwreset()
         if self._spi_init:
             self._spi_init(self._spi)
@@ -119,10 +118,8 @@ class ST7306(framebuf.FrameBuffer):
         sleep_ms(200)
         # Source Voltage Select
         wcd(b"\xc9", b"\x00")
-        # Memory Data Access Control (MX=1, DO=1)  MV (D5) should support rotation
-        # https://github.com/waveshareteam/ESP32-S3-Touch-RLCD-4.2C/blob/3ed69c4769c864ab9e930f4604e3acb9d109435d/examples/factory/components/esp_rlcd_st7306/esp_rlcd_st7306.c#L270
+        # Memory Data Access Control (MX=1, DO=1)  MV (D5) should support rotation but no dice
         wcd(b"\x36", b"\x48")
-        # wcd(b"\x36", b"\x08")  Does not give clean inversion
         # Data Format Select - 1-bit monochrome mode
         wcd(b"\x3a", b"\x11")
         # Gamma Mode Setting - Monochrome mode
@@ -130,7 +127,8 @@ class ST7306(framebuf.FrameBuffer):
         # Panel Setting
         wcd(b"\xb8", b"\x29")
         # Display Inversion On
-        # cmd(b"\x21")
+        if neg:
+            cmd(b"\x21")
         # Column Address Set (0x12 to 0x2A)
         wcd(b"\x2a", b"\x12\x2a")
         # Row Address Set (0x00 to 0xC7)
@@ -144,16 +142,26 @@ class ST7306(framebuf.FrameBuffer):
         # Display On
         cmd(b"\x29")
 
-    @micropython.native
-    def _remap(self):  # 800ms
-        t = ticks_ms()
-        dest = self._pfbuf  # Landscape mode frame buffer
-        for x in range(self.width):  # 300
-            for y in range(self.height):  # 400
-                dest.pixel(y, 300 - x, self.pixel(x, y))
-        print(ticks_diff(ticks_ms(), t))
+    # Rotation and reflection for portrait mode.
+    @micropython.viper
+    def _rotate(self):  # 41ms
+        dest = ptr8(self._pbuf)  # bytearray underlying landscape mode frame buffer
+        src = ptr8(self._buf)  # portrait mode buffer
+        for x in range(300):  # self.width
+            z = 299 - x  # Reflection required
+            for y in range(0, 400, 8):  # self.height
+                s = src[(y >> 3) * 300 + x]  # 8 pixels of source data in one byte
+                mask = 1  # mask
+                d = (z >> 3) * 400 + y - 1  # Destination start address of eight bytes -1
+                bit = 1 << (z & 7)
+                for _ in range(8):
+                    if s & mask:
+                        dest[(d := d + 1)] |= bit
+                    else:
+                        dest[(d := d + 1)] &= ~bit
+                    mask <<= 1
 
-    # Timings writing to buffer: 8.8ms Matt Trentini: 12ms chnyangjie: 41ms.
+    # Timings writing to large buffer: 8.8ms Matt Trentini: 12ms chnyangjie: 41ms.
     # As written with output included: 25ms
     # Source must be a landscape mode buffer in MONO_VLSB format
     @micropython.viper
@@ -190,10 +198,10 @@ class ST7306(framebuf.FrameBuffer):
                 )
             self._spi.write(self._tbuf)
 
+    # In landscape mode takes ~25ms. Portrait ~66ms
     def show(self):
-        buf = self._buf if self._landscape else self._pbuf
-        if not self._landscape:
-            self._remap()
+        if not self._landscape:  # Produce a landscape mode image in ._pbuf
+            self._rotate()
         if self._spi_init:
             self._spi_init(self._spi)
         self._wcd(b"\x2a", b"\x12\x2a")  # Column Address Set
@@ -201,5 +209,6 @@ class ST7306(framebuf.FrameBuffer):
         self._wcmd(b"\x2c")  # RAMWR
         self._dc(1)
         self._cs(0)
-        self._send(buf)  # 33ms @10MHz 25ms @ 30MHz nominal
+        # send() 33ms @10MHz 25ms @ 30MHz nominal
+        self._send(self._buf if self._landscape else self._pbuf)
         self._cs(1)
