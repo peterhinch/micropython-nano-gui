@@ -84,7 +84,7 @@ access via the `Writer` and `CWriter` classes is documented
   &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;5.5.2 [Public methods](./DRIVERS.md#552-public-methods)  
   &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;5.5.3 [Events](./DRIVERS.md#553-events)  
   &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;5.5.4 [Public bound variables](./DRIVERS.md#554-public-bound-variables)  
-  6. [Waveshare ESP32-S3-RLCD-4.2](./DRIVERS.md#6-waveshare-esp32-s3-rlcd-4.2)  
+  6. [Waveshare ESP32-S3-RLCD-4.2](./DRIVERS.md#6-waveshare-esp32-s3-rlcd-4-2) Monochrome reflective LCD.  
 
  [Appendix 1 EPD Asynchronous support](./DRIVERS.md#100-appendix-1-epd-asynchronous-support)  
  [Appendix 2 Writing device drivers](./DRIVERS.md#101-appendix-2-writing-device-drivers)  
@@ -1721,7 +1721,7 @@ needed in more advanced asynchronous applications and their use is discussed in
  * `complete` Set when display update is complete. It is now safe to call
  `ssd.refresh()`.
 
- ### 5.3.4 Public bound variables
+ ### 5.5.4 Public bound variables
 
   * `height` Integer. Height in pixels. Treat as read-only.
   * `width` Integer. Width in pixels. Treat as read-only.
@@ -1731,7 +1731,7 @@ needed in more advanced asynchronous applications and their use is discussed in
   EPD.
   * `verbose=False` Set `True` to enable print statements.
 
-### 5.3.5 Partial Updates
+### 5.5.5 Partial Updates
 
 #### 2.13" display
 
@@ -1750,7 +1750,9 @@ the power supply.
 
 ###### [Contents](./DRIVERS.md#contents)
 
-# 6. Waveshare ESP32-S3-RLCD-4.2
+# 6. Waveshare ESP32 S3 RLCD 4 2
+
+[Waveshare product page](https://docs.waveshare.com/ESP32-S3-RLCD-4.2)  
 
 This reflective monochrome 4.2"LCD display uses an ST3706 controller (not ST3705
 as in the Waveshare docs). The driver is installed with
@@ -1787,6 +1789,7 @@ program may have changed the baudrate:
 def spi_init(spi):
     spi.init(baudrate=12_000_000)  # Data sheet: max is 12MHz
 ```
+
 [Driver code](https://github.com/peterhinch/micropython-nano-gui/blob/master/drivers/st730x/st7306.py)
 
 ###### [Contents](./DRIVERS.md#contents)
