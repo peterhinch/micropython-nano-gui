@@ -14,8 +14,27 @@
 
 # For portrait mode set height=400, width=300.
 # neg arg: produce a black-on-white display (photograph negative).
+"""
+Constant-time version runs in 41ms
+    @micropython.viper
+    def _rotate(self):  # 41ms
+        dest = ptr8(self._pbuf)  # bytearray underlying landscape mode frame buffer
+        src = ptr8(self._buf)  # portrait mode buffer
+        for x in range(300):  # self.width
+            z = 299 - x  # Reflection required
+            for y in range(0, 400, 8):  # self.height
+                s = src[(y >> 3) * 300 + x]  # 8 pixels of source data in one byte
+                d = (z >> 3) * 400 + y - 1  # Destination start address of eight bytes -1
+                bit = 1 << (z & 7)
+                for ybit in range(8):
+                    if s & (1 << ybit):
+                        dest[(d := d + 1)] |= bit
+                    else:
+                        dest[(d := d + 1)] &= ~bit
+                    mask <<= 1
+"""
 
-from time import sleep_ms
+from time import sleep_ms, ticks_ms, ticks_diff
 import gc
 import framebuf
 import micropython
@@ -44,7 +63,8 @@ class ST7306(framebuf.FrameBuffer):
         # MONO_VLSB stores 8 vertical pixels per byte. The last 4 rows of
         # each column are padding; the panel buffer has no such padding.
         gc.collect()
-        self._buf = bytearray(width * ((height + 7) // 8))
+        self._bsize = width * ((height + 7) // 8)  # 15000 in portait, 15200 in landscape
+        self._buf = bytearray(self._bsize)
         # Temporary output buffer. Size of 75 (bytes per x iteration) simplifies code.
         self._tbuf = bytearray(75)
         # Buffer for portrait mode
@@ -142,24 +162,25 @@ class ST7306(framebuf.FrameBuffer):
         # Display On
         cmd(b"\x29")
 
-    # Rotation and reflection for portrait mode.
+    # Rotation and reflection for portrait mode. Populate landscape mode destination
+    # from portrait mode source (self).
     @micropython.viper
-    def _rotate(self):  # 41ms
+    def _rotate(self, sz: int):  # 23-28ms
         dest = ptr8(self._pbuf)  # bytearray underlying landscape mode frame buffer
         src = ptr8(self._buf)  # portrait mode buffer
-        for x in range(300):  # self.width
-            z = 299 - x  # Reflection required
-            for y in range(0, 400, 8):  # self.height
-                s = src[(y >> 3) * 300 + x]  # 8 pixels of source data in one byte
-                mask = 1  # mask
-                d = (z >> 3) * 400 + y - 1  # Destination start address of eight bytes -1
-                bit = 1 << (z & 7)
-                for _ in range(8):
-                    if s & mask:
-                        dest[(d := d + 1)] |= bit
-                    else:
-                        dest[(d := d + 1)] &= ~bit
-                    mask <<= 1
+        for x in range(sz):  # Initially blank buffer. This is faster for empty or
+            dest[x] = 0  # mostly empty screens (compared to setting/clearing every bit)
+        if any(self._buf):  # Don't rotate an empty buffer
+            for x in range(300):  # self.width
+                z = 299 - x  # Reflection required: short axis on target
+                for y in range(0, 400, 8):  # self.height: long axis
+                    s = src[(y >> 3) * 300 + x]  # 8 pixels of source data in one byte
+                    d = (z >> 3) * 400 + y  # Destination start address of eight bytes
+                    bit = 1 << (z & 7)
+                    for ybit in range(8):
+                        if s & (1 << ybit):
+                            dest[(d)] |= bit
+                        d += 1
 
     # Timings writing to large buffer: 8.8ms Matt Trentini: 12ms chnyangjie: 41ms.
     # As written with output included: 25ms
@@ -201,7 +222,9 @@ class ST7306(framebuf.FrameBuffer):
     # In landscape mode takes ~25ms. Portrait ~66ms
     def show(self):
         if not self._landscape:  # Produce a landscape mode image in ._pbuf
-            self._rotate()
+            t = ticks_ms()
+            self._rotate(self._bsize)
+            print(ticks_diff(ticks_ms(), t))
         if self._spi_init:
             self._spi_init(self._spi)
         self._wcd(b"\x2a", b"\x12\x2a")  # Column Address Set

@@ -84,11 +84,13 @@ access via the `Writer` and `CWriter` classes is documented
   &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;5.5.2 [Public methods](./DRIVERS.md#552-public-methods)  
   &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;5.5.3 [Events](./DRIVERS.md#553-events)  
   &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;5.5.4 [Public bound variables](./DRIVERS.md#554-public-bound-variables)  
- 6. [EPD Asynchronous support](./DRIVERS.md#6-epd-asynchronous-support)  
- 7. [Writing device drivers](./DRIVERS.md#7-writing-device-drivers)  
- 8. [Links](./DRIVERS.md#8-links)  
+  6. [Waveshare ESP32-S3-RLCD-4.2](./DRIVERS.md#6-waveshare-esp32-s3-rlcd-42)  
 
-The [Micropower use](./DRIVERS.md#515-micropower-use) section is applicable to
+ [EPD Asynchronous support](./DRIVERS.md#100-appendix-1-epd-asynchronous-support)  
+ [Writing device drivers](./DRIVERS.md#101-appendix-2-writing-device-drivers)  
+ [Links](./DRIVERS.md#102-appendix-3-links)  
+
+ The [Micropower use](./DRIVERS.md#515-micropower-use) section is applicable to
 EPD's in general but makes specific reference to the 2.9" micropower demo.
 
 ###### [Main README](./README.md#1-introduction)
@@ -1746,7 +1748,50 @@ continuous background refreshes.
 Partial updates work with some visible ghosting. The driver does not interrupt
 the power supply.
 
-# 6. EPD Asynchronous support
+###### [Contents](./DRIVERS.md#contents)
+
+# 6. Waveshare ESP32-S3-RLCD-4-2
+
+This reflective monochrome 4.2"LCD display uses an ST3706 controller (not ST3705
+as in the Waveshare docs). The driver is installed with
+```bash
+mpremote mip install "github:peterhinch/micropython-nano-gui/drivers/st730x"
+```
+and imported with
+```py
+from drivers.st730x.st7306 import ST7306 as SSD
+```
+ST7306 Constructor Args
+* `spi` An initialised SPI bus instance. The device can support clock rates of
+upto 33MHz.
+* `cs` An initialised output pin. Initial value should be 1.
+* `dc` An initialised output pin. Initial value should be 0.
+* `rst` An initialised output pin. Initial value should be 1.
+* `height=300` Display dimensions in pixels. For portrait mode exchange
+`height` and `width` values.
+* `width=400`
+* `neg=False` Set `True` for white-on-black image.
+* `init_spi=False` This optional arg enables flexible options in configuring
+ the SPI bus. See below.
+
+#### The init_spi constructor arg
+
+The `False` default assumes exclusive access to the bus. It is initialised by
+`color_setup.py` and those settings are left in place. If a callback function
+is passed, it will be called prior to each SPI bus write. This is for shared
+bus applications. The callback will receive a single arg being the SPI bus
+instance. In normal use it will be a one-liner or lambda  initialising the bus.
+A minimal example is this function which caters for the case where another
+program may have changed the baudrate:
+```python
+def spi_init(spi):
+    spi.init(baudrate=12_000_000)  # Data sheet: max is 12MHz
+```
+[Driver code](https://github.com/peterhinch/micropython-nano-gui/blob/master/drivers/st730x/st7306.py)
+
+###### [Contents](./DRIVERS.md#contents)
+
+# 100 Appendix 1 EPD Asynchronous support
 
 The following applies to nano-gui. Under micro-gui the update mechanism is
 a background task. Use with micro-gui is covered
@@ -1816,7 +1861,7 @@ per hour (on the half-hour) a full update is performed.
 
 ###### [Contents](./DRIVERS.md#contents)
 
-# 7. Writing device drivers
+# 101 Appendix 2 Writing device drivers
 
 Device drivers in this repository support `nanogui`. If the display hardware is
 suitable they can also support `microgui` and `micropython-touch`. This with the
@@ -1842,7 +1887,7 @@ interfaces:
 Authors of device drivers are encouraged to raise an issue or PR so that the
 library can be extended.
 
-## 7.1 Common requirements - all drivers
+## Common requirements - all drivers
 
 #### Constructor
 
@@ -1868,7 +1913,7 @@ Optional args:
 
 * `show` Refreshes the display from the `FrameBuffer` contents.
 
-## 7.2 nanogui compatible drivers
+## nanogui compatible drivers
 
 GUI applications use 24 bit color (RGB888) regardless of display hardware. The
 driver must convert this to the format used by the frame buffer. This format may
@@ -1907,7 +1952,7 @@ from drivers.boolpalette import BoolPalette
         self.palette = BoolPalette(mode)
         super().__init__(buf, self.width, self.height, mode)
 ```
-## 7.2.1 Show
+## Show
 
 The synchronous `show` method takes no arguments; when called, the contents of
 the buffer underlying the `FrameBuffer` are output to the hardware. The method
@@ -1919,7 +1964,7 @@ copies data from `framebuf` to the hardware. Otherwise `.show` converts the
 format prior to output; where this occurs the driver is described as a mapped
 driver. The usual purpose of mapping is to reduce `framebuf` RAM use.
 
-## 7.2.2 Mapped drivers
+## Mapped drivers
 
 Typical usage is where hardware expects 16-bit or bigger data, but this would
 result in an excessively large frame buffer. If an 8-bit frame buffer is
@@ -1928,7 +1973,7 @@ saving can be taken further by using a 4-bit `framebuf` and expanding it to
 RGB565 or RGB666 via a lookup table (LUT): in this case the `framebuf` stores an
 index to the LUT (see 4 to N bit mapping below).
 
-### 7.2.2.1 8 to 16 bit mapping
+### 8 to 16 bit mapping
 
 An example of hardware that does not support 8 bit color is the SSD1351. See
 [this driver](https://github.com/peterhinch/micropython-nano-gui/blob/master/drivers/ssd1351/ssd1351_generic.py).
@@ -1938,7 +1983,7 @@ method converts these to 16-bit values at run time. The `FrameBuffer` uses
 converts 24 bit `r, g, b` colors to RGB332. The `.show` method converts from
 RGB332 to RGB565 and outputs the data.
 
-### 7.2.2.2 4 to N bit mapping
+### 4 to N bit mapping
 
 The minimum RAM use arises if the `FrameBuffer` stores 4-bit values which are
 indices into a color lookup table (LUT). The LUT holds a set of up to 16 colors
@@ -1967,7 +2012,7 @@ There is an endian-ness issue here. The convention I use is that the LS byte
 from `.rgb()` is transmitted first by `.show`. So long as `.rgb()` and the "on
 the fly" converter match, this choice is arbitrary.
 
-## 7.3 Debugging
+## Debugging
 
 If the above guidelines are followed the `Writer` (monochrome) or `CWriter`
 (color) classes, `nanogui` and `micro-gui`modules should then work
@@ -1993,22 +2038,25 @@ ssd.show()
 If this produces correct output (at all supported orientations) the GUI's can be
 expected to work.
 
-## 7.4 Supporting micro-gui and micropython-touch
+## Supporting micro-gui and micropython-touch
 
 This amounts to providing a single additional asynchronous method, `do_refresh`.
+Asynchronous support is not essential. Its purpose is to reduce the time that a
+screen refresh "blocks", with the aim of improving the responsiveness of the
+user input. Where refresh is fast, say <50ms, e.g. on small or monochrome
+displays, it may be omitted.
+
 Unlike `nano-gui` these GUI's perform refresh automatically as an `asyncio`
-task. This requires the driver to have a method conforming to this pattern:
+task. T0 take advantage of this requires the driver to have a method conforming
+to this pattern:
 ```py
 async def do_refresh(self, split: int=some_default, elock: Lock=None)
 ```
-The aim of `split` is to reduce blocking and ensure a responsive system. If
-refresh is fast (say < 50ms) a driver might ignore this arg, with `do_refresh`
-transferring the entire framebuffer to the hardware.
-
-The GUI passes a value in `split` which is an integer divisor of the display
-height in lines. The `do_refresh` method calculates the number of lines in a
-segment. For each segment it outputs those lines and yields to the scheduler. A
-default value should be provided, allowing asynchronous nanogui code to issue
+The aim of `split` is to reduce blocking and ensure a responsive system. The GUI
+passes a value in `split` which is an integer divisor of the display height in
+lines. The `do_refresh` method calculates the number of lines in a segment. For
+each segment it outputs those lines and yields to the scheduler. A default value
+should be provided, allowing asynchronous nanogui code to issue
 `await ssd.do_refresh()`.
 
 The `do_refresh` method requires the class to have a bound `Lock` (`self._lock`)
@@ -2029,7 +2077,7 @@ async def do_refresh(self, split=4, elock=None):
             await asyncio.sleep_ms(0)
 ```
 
-### 7.4.2 Enhanced asyncio support
+### Enhanced asyncio support
 
 This is an optional driver enhancement for non-ePaper displays which enables
 high performance asyncio applications to have fine control of locking. A
@@ -2080,7 +2128,7 @@ async def do_refresh(self, split=4, elock=None):
                 line += lines
             await asyncio.sleep_ms(0)
 ```
-### 7.4.3 Bus sharing
+### Bus sharing
 
 Support for sharing the SPI bus is optional. However it can be necessary. A case
 in point was a touch display whose hardware shares the SPI bus between touch
@@ -2092,7 +2140,7 @@ accepts a bus as input and re-initialises it for display controller use. See
 [the ili9341 driver](https://github.com/peterhinch/micropython-nano-gui/blob/master/drivers/ili93xx/ili9341.py)
 for the full text of this code.
 
-## 7.5 ePaper drivers
+## ePaper drivers
 
 These are characterised by long times (seconds) to perform a full refresh. This
 necessitates some synchronisation. The following levels of support may be
@@ -2110,7 +2158,7 @@ to be supported by `micro-gui`: this is the
 [Waveshare Pico ePaper 4.2](https://www.waveshare.com/pico-epaper-4.2.htm) unit
 which also supports hosts other than the Pico.
 
-### 7.5.1 Minimal support
+### Minimal support
 
 The `.show` method terminates when data has been copied to the device. At this
 point physical refresh is in progress: the user can determine when refresh is
@@ -2143,7 +2191,7 @@ def show(self):
 ```
 At the end of `.show()` the display remains busy while physical refresh occurs.
 
-### 7.5.2 Asyncio support
+### Asyncio support
 
 The aim here is to simplify application design and to obviate the need for using
 the blocking `wait_until_ready()` method. To do this a driver should detect the
@@ -2218,7 +2266,7 @@ async def _as_show(self):
     self.complete.set()
 ```
 
-### 7.5.3 Micro-gui and touch support
+### Micro-gui and touch support
 
 This is predicated on the display having a usable partial mode with minimal
 ghosting. The following methods are required:
@@ -2235,13 +2283,15 @@ it immediately prior to exit (when the hardware has signalled completion).
 
 ###### [Contents](./DRIVERS.md#contents)
 
-# 8. Links
+# 102 Appendix 3 Links
 
 #### [Device driver document.](./DRIVERS.md)
 
 #### [nano-gui](./README.md)
 
 #### [micro-gui](https://github.com/peterhinch/micropython-micro-gui)
+
+#### [micropython-touch](https://github.com/peterhinch/micropython-touch)
 
 #### [Writer and CWriter](https://github.com/peterhinch/micropython-font-to-py/blob/master/writer/WRITER.md)
 

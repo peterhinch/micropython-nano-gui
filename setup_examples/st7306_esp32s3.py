@@ -29,4 +29,5 @@ pcs = Pin(TFT_CS, Pin.OUT, value=1)
 gc.collect()
 # Datasheet maximum for write is 33MHz.
 spi = SPI(2, baudrate=10_000_000, sck=Pin(TFT_CLK), mosi=Pin(TFT_MOSI))
-ssd = SSD(spi, cs=pcs, dc=pdc, rst=prst)
+# Exchange height and width values for portrait mode.
+ssd = SSD(spi, cs=pcs, dc=pdc, rst=prst, height=300, width=400)
