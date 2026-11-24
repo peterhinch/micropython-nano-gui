@@ -152,7 +152,7 @@ simple. See [this doc](./DRIVERS.md#7-writing-device-drivers) for details.
 [16d]: https://github.com/peterhinch/micropython-nano-gui/blob/master/drivers/st7567s/st7567s.py
 [17d]: https://github.com/peterhinch/micropython-nano-gui/blob/master/drivers/gc9a01/gc9a01.py
 [18d]: https://github.com/peterhinch/micropython-nano-gui/blob/master/DRIVERS.md#55-waveshare-pico-2.13-eink-display
-[19d]: https://github.com/peterhinch/micropython-nano-gui/blob/master/drivers/st730x/st7306.py
+[19d]: https://github.com/peterhinch/micropython-nano-gui/blob/master/DRIVERS.md#6-waveshare-esp32-s3-rlcd-4-2
 
 [1m]: https://www.adafruit.com/product/684
 [2m]: https://www.adafruit.com/product/1673
