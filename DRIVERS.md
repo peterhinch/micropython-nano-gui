@@ -84,11 +84,11 @@ access via the `Writer` and `CWriter` classes is documented
   &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;5.5.2 [Public methods](./DRIVERS.md#552-public-methods)  
   &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;5.5.3 [Events](./DRIVERS.md#553-events)  
   &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;5.5.4 [Public bound variables](./DRIVERS.md#554-public-bound-variables)  
-  6. [Waveshare ESP32-S3-RLCD-4.2](./DRIVERS.md#6-waveshare-esp32-s3-rlcd-42)  
+  6. [Waveshare ESP32-S3-RLCD-4.2](./DRIVERS.md#6-waveshare-esp32-s3-rlcd-4.2)  
 
- [EPD Asynchronous support](./DRIVERS.md#100-appendix-1-epd-asynchronous-support)  
- [Writing device drivers](./DRIVERS.md#101-appendix-2-writing-device-drivers)  
- [Links](./DRIVERS.md#102-appendix-3-links)  
+ [Appendix 1 EPD Asynchronous support](./DRIVERS.md#100-appendix-1-epd-asynchronous-support)  
+ [Appendix 2 Writing device drivers](./DRIVERS.md#101-appendix-2-writing-device-drivers)  
+ [Appendix 3 Links](./DRIVERS.md#102-appendix-3-links)  
 
  The [Micropower use](./DRIVERS.md#515-micropower-use) section is applicable to
 EPD's in general but makes specific reference to the 2.9" micropower demo.
@@ -1750,7 +1750,7 @@ the power supply.
 
 ###### [Contents](./DRIVERS.md#contents)
 
-# 6. Waveshare ESP32-S3-RLCD-4-2
+# 6. Waveshare ESP32-S3-RLCD-4.2
 
 This reflective monochrome 4.2"LCD display uses an ST3706 controller (not ST3705
 as in the Waveshare docs). The driver is installed with
