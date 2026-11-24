@@ -1,0 +1,7 @@
+{
+  "urls": [
+    ["drivers/st7920/st7920_spi.py", "github:peterhinch/micropython-nano-gui/drivers/st7920/st7920_spi.py"],
+    ["drivers/boolpalette.py", "github:peterhinch/micropython-nano-gui/drivers/boolpalette.py"]
+  ],
+  "version": "0.1"
+}
