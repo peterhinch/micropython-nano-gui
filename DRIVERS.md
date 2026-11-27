@@ -1752,6 +1752,8 @@ the power supply.
 
 # 6. Waveshare ESP32 S3 RLCD 4 2
 
+![Image](images/ST7306_waveshare.JPG)
+
 [Waveshare product page](https://docs.waveshare.com/ESP32-S3-RLCD-4.2)  
 
 This reflective monochrome 4.2"LCD display uses an ST3706 controller (not ST3705
